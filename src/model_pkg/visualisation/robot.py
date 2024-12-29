@@ -1,39 +1,37 @@
-"""
-Program to visualise robot encodings.
-Intended to be run using csv files with the following structure:
-[id, 3D space dimensions, encoding values...]
-- The "id" column uniquely identifies each robot.
-- The "3D space dimensions" column defines the maximum allowable space for the robot components (e.g., 11 = 11x11x11).
-- The remaining 11x11x11 (11^3) columns represent the 3D space structure:
-  - A value of 0 indicates an empty location.
-  - Other values correspond to specific robot components (e.g., wheel, joint, sensor, etc.).
-The program visualises the encoded structure as a 3D plot for analysis and debugging.
+import torch
+import matplotlib
 
-Command to run:
-python visualize_matrix_descriptor.py <path to the csv file> <id of the robot>
-"""
-
+matplotlib.use('TkAgg')  # Backend
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches  # For legend
 import numpy as np
-import sys
 
 
-def load_matrix_desc(filename: str, id: str):
-    matrix_descs = []
-    with open(filename) as file:
+def load_grid_from_file(filepath: str, robot_id: int, robot_id_column_idx: int = 0) -> tuple[torch.Tensor, int]:
+    """
+    Retrieve grid data for 3D space data from file for robot_id specified.
+    Intended to be used on raw (non-combined) csv files.
+    If using for combined files, default robot_id_column_idx will refer to the first column (new combined ID),
+    for original ID, use idx 2 but note there may be duplicate ID's, first found will be returned.
+
+    :param filepath: Filepath
+    :param robot_id: Robot ID to get grid data for
+    :param robot_id_column_idx: Column index containing robot ID, default 0
+    :return: Grid data as tensor, Row number
+    """
+    with open(filepath) as file:
         lines = file.readlines()
-        for line in lines:
+        for row_idx, line in enumerate(lines):
             robot_encoding = line.split(',')
             # Checks id and skips iteration if not the one we want
-            if robot_encoding[0] != id:
+            if int(robot_encoding[robot_id_column_idx]) != robot_id:
                 continue
             i = 0
             j = 0
             row = []  # x-axis
             roww = []  # y-axis
             matrix = []  # z-axis (vertical)
-            for elt in robot_encoding[2:]:
+            for elt in robot_encoding[-1331:]:
                 row.append(int(elt))
                 i += 1
                 if i == 11:
@@ -45,37 +43,50 @@ def load_matrix_desc(filename: str, id: str):
                     matrix.append(roww)
                     roww = []
                     j = 0
-            return matrix
+            return torch.tensor(matrix, dtype=torch.float32), row_idx + 1
 
 
-if __name__ == "__main__":
+def visualise_robot(grid_data: torch.Tensor, title: str = None) -> None:
+    """
+    Visualise robot from tensor of grid data.
 
-    filename = sys.argv[1]
-    robot_id = sys.argv[2]
-    matrix = np.array(load_matrix_desc(filename, robot_id))
+    :param grid_data: 11x11x11 3D space coordinate data
+    :param title: Optional plot title
+    :return: None
+    """
+    # Verify grid data has 1331 elements (11x11x11 flattened)
+    assert grid_data.numel() == 1331, "Grid data does not have the correct number of elements (1331)."
 
-    if matrix.size == 1:
-        print(f"Robot ID not found.")
-        sys.exit(1)
+    # Reshape grid data to (11, 11, 11) and ensure integer type
+    matrix = grid_data.view(11, 11, 11).numpy().astype(np.int32)
 
-    # comments show files with no skeleton / files with skeleton
+    # Comments show files with no skeleton / files with skeleton
     colours = np.where(matrix == 1, "blue", matrix)  # wheel/skeleton
     colours = np.where(colours == '2', "green", colours)  # joint/wheel
     colours = np.where(colours == '3', "red", colours)  # caster/sensor
-    colours = np.where(colours == '4', "yellow", colours)  # sensor/joint
+    colours = np.where(colours == '4', "orange", colours)  # sensor/joint
     # colours = np.where(colours == '5', "pink", colours)  # not used/caster
 
-    # and plot everything
+    # Plot everything
     ax = plt.figure().add_subplot(projection='3d')
     ax.voxels(matrix, facecolors=colours, edgecolor='k')
 
+    # Set axis limits, can have rendering issues when left to automatic
+    ax.set_xlim(0, 11.99)
+    ax.set_ylim(0, 11.99)
+    ax.set_zlim(0, 11.99)
+
+    # Set title
+    if title:
+        ax.set_title(title, pad=20)
+
     # Create a legend
     legend_elements = [
-        # When using file that includes the skeleton, change to commenbted values or add dynamic functionality
+        # When using files that include the skeleton, change to commented values or add dynamic functionality
         mpatches.Patch(color="blue", label="Wheel"),  # "Skeleton"
         mpatches.Patch(color="green", label="Joint"),  # Wheel
         mpatches.Patch(color="red", label="Caster"),  # Sensor
-        mpatches.Patch(color="yellow", label="Sensor")  # Joint
+        mpatches.Patch(color="orange", label="Sensor")  # Joint
         # mpatches.Patch(color="pink", label="Caster")  # Caster (this value is not used with files without skeleton)
     ]
 
