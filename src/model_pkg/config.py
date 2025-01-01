@@ -18,13 +18,13 @@ MODEL_DIR = BASE_DIR / "models"
 BATCH_SIZE = 64
 LEARNING_RATE = 0.001
 EPOCHS = 10
+NUM_CLASSES = 5  # Descriptor values including 0
 
 # VAE configurations
-INPUT_DIM = 784
+INPUT_DIM = (11, 11, 11)
 LATENT_DIM = 2
-HIDDEN_DIM = 128
 
-# Set seeds for repeatability
+# Seeds for repeatability
 RANDOM_STATE = 42
 torch.manual_seed(RANDOM_STATE)
 torch.backends.cudnn.deterministic = True

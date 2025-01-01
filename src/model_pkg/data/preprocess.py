@@ -1,6 +1,11 @@
+"""
+Functions to load and split data
+"""
+
 import pandas as pd
 from sklearn.model_selection import train_test_split
-from ..config import *
+from pathlib import Path
+from ..config import PROCESSED_DIR, RANDOM_STATE
 
 
 def combine_csv_files(directory: str) -> pd.DataFrame:
@@ -52,6 +57,7 @@ def combine_csv_files(directory: str) -> pd.DataFrame:
     # Summary of combined DataFrame
     print(f"\nCombined {len(combined_data)} files into a single DataFrame.")
     print(f"Shape of combined DataFrame: {combined_df.shape}\n")
+
     return combined_df
 
 

@@ -1,24 +1,22 @@
 """
-Loads data and creates dataloaders
+Creates datasets and dataloaders from dataframe
 """
 
 import pandas as pd
 import torch.utils.data
 from torch.utils.data import TensorDataset, DataLoader
 
-from ..config import *
 
-
-def create_dataset_and_loader(dataframe: pd.DataFrame, shuffle: bool = False, batch_size: int = BATCH_SIZE) -> tuple[TensorDataset, DataLoader]:
+def create_dataset_and_loader(dataframe: pd.DataFrame, batch_size: int, shuffle: bool = False) -> tuple[TensorDataset, DataLoader]:
     """
     Extracts the robot_id and 3D grid data, wraps in TensorDatasets and creates DataLoaders.
     Reshapes grid_data to form 11x11x11 matrix.
 
     Dataloader objects will return (robot_ids, grid_data) when accessing.
 
-    :param shuffle: Boolean to shuffle dataloader, default False
     :param dataframe: DataFrame to create dataloader from
-    :param batch_size: Batch size to use, defaults to config setting
+    :param batch_size: Batch size to use
+    :param shuffle: Boolean to shuffle dataloader, default False
     :return: TensorDataset, DataLoader objects
     """
     print("Creating DataLoader object...")

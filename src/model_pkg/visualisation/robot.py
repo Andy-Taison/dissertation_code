@@ -1,6 +1,9 @@
+"""
+Functions to visualise robots
+"""
+
 import torch
 import matplotlib
-
 matplotlib.use('TkAgg')  # Backend
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches  # For legend
@@ -43,6 +46,7 @@ def load_grid_from_file(filepath: str, robot_id: int, robot_id_column_idx: int =
                     matrix.append(roww)
                     roww = []
                     j = 0
+
             return torch.tensor(matrix, dtype=torch.float32), row_idx + 1
 
 
