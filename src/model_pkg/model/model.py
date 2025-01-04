@@ -103,6 +103,8 @@ class VAE(nn.Module):
         """
         super(VAE, self).__init__()
         self.name = model_name
+        self.input_dim = input_dim
+        self.latent_dim = latent_dim
         self.encoder = Encoder(input_dim, latent_dim)
         self.sampling = Sample()
         self.decoder = Decoder(latent_dim, input_dim)
@@ -125,7 +127,7 @@ class VAE(nn.Module):
         z = self.sampling(z_mean, z_log_var)
         x_decoder = self.decoder(z)
 
-        x_decoder = x_decoder.view(-1, *self.output_dim)  # Reshape to match original dimensions
+        x_decoder = x_decoder.view(-1, *self.input_dim)  # Reshape to match original dimensions
 
         # Adjust values to obtain original descriptor values
         x_reconstructed = x_decoder * 4  # Scale output to [0, 4]

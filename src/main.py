@@ -34,7 +34,7 @@ def run():
     # Sample
     robot_ids, grid_data = next(iter(train_loader))
     print(f"robot_ids batch shape: {robot_ids.shape}, sample ID: {robot_ids[0]}")
-    print(f"grid_data batch shape: {grid_data.shape}, grid data sample shape: {grid_data[0].shape}\nsample grid_data: \n{grid_data[0]}\n")
+    print(f"grid_data batch shape: {grid_data.shape}, grid data sample shape: {grid_data[0].shape}\n")
 
     # visualise_robot(grid_data[0], "Test title")
 
@@ -49,17 +49,29 @@ def run():
     #     print(f"Parameter: {name}, Requires Grad: {param.requires_grad}")
     # print()
 
-    # Optimizer
+    # Initialise training components
+    criterion = VaeLoss("mse")
     optimizer = optim.Adam(vae.parameters(), lr=config.LEARNING_RATE)
 
-    # CHECK SAVING AND LOADING OF HISTORY
+    # CHECK LOADING OF HISTORY
     # CHECK LOADING AND RUNNING OF SAVED MODELS
     # CHECK ROLL BACK
 
-    # Train VAE
-    # train()
+    # for testing
+    from torch.utils.data import DataLoader, Subset
+    subset_indices = list(range(128))  # Indices for the first 128 samples
+    subset_train_ds = Subset(train_ds, subset_indices)
+    subset_val_ds = Subset(val_ds, subset_indices)
 
-    print("Pipeline complete.\n")
+    # Create a new DataLoader with batch size of 64
+    subset_train_loader = DataLoader(subset_train_ds, batch_size=config.BATCH_SIZE, shuffle=True)
+    subset_val_loader = DataLoader(subset_val_ds, batch_size=config.BATCH_SIZE)
+
+    # Train VAE
+    history = train_val(vae, subset_train_loader, subset_val_loader, criterion, optimizer, config.EPOCHS)
+    # history = train_val(vae, train_loader, val_loader, criterion, optimizer, config.EPOCHS)
+
+    print("Pipeline complete.")
 
 
 if __name__ == "__main__":

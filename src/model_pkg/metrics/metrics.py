@@ -16,8 +16,8 @@ def compute_prediction_table(x: torch.Tensor, x_reconstructed: torch.Tensor) -> 
     :return: Prediction table
     """
     # Flatten tensors
-    x_flat = x.view(-1)
-    x_reconstructed_flat = x_reconstructed.view(-1)
+    x_flat = x.view(-1).to(torch.long)
+    x_reconstructed_flat = x_reconstructed.view(-1).to(torch.long)
 
     prediction_table = torch.zeros(NUM_CLASSES, NUM_CLASSES, dtype=torch.int64)
 

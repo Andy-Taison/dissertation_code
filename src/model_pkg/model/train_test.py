@@ -227,7 +227,7 @@ def train_val(model: torch.nn.Module, train_dataloader: torch.utils.data.DataLoa
     # Initialise training history when training from scratch
     if training_history is None:
         training_history = TrainingHistory(model, train_dataloader, optimizer, loss_fn)
-        print(f"New training history created {training_history.model_name}")
+        print(f"New training history created '{training_history.model_name}'.\n")
     else:
         # Check passed training history matches other objects
         if training_history.model_name != model.name:
@@ -244,7 +244,7 @@ def train_val(model: torch.nn.Module, train_dataloader: torch.utils.data.DataLoa
 
     for epoch_idx in range(training_history.epochs_run, epochs):
         epoch = epoch_idx + 1
-        print(f"Epoch {epoch}  {model.name}\n---------------------------------------------------")
+        print(f"Epoch {epoch}: '{model.name}'\n---------------------------------------------------")
 
         train_metrics = train(model, train_dataloader, loss_fn, optimizer, beta)
         val_metrics = test(model, val_dataloader, loss_fn, beta)
@@ -255,8 +255,9 @@ def train_val(model: torch.nn.Module, train_dataloader: torch.utils.data.DataLoa
         training_history.save_history()
 
         if terminate:
+            print("Early stop terminating...")
             break
 
-    print("Done!")
+    print("Done!\n")
 
     return training_history

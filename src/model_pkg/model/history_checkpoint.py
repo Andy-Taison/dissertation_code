@@ -34,7 +34,7 @@ def checkpoint_model(model: torch.nn.Module, optimizer: torch.optim.Optimizer, e
         checkpoint_path.parent.mkdir(parents=True, exist_ok=True)
 
     torch.save(checkpoint, checkpoint_path)
-    print(f"Model saved as '{checkpoint_path.name}' in '{checkpoint_path.parent}'\n")
+    print(f"Model saved as '{checkpoint_path.name}' in '{checkpoint_path.parent}'.\n")
 
 
 def load_model_checkpoint(model: torch.nn.Module, optimizer: torch.optim.Optimizer, filepath: Path | str, scheduler: torch.optim.lr_scheduler.LRScheduler = None) -> int:
@@ -239,6 +239,7 @@ class TrainingHistory:
 
         # Save the state of the object
         torch.save(self.__dict__, filepath)
+        print(f"History saved to '{filepath}'.\n")
 
     @classmethod
     def load_history(cls, file: str):
