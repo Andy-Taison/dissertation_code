@@ -1,7 +1,6 @@
 """
 Configuration file
 """
-
 import torch
 import numpy as np
 from pathlib import Path
@@ -10,14 +9,16 @@ from pathlib import Path
 BASE_DIR = Path("../")
 
 # Directories
-DATA_DIR = BASE_DIR / "data" / "raw"
-PROCESSED_DIR = BASE_DIR / "data" / "processed"
-MODEL_DIR = BASE_DIR / "models"
+DATA_DIR = BASE_DIR / "data" / "raw"  # Path to raw data CSV files
+PROCESSED_DIR = BASE_DIR / "data" / "processed"  # Path to store processed CSV files
+MODEL_DIR = BASE_DIR / "outputs" / "models"  # Path to store trained models
+HISTORY_DIR = BASE_DIR / "outputs" / "history"  # Path to store training history metrics
 
 # Training configurations
 BATCH_SIZE = 64
 LEARNING_RATE = 0.001
-EPOCHS = 10
+EPOCHS = 10  # Maximum number of epochs to run
+PATIENCE = 15  # How many epochs to run before stopping with no improvement in F1 score or loss (reconstruction + beta * KL)
 NUM_CLASSES = 5  # Descriptor values including 0
 
 # VAE configurations

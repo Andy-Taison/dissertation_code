@@ -133,3 +133,4 @@ Thumbs.db
 data/processed/test.csv
 data/processed/train.csv
 data/processed/val.csv
+src/test.py

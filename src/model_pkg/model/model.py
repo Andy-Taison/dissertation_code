@@ -5,7 +5,7 @@ Defines VAE model modules
 import torch
 import torch.nn as nn
 
-class Encoder(nn.Modele):
+class Encoder(nn.Module):
     """
     Encoder module.
     """
@@ -15,7 +15,7 @@ class Encoder(nn.Modele):
         :param latent_dim: Dimensionality of latent space
         """
         super(Encoder, self).__init__()
-        self.flatten = nn.flatten()
+        self.flatten = nn.Flatten()
         self.fc1 = nn.Linear(input_dim[0] * input_dim[1] * input_dim[2], 512)
         self.fc2 = nn.Linear(512, 256)
         self.z_mean = nn.Linear(256, latent_dim)
@@ -65,6 +65,7 @@ class Decoder(nn.Module):
         x = torch.relu(self.fc1(z))
         x = torch.relu(self.fc2(x))
         x = torch.sigmoid(self.fc3(x))  # Normalize output to [0, 1]
+
         return x
 
 
@@ -81,6 +82,7 @@ class Sample(nn.Module):
         :return: Sampled latent vector with shape (batch_size, latent_dim)
         """
         epsilon = torch.randn_like(z_mean)
+
         return z_mean + torch.exp(0.5 * z_log_var) * epsilon
 
 
@@ -93,12 +95,14 @@ class VAE(nn.Module):
         sampling: Reparameterization trick to sample z
         decoder: Reconstructs input from sampled z
     """
-    def __init__(self, input_dim: tuple[int, int, int], latent_dim: int):
+    def __init__(self, input_dim: tuple[int, int, int], latent_dim: int, model_name: str):
         """
         :param input_dim: Dimensions of input tensor (and reconstructed), (e.g., (11, 11, 11))
         :param latent_dim: Dimensionality of latent space
+        :param model_name: Name of model instance, used to identify models and name saved files, ENSURE UNIQUE to avoid overwriting
         """
         super(VAE, self).__init__()
+        self.name = model_name
         self.encoder = Encoder(input_dim, latent_dim)
         self.sampling = Sample()
         self.decoder = Decoder(latent_dim, input_dim)

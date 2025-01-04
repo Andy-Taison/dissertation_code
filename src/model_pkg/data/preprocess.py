@@ -5,7 +5,7 @@ Functions to load and split data
 import pandas as pd
 from sklearn.model_selection import train_test_split
 from pathlib import Path
-from ..config import PROCESSED_DIR, RANDOM_STATE
+from ..config import RANDOM_STATE
 
 
 def combine_csv_files(directory: str) -> pd.DataFrame:
@@ -61,16 +61,17 @@ def combine_csv_files(directory: str) -> pd.DataFrame:
     return combined_df
 
 
-def split_and_save_data(dataframe: pd.DataFrame, val_size: float = 0.1, test_size: float = 0.2) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+def split_and_save_data(dataframe: pd.DataFrame, processed_directory: str, val_size: float = 0.1, test_size: float = 0.2) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
     """
     Split data into train, validate, and test sets, saves as CSV files.
 
     :param dataframe: Data
+    :param processed_directory: Directory to store dataset CSV files
     :param val_size: Proportion of entire dataset for the validation set
     :param test_size: Proportion of entire dataset for the test set
     :return: train_data, val_data, test_data
     """
-    processed_data_dir = Path(PROCESSED_DIR)
+    processed_data_dir = Path(processed_directory)
     processed_data_dir.mkdir(parents=True, exist_ok=True)
 
     train_path = processed_data_dir / "train.csv"

@@ -3,19 +3,20 @@ Training functions
 """
 
 import torch
-from ..config import DEVICE
+from ..config import DEVICE, NUM_CLASSES
 from ..metrics.metrics import calculate_metrics
+from .history_checkpoint import TrainingHistory
 
-def train(model: torch.nn.Module, dataloader: torch.utils.data.DataLoader, loss_fn, optimizer: torch.optim.Optimizer, num_classes: int) -> dict:
+def train(model: torch.nn.Module, dataloader: torch.utils.data.DataLoader, loss_fn, optimizer: torch.optim.Optimizer, beta: int = 1) -> dict:
     """
     Single epoch training loop.
     Uses decoder output to calculate loss (differentiable), and reconstructed output (decoder output scaled, rounded and clamped) for metrics.
 
     :param model: VAE model
     :param dataloader: DataLoader object
-    :param loss_fn: Loss function, should return reconstruction loss and KL div individually
+    :param loss_fn: Loss function, should return reconstruction loss and KL div individually as tensors
     :param optimizer: Optimizer object
-    :param num_classes: Number of classes/descriptor values
+    :param beta: KL divergence scaling factor, higher values lead to a more constrained latent space, lower values lead to a more flexible latent space representation, default 1 (standard VAE)
     :return: Dictionary of epoch metrics
     """
     # Training mode
@@ -28,10 +29,10 @@ def train(model: torch.nn.Module, dataloader: torch.utils.data.DataLoader, loss_
     total_recon_loss = 0
     total_kl_div = 0
     total_accuracy = 0
-    total_recall = torch.zeros(num_classes).to(DEVICE)  # Total weighted recall for each class/descriptor value
-    total_precision = torch.zeros(num_classes).to(DEVICE)  # Total weighted precision for each class/descriptor value
-    total_f1 = torch.zeros(num_classes).to(DEVICE)  # Total weighted F1 score for each class/descriptor value
-    total_support = torch.zeros(num_classes).to(DEVICE)  # Support for each class/descriptor value
+    total_recall = torch.zeros(NUM_CLASSES).to(DEVICE)  # Total weighted recall for each class/descriptor value
+    total_precision = torch.zeros(NUM_CLASSES).to(DEVICE)  # Total weighted precision for each class/descriptor value
+    total_f1 = torch.zeros(NUM_CLASSES).to(DEVICE)  # Total weighted F1 score for each class/descriptor value
+    total_support = torch.zeros(NUM_CLASSES).to(DEVICE)  # Support for each class/descriptor value
 
     for batch_idx, (ids, grid_data) in enumerate(dataloader):
         # Move to GPU if available
@@ -45,7 +46,7 @@ def train(model: torch.nn.Module, dataloader: torch.utils.data.DataLoader, loss_
 
         # Compute loss
         recon_loss, kl_div = loss_fn(x, x_decoder, z_mean, z_log_var)
-        loss = recon_loss + kl_div
+        loss = recon_loss + beta * kl_div
 
         # Backpropagation
         loss.backward()  # Compute gradients
@@ -54,7 +55,7 @@ def train(model: torch.nn.Module, dataloader: torch.utils.data.DataLoader, loss_
         # Metrics
         total_recon_loss += recon_loss.item()
         total_kl_div += kl_div.item()
-        accuracy, recall, precision, f1_score, prediction_table = calculate_metrics(x, x_reconstructed, num_classes)
+        accuracy, recall, precision, f1_score, prediction_table = calculate_metrics(x, x_reconstructed)
         total_accuracy += accuracy
         batch_support = torch.sum(prediction_table, dim=1)  # True positives + False negatives
         total_recall += recall * batch_support  # Recall weighted by batch support
@@ -96,19 +97,166 @@ def train(model: torch.nn.Module, dataloader: torch.utils.data.DataLoader, loss_
     return {
         "recon": epoch_recon_loss,
         "kl": epoch_kl_div,
+        "beta": beta,
         "accuracy": epoch_accuracy,
-        "class_recall": epoch_recall_per_class.tolist(),
+        "class_recall": epoch_recall_per_class,
         "weighted_recall": epoch_recall_weighted_avg,
-        "class_precision": epoch_precision_per_class.tolist(),
+        "class_precision": epoch_precision_per_class,
         "weighted_precision": epoch_precision_weighted_avg,
-        "class_f1": epoch_f1_per_class.tolist(),
+        "class_f1": epoch_f1_per_class,
+        "weighted_f1": epoch_f1_weighted_avg,
+        "lr": optimizer.param_groups[0]['lr']
+    }
+
+
+def test(model: torch.nn.Module, dataloader: torch.utils.data.DataLoader, loss_fn, beta: int = 1) -> dict:
+    """
+    Single epoch test/validation loop.
+    Uses decoder output to calculate loss (differentiable), and reconstructed output (decoder output scaled, rounded and clamped) for metrics.
+
+    :param model: VAE model
+    :param dataloader: DataLoader object
+    :param loss_fn: Loss function, should return reconstruction loss and KL div individually as tensors
+    :param beta: KL divergence scaling factor, higher values lead to a more constrained latent space, lower values lead to a more flexible latent space representation, default 1 (standard VAE)
+    :return: Dictionary of epoch metrics
+    """
+    # Evaluation mode
+    model.eval()
+
+    size = len(dataloader.dataset)
+    processed = 0
+
+    # Cumulative totals
+    total_recon_loss = 0
+    total_kl_div = 0
+    total_accuracy = 0
+    total_recall = torch.zeros(NUM_CLASSES).to(DEVICE)  # Total weighted recall for each class/descriptor value
+    total_precision = torch.zeros(NUM_CLASSES).to(DEVICE)  # Total weighted precision for each class/descriptor value
+    total_f1 = torch.zeros(NUM_CLASSES).to(DEVICE)  # Total weighted F1 score for each class/descriptor value
+    total_support = torch.zeros(NUM_CLASSES).to(DEVICE)  # Support for each class/descriptor value
+
+    with torch.no_grad():
+        for batch_idx, (ids, grid_data) in enumerate(dataloader):
+            # Move to GPU if available
+            x = grid_data.to(DEVICE)
+
+            # Forward pass
+            x_reconstructed, x_decoder, z, z_mean, z_log_var = model(x)
+
+            # Compute loss
+            recon_loss, kl_div = loss_fn(x, x_decoder, z_mean, z_log_var)
+            loss = recon_loss + beta * kl_div
+
+            # Metrics
+            total_recon_loss += recon_loss.item()
+            total_kl_div += kl_div.item()
+            accuracy, recall, precision, f1_score, prediction_table = calculate_metrics(x, x_reconstructed)
+            total_accuracy += accuracy
+            batch_support = torch.sum(prediction_table, dim=1)  # True positives + False negatives
+            total_recall += recall * batch_support  # Recall weighted by batch support
+            total_precision += precision * batch_support  # Precision weighted by batch support
+            total_f1 += f1_score * batch_support  # F1 scores weighted by batch support
+            total_support += batch_support
+
+            # Update count
+            processed += len(ids)
+
+            # print progress every 5 batches
+            if batch_idx % 5 == 0:
+                print(f"[{processed:>5d}/{size:>5d}]")
+                print(f"Batch metrics (test):")
+                print(f"\tLoss = {loss.item():>8.4f}")
+                print(f"\tAccuracy = {accuracy * 100:>6.2f}%")
+                print(f"\tF1 score (unweighted average across all classes for batch) = {f1_score.mean().item():>6.4f}\n")
+
+    # Averages
+    epoch_recon_loss = total_recon_loss / len(dataloader)
+    epoch_kl_div = total_kl_div / len(dataloader)
+    epoch_accuracy = total_accuracy / len(dataloader)
+    epoch_recall_per_class = total_recall / total_support  # average recall score for each class
+    epoch_recall_per_class[torch.isnan(epoch_recall_per_class)] = 0  # Replace nan values from division by zero
+    epoch_recall_weighted_avg = (total_recall / total_support.sum()).sum().item()  # normalises weighted recall and sums to get weighted average
+    epoch_precision_per_class = total_precision / total_support  # average precision score for each class
+    epoch_precision_per_class[torch.isnan(epoch_precision_per_class)] = 0  # Replace nan values from division by zero
+    epoch_precision_weighted_avg = (total_precision / total_support.sum()).sum().item()  # normalises weighted precision and sums to get weighted average
+    epoch_f1_per_class = total_f1 / total_support  # average f1 score for each class
+    epoch_f1_per_class[torch.isnan(epoch_f1_per_class)] = 0  # Replace nan values from division by zero
+    epoch_f1_weighted_avg = (total_f1 / total_support.sum()).sum().item()  # normalises weighted f1 and sums to get weighted average
+
+    print(f"Test metrics (averages):")
+    print(f"\tRecon loss = {epoch_recon_loss:>8.4f}")
+    print(f"\tKL div = {epoch_kl_div:>8.4f}")
+    print(f"\tAccuracy = {epoch_accuracy * 100:>6.2f}%")
+    print(f"\tF1 score (weighted average) = {epoch_f1_weighted_avg:>6.4f}\n")
+
+    return {
+        "recon": epoch_recon_loss,
+        "kl": epoch_kl_div,
+        "beta": beta,
+        "accuracy": epoch_accuracy,
+        "class_recall": epoch_recall_per_class,
+        "weighted_recall": epoch_recall_weighted_avg,
+        "class_precision": epoch_precision_per_class,
+        "weighted_precision": epoch_precision_weighted_avg,
+        "class_f1": epoch_f1_per_class,
         "weighted_f1": epoch_f1_weighted_avg
     }
 
 
-def validate():
-    pass
+def train_val(model: torch.nn.Module, train_dataloader: torch.utils.data.DataLoader, val_dataloader: torch.utils.data.DataLoader, loss_fn, optimizer: torch.optim.Optimizer, epochs: int, beta: int = 1, training_history: TrainingHistory = None, scheduler: torch.optim.lr_scheduler.LRScheduler = None) -> TrainingHistory:
+    """
+    Train and validate dataloader objects should use the same batch size (train dataloader batch size used for history tracking).
+    Training continues from last_updated_model if training_history provided.
 
+    Utilises early stopping, see check_and_save_model_improvement in TrainingHistory
 
-def train_val(model, dataloader, loss_fn, optimizer, epochs):
-    pass
+    :param model: Model to train
+    :param train_dataloader: Training dataloader
+    :param val_dataloader: Validation dataloader
+    :param loss_fn: Criterion loss function
+    :param optimizer: Optimizer
+    :param epochs: Maximum number of epochs to run (if early stopping not triggered)
+    :param beta: Optional beta to scale KL divergence, defaults 1 (standard VAE)
+    :param training_history: Optional, pass to continue training from saved history
+    :param scheduler: Scheduler if using (optional)
+    :return: TrainingHistory tracking object
+    """
+    if train_dataloader.__getattribute__("batch_size") != val_dataloader.__getattribute__("batch_size"):
+        raise ValueError("Train and validate dataloaders do not have the same batch size.")
+
+    # Initialise training history when training from scratch
+    if training_history is None:
+        training_history = TrainingHistory(model, train_dataloader, optimizer, loss_fn)
+        print(f"New training history created {training_history.model_name}")
+    else:
+        # Check passed training history matches other objects
+        if training_history.model_name != model.name:
+            raise ValueError(f"Training history model name: {training_history.model_name} does not match passed model name: {model.name}.")
+        if training_history.batch_size != train_dataloader.__getattribute__("batch_size"):
+            raise ValueError(f"Training history batch size: {training_history.batch_size} does not match passed dataloader batch size: {train_dataloader.__getattribute__('batch_size')}.")
+        if training_history.optim != optimizer.__class__.__name__:
+            raise ValueError(f"Training history optimizer: {training_history.optim} does not match passed optimizer: {optimizer.__class__.__name__}.")
+        if training_history.loss_fn != loss_fn.loss_name:
+            raise ValueError(f"Training history loss function: {training_history.loss_fn} does not match passed loss function: {loss_fn.loss_name}.")
+        if training_history.model_architecture != [(name, module) for name, module in model.named_modules()]:
+            raise ValueError(f"Training history model architecture does not match passed model architecture.\nTraining history architecture:\n{training_history.model_architecture}")
+        print(f"Continuing training, epochs run so far: {training_history.epochs_run}\n")
+
+    for epoch_idx in range(training_history.epochs_run, epochs):
+        epoch = epoch_idx + 1
+        print(f"Epoch {epoch}  {model.name}\n---------------------------------------------------")
+
+        train_metrics = train(model, train_dataloader, loss_fn, optimizer, beta)
+        val_metrics = test(model, val_dataloader, loss_fn, beta)
+
+        terminate = training_history.check_and_save_model_improvement(val_metrics, epoch, model, optimizer, scheduler)
+        training_history.update_epoch(train_metrics, "train")
+        training_history.update_epoch(val_metrics, "val")
+        training_history.save_history()
+
+        if terminate:
+            break
+
+    print("Done!")
+
+    return training_history

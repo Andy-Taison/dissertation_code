@@ -17,7 +17,7 @@ def run():
 
     # Preprocess data and save
     # combined_data = combine_csv_files(config.DATA_DIR)
-    # train_data, val_data, test_data = split_and_save_data(combined_data)
+    # train_data, val_data, test_data = split_and_save_data(combined_data, config.PROCESSED_DIR)
 
     # Load processed data
     processed_data_dir = Path(config.PROCESSED_DIR)
@@ -39,18 +39,22 @@ def run():
     # visualise_robot(grid_data[0], "Test title")
 
     # Define model
-    vae = VAE(config.INPUT_DIM, config.LATENT_DIM).to(config.DEVICE)
+    vae = VAE(config.INPUT_DIM, config.LATENT_DIM, "test").to(config.DEVICE)
 
     # Inspect
-    print("Model summary:")
-    summary(vae, config.INPUT_DIM)
-    print("\nModel parameters:")
-    for name, param in vae.named_parameters():
-        print(f"Parameter: {name}, Requires Grad: {param.requires_grad}")
-    print()
+    # print("Model summary:")
+    # summary(vae, config.INPUT_DIM)
+    # print("\nModel parameters:")
+    # for name, param in vae.named_parameters():
+    #     print(f"Parameter: {name}, Requires Grad: {param.requires_grad}")
+    # print()
 
-    # Criterion
-    criterion = optim.Adam(vae.parameters(), lr=config.LEARNING_RATE)
+    # Optimizer
+    optimizer = optim.Adam(vae.parameters(), lr=config.LEARNING_RATE)
+
+    # CHECK SAVING AND LOADING OF HISTORY
+    # CHECK LOADING AND RUNNING OF SAVED MODELS
+    # CHECK ROLL BACK
 
     # Train VAE
     # train()

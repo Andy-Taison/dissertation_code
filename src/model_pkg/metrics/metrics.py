@@ -1,6 +1,11 @@
-import torch
+"""
+Metric calculation functions
+"""
 
-def compute_prediction_table(x: torch.Tensor, x_reconstructed: torch.Tensor, num_classes: int) -> torch.Tensor:
+import torch
+from ..config import NUM_CLASSES
+
+def compute_prediction_table(x: torch.Tensor, x_reconstructed: torch.Tensor) -> torch.Tensor:
     """
     Compute prediction table where each row corresponds to a descriptor value (class) and each column represents the predicted (reconstructed) value.
     Values represent counts.
@@ -8,14 +13,13 @@ def compute_prediction_table(x: torch.Tensor, x_reconstructed: torch.Tensor, num
 
     :param x: Input tensor
     :param x_reconstructed: Reconstructed tensor with same shape as input tensor
-    :param num_classes: Number of descriptor values including 0
     :return: Prediction table
     """
     # Flatten tensors
     x_flat = x.view(-1)
     x_reconstructed_flat = x_reconstructed.view(-1)
 
-    prediction_table = torch.zeros(num_classes, num_classes, dtype=torch.int64)
+    prediction_table = torch.zeros(NUM_CLASSES, NUM_CLASSES, dtype=torch.int64)
 
     for idx, cls in enumerate(x_flat):
         prediction_table[cls, x_reconstructed_flat[idx]] += 1
@@ -32,6 +36,7 @@ def compute_accuracy(prediction_table: torch.Tensor) -> float:
     """
     correct = torch.sum(torch.diag(prediction_table))
     total = torch.sum(prediction_table)
+
     return (correct / total).item()
 
 def compute_recall(prediction_table: torch.Tensor) -> torch.Tensor:
@@ -47,6 +52,7 @@ def compute_recall(prediction_table: torch.Tensor) -> torch.Tensor:
 
     recall = tp / tp_fn
     recall[torch.isnan(recall)] = 0  # Replace nan values from division by zero
+
     return recall
 
 def compute_precision(prediction_table: torch.Tensor) -> torch.Tensor:
@@ -62,6 +68,7 @@ def compute_precision(prediction_table: torch.Tensor) -> torch.Tensor:
 
     precision = tp / tp_fp
     precision[torch.isnan(precision)] = 0  # Replace nan values from division by zero
+
     return precision
 
 def compute_f1_score(precision: torch.Tensor, recall: torch.Tensor) -> torch.Tensor:
@@ -74,22 +81,21 @@ def compute_f1_score(precision: torch.Tensor, recall: torch.Tensor) -> torch.Ten
     """
     f1_score = 2 * (precision * recall) / (precision + recall)
     f1_score[torch.isnan(f1_score)] = 0  # Replace nan values from division by zero
+
     return f1_score
 
-def calculate_metrics(x: torch.Tensor, x_reconstructed: torch.Tensor, num_classes: int) -> tuple[float, torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
+def calculate_metrics(x: torch.Tensor, x_reconstructed: torch.Tensor) -> tuple[float, torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
     """
     Main function to calculate accuracy, recall, precision, F1 score, and prediction table metrics.
 
     :param x: Input tensor
     :param x_reconstructed: Reconstructed tensor, scaled to have original descriptor values
-    :param num_classes: Number of descriptor values including 0
     :return: accuracy, recall, precision, f1_score, prediction_table
     """
-    prediction_table = compute_prediction_table(x, x_reconstructed, num_classes)
+    prediction_table = compute_prediction_table(x, x_reconstructed)
     accuracy = compute_accuracy(prediction_table)
     recall = compute_recall(prediction_table)
     precision = compute_precision(prediction_table)
     f1_score = compute_f1_score(precision, recall)
 
     return accuracy, recall, precision, f1_score, prediction_table
-
