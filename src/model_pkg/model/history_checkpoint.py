@@ -7,26 +7,38 @@ import torch
 from pathlib import Path
 from ..config import DEVICE, NUM_CLASSES, MODEL_DIR, HISTORY_DIR, PATIENCE, EPOCHS
 from ..metrics.losses import VaeLoss
+from . import model as model_module  # Used for reconstructing model in load_model_checkpoint
 
-def checkpoint_model(model: torch.nn.Module, optimizer: torch.optim.Optimizer, epoch: int, filepath: Path | str, scheduler: torch.optim.lr_scheduler.LRScheduler = None):
+def checkpoint_model(filepath: Path | str, model: torch.nn.Module, optimizer: torch.optim.Optimizer, epoch: int, scheduler: torch.optim.lr_scheduler.ReduceLROnPlateau = None):
     """
     Function to save/checkpoint a PyTorch model, optimizer, and optionally scheduler states along with number of epochs run.
     Creates directory if it does not exist.
 
+    Checkpoint is created such that when loading, initialised objects need not be passed.
+    Assumes scheduler (if used) is ReduceLROnPlateau.
+
+    :param filepath: Filepath as either Path object or string
     :param model: Model to save state
     :param optimizer: Optimizer to save state
     :param epoch: Number of epochs run
-    :param filepath: Filepath as either Path object or string
-    :param scheduler: Optional scheduler to save state
+    :param scheduler: Optional scheduler to save state, should be ReduceLROnPlateau
     """
-    print("Checkpointing...")
+    print("Checkpointing model and optimizer...")
     checkpoint = {
-        'model_state_dict': model.state_dict(),
-        'optimizer_state_dict': optimizer.state_dict(),
-        'epoch': epoch
+        'model_state_dict': model.state_dict(),  # Parameters
+        'model_config': model.__dict__,  # Attributes
+        'model_class': model.__class__.__name__,  # Class name
+
+        'optimizer_state_dict': optimizer.state_dict(),  # Parameters
+        'optimizer_class': optimizer.__class__.__name__,  # Class name
+        'optimizer_args': optimizer.defaults,  # Initialisation arguments
+
+        'epoch': epoch,
     }
     if scheduler:
-        checkpoint['scheduler_state_dict'] = scheduler.state_dict()
+        checkpoint['scheduler_state_dict'] = scheduler.state_dict()  # Parameters
+        checkpoint['scheduler_config'] = scheduler.__dict__  # Attributes
+        print("Saving scheduler.")
 
     checkpoint_path = Path(filepath)
     if not checkpoint_path.parent.exists():
@@ -37,16 +49,15 @@ def checkpoint_model(model: torch.nn.Module, optimizer: torch.optim.Optimizer, e
     print(f"Model saved as '{checkpoint_path.name}' in '{checkpoint_path.parent}'.\n")
 
 
-def load_model_checkpoint(model: torch.nn.Module, optimizer: torch.optim.Optimizer, filepath: Path | str, scheduler: torch.optim.lr_scheduler.LRScheduler = None) -> int:
+def load_model_checkpoint(filepath: Path | str) -> tuple[torch.nn.Module, torch.optim.Optimizer, torch.optim.lr_scheduler.ReduceLROnPlateau | None, int]:
     """
-    Function to load a PyTorch model, optimizer, and optionally scheduler states along with number of epochs run.
-    Model, optimizer and schedulers should be initialised before calling this function.
+    Function to load a PyTorch model, optimizer, and optionally scheduler along with number of epochs run.
+    States as saved will be restored.
+    Model class structure should match the structure of the model as it was saved (architecture is stored in TrainingHistory).
+    Scheduler is assumed to be ReduceLROnPlateau.
 
-    :param model: Initialised model to load state into
-    :param optimizer: Initialised optimizer to load state into
     :param filepath: Filepath to checkpoint to load
-    :param scheduler: Optional, initialised scheduler to load state into if scheduler was checkpointed
-    :return: Epochs run
+    :return: model, optimizer, scheduler, epochs_run
     """
     checkpoint_path = Path(filepath)
     if not checkpoint_path.parent.exists():
@@ -54,23 +65,32 @@ def load_model_checkpoint(model: torch.nn.Module, optimizer: torch.optim.Optimiz
     if not checkpoint_path.exists():
         raise FileNotFoundError(f"Checkpoint file '{checkpoint_path.name}' does not exist in '{checkpoint_path.parent}'")
 
-    print(f"Loading checkpoint from '{checkpoint_path}'...\n")
+    print(f"Loading model and optimizer checkpoint from '{checkpoint_path}'...")
     checkpoint = torch.load(checkpoint_path, weights_only=False, map_location=DEVICE)  # map_location prevents errors when checkpoint was saved with GPU, but loaded with CPU
 
-    model.load_state_dict(checkpoint['model_state_dict'])
-    optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
-    epoch = checkpoint['epoch']
+    # Restore model
+    model_class = getattr(model_module, checkpoint['model_class'])  # Convert stored string class to class object
+    model = model_class.__new__(model_class)  # Initialise skeleton object bypassing __init__
+    model.__dict__.update(checkpoint['model_config'])  # Restores attributes
+    model = model.to(DEVICE)
+    model.load_state_dict(checkpoint['model_state_dict'])  # Restores parameters
 
-    print(f" {model.name} model loaded has run {epoch} epochs.")
-    print(f"{optimizer.__class__.__name__} optimizer loaded using learning rate {optimizer.param_groups[0]['lr']}.")
+    # Restore optimizer
+    optimizer_class = getattr(torch.optim, checkpoint['optimizer_class'])  # Convert stored string class to class object
+    optimizer = optimizer_class(model.parameters(), **checkpoint['optimizer_args'])  # Initialise optimizer using original args
+    optimizer.load_state_dict(checkpoint['optimizer_state_dict'])  # Restores parameters
 
-    if scheduler and 'scheduler_state_dict' in checkpoint:
-        scheduler.load_state_dict(checkpoint['scheduler_state_dict'])
-        print(f"{type(scheduler).__name__} scheduler loaded.\n")
-    else:
-        print("No scheduler loaded.\n")
+    # Restore the scheduler (always assumed to be ReduceLROnPlateau)
+    scheduler = None
+    if 'scheduler_state_dict' in checkpoint:
+        print("Loading scheduler.")
+        scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer)
+        scheduler.__dict__.update(checkpoint['scheduler_config'])  # Restore attributes
+        scheduler.load_state_dict(checkpoint['scheduler_state_dict'])  # Restores parameters
 
-    return epoch
+    print("Checkpoint loaded\n")
+
+    return model, optimizer, scheduler, checkpoint['epoch']
 
 
 class TrainingHistory:
@@ -81,7 +101,7 @@ class TrainingHistory:
     check_and_save_model_improvement should be called prior to updating epoch history.
     update_epoch should be called prior to saving history.
     """
-    def __init__(self, model: torch.nn.Module, dataloader: torch.utils.data.DataLoader, optimizer: torch.optim.Optimizer, criterion: VaeLoss):
+    def __init__(self, model: torch.nn.Module, dataloader: torch.utils.data.DataLoader, optimizer: torch.optim.Optimizer, criterion: VaeLoss, scheduler: torch.optim.lr_scheduler.ReduceLROnPlateau = None):
         """
         Initialises TrainingHistory object for tracking metrics.
         Use TrainingHistory.load() to load and initialise saved objects.
@@ -90,16 +110,22 @@ class TrainingHistory:
         :param dataloader: Used to obtain batch size
         :param optimizer: Optimizer name tracked
         :param criterion: Loss function, should have attribute 'loss_name'
+        :param scheduler: Scheduler if using (optional), should be a ReduceLROnPlateau scheduler where the learning rate is adjusted based on (reconstruction loss + beta * KL divergence)
         """
+        self.model_name = model.name
+
         self.epochs_run = 0
         self.epochs_without_improvement = 0
         self.last_updated_model = None
         self.last_improved_model = None
 
-        self.model_name = model.name
         self.batch_size = dataloader.__getattribute__("batch_size")
         self.optim = optimizer.__class__.__name__
         self.loss_fn = criterion.loss_name
+        self.scheduler = {
+            "patience": scheduler.patience,
+            "factor": scheduler.factor
+        } if scheduler is not None else None
         self.model_architecture = [(name, module) for name, module in model.named_modules()]
 
         self.bests = {
@@ -161,7 +187,7 @@ class TrainingHistory:
         # Loss
         if self.last_updated_model is None or epoch_loss < self.bests['best_loss']:
             filepath = Path(MODEL_DIR) / model.name / f"best_loss_epoch_{epoch}.pth"
-            checkpoint_model(model, optimizer, epoch, filepath, scheduler)
+            checkpoint_model(filepath, model, optimizer, epoch, scheduler)
             self.bests['best_loss_model'] = filepath
             self.bests['best_loss'] = epoch_loss
             self.last_improved_model = filepath
@@ -172,7 +198,7 @@ class TrainingHistory:
         # Weighted F1 average
         if self.bests['best_f1_avg'] is None or val_epoch_metrics['weighted_f1'] > self.bests['best_f1_avg']:
             filepath = Path(MODEL_DIR) / model.name / f"best_f1_avg_epoch_{epoch}.pth"
-            checkpoint_model(model, optimizer, epoch, filepath, scheduler)
+            checkpoint_model(filepath, model, optimizer, epoch, scheduler)
             self.bests['best_f1_avg_model'] = filepath
             self.bests['best_f1_avg'] = val_epoch_metrics['weighted_f1']
             self.last_improved_model = filepath
@@ -187,19 +213,21 @@ class TrainingHistory:
         if self.epochs_without_improvement >= PATIENCE:
             # Checkpoint early stop model
             filepath = Path(MODEL_DIR) / model.name / f"terminated_model_epoch_{epoch}.pth"
-            checkpoint_model(model, optimizer, epoch, filepath, scheduler)
+            checkpoint_model(filepath, model, optimizer, epoch, scheduler)
             self.last_updated_model = filepath
+
             return True  # Terminate training condition
         elif epoch >= EPOCHS:
             # Checkpoint final model
             filepath = Path(MODEL_DIR) / model.name / f"final_model_epoch_{epoch}.pth"
-            checkpoint_model(model, optimizer, epoch, filepath, scheduler)
+            checkpoint_model(filepath, model, optimizer, epoch, scheduler)
             self.last_updated_model = filepath
+
             return False
         else:
             return False
 
-    def update_epoch(self, epoch_metrics: dict, mode: str):
+    def update_epoch(self, epoch_metrics: dict, mode: str, increment_epochs_run: bool = True):
         """
         Update history with epoch metrics.
         Method does not update bests.
@@ -207,11 +235,13 @@ class TrainingHistory:
 
         :param epoch_metrics: Dictionary containing metrics
         :param mode: 'train' or 'val' history to update
+        :param increment_epochs_run: Boolean to update epochs run (method may be called to update train and validate metrics)
         """
         assert mode in ['train', 'val'], "Mode must be 'train' or 'val'"
         history = self.train if mode == 'train' else self.val
 
-        self.epochs_run += 1
+        if increment_epochs_run:
+            self.epochs_run += 1
         history['recon'].append(epoch_metrics['recon'])
         history['kl'].append(epoch_metrics['kl'])
         history['accuracy'].append(epoch_metrics['accuracy'])
@@ -230,7 +260,7 @@ class TrainingHistory:
         Save training history to file using PyTorch's save functionality.
         History is saved using model_name attribute and HISTORY_DIR set in config.
         """
-        filepath = Path(HISTORY_DIR) / f"{self.model_name}_history_.pth"
+        filepath = Path(HISTORY_DIR) / f"{self.model_name}_history_{self.epochs_run}_epochs.pth"
 
         # Check directories exist
         if not filepath.parent.exists():
@@ -257,7 +287,7 @@ class TrainingHistory:
             raise FileNotFoundError(f"No file found at {filepath}")
 
         # Load history dictionary
-        history_dict = torch.load(filepath, map_location=DEVICE)
+        history_dict = torch.load(filepath, weights_only=False, map_location=DEVICE)
 
         # Initialise a skeleton object
         history_obj = cls.__new__(cls)  # Bypass __init__
@@ -279,3 +309,43 @@ class TrainingHistory:
 
     def roll_back(self):
         pass
+
+    def __str__(self) -> str:
+        """
+        String representation of TrainingHistory object.
+        """
+        summary = [
+            f"Training History Summary for Model: {self.model_name}",
+            f"{'-' * 50}",
+            f"Epochs Run: {self.epochs_run}",
+            f"Last Updated Model Path: {self.last_updated_model}\n" if self.last_updated_model else "Last Updated Model Path: None\n",
+            f"Epochs Without Improvement: {self.epochs_without_improvement}",
+            f"Last Improved Model Path: {self.last_improved_model}\n" if self.last_improved_model else "Last Improved Model Path: None\n",
+            f"Batch Size: {self.batch_size}",
+            f"Optimizer: {self.optim}",
+            f"Loss Function: {self.loss_fn}",
+            f"Scheduler:\n\t- Patience: {self.scheduler['patience']}\n\t- Factor: {self.scheduler['factor']}\n" if self.scheduler is not None else "Scheduler: None\n",
+            f"Best Validation Loss: {self.bests['best_loss']:.4f}" if self.bests['best_loss'] is not None else "Best Validation Loss: None",
+            f"Best Validation Loss Model Path: {self.bests['best_loss_model']}",
+            f"Best Validation Weighted F1: {self.bests['best_f1_avg']:.4f}" if self.bests['best_f1_avg'] is not None else "Best Validation Weighted F1: None",
+            f"Best Validation Weighted F1 Model Path: {self.bests['best_f1_avg_model']}",
+            f"{'-' * 50}",
+            "Training Metrics:",
+            f"\t- Reconstruction Loss (Last Epoch): {self.train['recon'][-1]:.4f}" if self.train['recon'] else "\t- Reconstruction Loss: None",
+            f"\t- KL Divergence (Last Epoch): {self.train['kl'][-1]:.4f}" if self.train['kl'] else "\t- KL Divergence: None",
+            f"\t- Accuracy (Last Epoch): {self.train['accuracy'][-1]:.4f}" if self.train['accuracy'] else "\t- Accuracy: None",
+            f"\t- Weighted F1 (Last Epoch): {self.train['f1_weighted_avg'][-1]:.4f}" if self.train['f1_weighted_avg'] else "\t- Weighted F1: None",
+            f"\t- Learning Rate (Last Epoch): {self.train['lr'][-1]}",
+            f"{'-' * 50}",
+            "Validation Metrics:",
+            f"\t- Reconstruction Loss (Last Epoch): {self.val['recon'][-1]:.4f}" if self.val['recon'] else "\t- Reconstruction Loss: None",
+            f"\t- KL Divergence (Last Epoch): {self.val['kl'][-1]:.4f}" if self.val['kl'] else "\t- KL Divergence: None",
+            f"\t- Accuracy (Last Epoch): {self.val['accuracy'][-1]:.4f}" if self.val['accuracy'] else "\t- Accuracy: None",
+            f"\t- Weighted F1 (Last Epoch): {self.val['f1_weighted_avg'][-1]:.4f}" if self.val['f1_weighted_avg'] else "\t- Weighted F1: None",
+            f"{'-' * 50}",
+            "Model Architecture Used:",
+            "\n".join([f"- '{name}':\n{module}\n" for name, module in self.model_architecture]).rstrip("\n"),  # Removes final newline
+            f"{'-' * 50}"
+        ]
+        return "\n".join(summary) + "\n"
+

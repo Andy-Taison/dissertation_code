@@ -203,7 +203,7 @@ def test(model: torch.nn.Module, dataloader: torch.utils.data.DataLoader, loss_f
     }
 
 
-def train_val(model: torch.nn.Module, train_dataloader: torch.utils.data.DataLoader, val_dataloader: torch.utils.data.DataLoader, loss_fn, optimizer: torch.optim.Optimizer, epochs: int, beta: int = 1, training_history: TrainingHistory = None, scheduler: torch.optim.lr_scheduler.LRScheduler = None) -> TrainingHistory:
+def train_val(model: torch.nn.Module, train_dataloader: torch.utils.data.DataLoader, val_dataloader: torch.utils.data.DataLoader, loss_fn, optimizer: torch.optim.Optimizer, epochs: int, beta: int = 1, training_history: TrainingHistory = None, scheduler: torch.optim.lr_scheduler.ReduceLROnPlateau = None) -> TrainingHistory:
     """
     Train and validate dataloader objects should use the same batch size (train dataloader batch size used for history tracking).
     Training continues from last_updated_model if training_history provided.
@@ -218,7 +218,7 @@ def train_val(model: torch.nn.Module, train_dataloader: torch.utils.data.DataLoa
     :param epochs: Maximum number of epochs to run (if early stopping not triggered)
     :param beta: Optional beta to scale KL divergence, defaults 1 (standard VAE)
     :param training_history: Optional, pass to continue training from saved history
-    :param scheduler: Scheduler if using (optional)
+    :param scheduler: Scheduler if using (optional), should be a ReduceLROnPlateau scheduler where the learning rate is adjusted based on (reconstruction loss + beta * KL divergence)
     :return: TrainingHistory tracking object
     """
     if train_dataloader.__getattribute__("batch_size") != val_dataloader.__getattribute__("batch_size"):
@@ -226,7 +226,7 @@ def train_val(model: torch.nn.Module, train_dataloader: torch.utils.data.DataLoa
 
     # Initialise training history when training from scratch
     if training_history is None:
-        training_history = TrainingHistory(model, train_dataloader, optimizer, loss_fn)
+        training_history = TrainingHistory(model, train_dataloader, optimizer, loss_fn, scheduler)
         print(f"New training history created '{training_history.model_name}'.\n")
     else:
         # Check passed training history matches other objects
@@ -240,6 +240,20 @@ def train_val(model: torch.nn.Module, train_dataloader: torch.utils.data.DataLoa
             raise ValueError(f"Training history loss function: {training_history.loss_fn} does not match passed loss function: {loss_fn.loss_name}.")
         if training_history.model_architecture != [(name, module) for name, module in model.named_modules()]:
             raise ValueError(f"Training history model architecture does not match passed model architecture.\nTraining history architecture:\n{training_history.model_architecture}")
+        if training_history.scheduler is not None:
+            if scheduler is None:
+                raise ValueError("A scheduler is in training history, but no scheduler was passed.")
+            if training_history.scheduler["patience"] != scheduler.patience:
+                raise ValueError(
+                    f"Training history scheduler patience: {training_history.scheduler['patience']} does not match passed scheduler patience: {scheduler.patience}."
+                )
+            if training_history.scheduler["factor"] != scheduler.factor:
+                raise ValueError(
+                    f"Training history scheduler factor: {training_history.scheduler['factor']} does not match passed scheduler factor: {scheduler.factor}."
+                )
+        elif scheduler is not None:
+            raise ValueError("A scheduler was passed, but none is recorded in training history.")
+
         print(f"Continuing training, epochs run so far: {training_history.epochs_run}\n")
 
     for epoch_idx in range(training_history.epochs_run, epochs):
@@ -250,13 +264,16 @@ def train_val(model: torch.nn.Module, train_dataloader: torch.utils.data.DataLoa
         val_metrics = test(model, val_dataloader, loss_fn, beta)
 
         terminate = training_history.check_and_save_model_improvement(val_metrics, epoch, model, optimizer, scheduler)
-        training_history.update_epoch(train_metrics, "train")
+        training_history.update_epoch(train_metrics, "train", False)
         training_history.update_epoch(val_metrics, "val")
         training_history.save_history()
 
         if terminate:
             print("Early stop terminating...")
             break
+
+        if scheduler:
+            scheduler.step(val_metrics['recon'] + val_metrics['beta'] * val_metrics['kl'])
 
     print("Done!\n")
 

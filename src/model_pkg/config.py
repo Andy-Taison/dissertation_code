@@ -17,8 +17,9 @@ HISTORY_DIR = BASE_DIR / "outputs" / "history"  # Path to store training history
 # Training configurations
 BATCH_SIZE = 64
 LEARNING_RATE = 0.001
-EPOCHS = 10  # Maximum number of epochs to run
-PATIENCE = 15  # How many epochs to run before stopping with no improvement in F1 score or loss (reconstruction + beta * KL)
+EPOCHS = 10  # Maximum number of epochs to run (for dataset size, ideal will be between 50-200)
+PATIENCE = 16  # How many epochs to run before stopping with no improvement in F1 score or loss (reconstruction + beta * KL)
+SCHEDULER_PATIENCE = 5  # How many epochs to run with no improvement to loss (reconstruction + beta * KL) before scheduler (if using) adjusts learning rate. Lower value is more aggressive.
 NUM_CLASSES = 5  # Descriptor values including 0
 
 # VAE configurations

@@ -62,13 +62,16 @@ def run():
     subset_indices = list(range(128))  # Indices for the first 128 samples
     subset_train_ds = Subset(train_ds, subset_indices)
     subset_val_ds = Subset(val_ds, subset_indices)
-
-    # Create a new DataLoader with batch size of 64
     subset_train_loader = DataLoader(subset_train_ds, batch_size=config.BATCH_SIZE, shuffle=True)
     subset_val_loader = DataLoader(subset_val_ds, batch_size=config.BATCH_SIZE)
 
     # Train VAE
     history = train_val(vae, subset_train_loader, subset_val_loader, criterion, optimizer, config.EPOCHS)
+    # history = TrainingHistory.load_history("test_history_.pth")
+
+    print(history)
+
+
     # history = train_val(vae, train_loader, val_loader, criterion, optimizer, config.EPOCHS)
 
     print("Pipeline complete.")
