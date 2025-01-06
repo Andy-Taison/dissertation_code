@@ -30,6 +30,7 @@ class VaeLoss:
     def __call__(self, x: torch.Tensor, x_decoder: torch.Tensor, z_mean: torch.Tensor, z_log_var: torch.Tensor, class_weights: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
         """
         Calculates VAE loss (weighted reconstruction loss + beta * KL divergence), each is returned individually as tensors.
+        Reconstruction loss is weighted (loss reduction must be 'none' for element wise application). Mean reduction applied.
         Beta is applied in train/test loops.
 
         :param x: Input tensor with shape (batch_size, *input_dim)
