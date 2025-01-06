@@ -43,11 +43,11 @@ def checkpoint_model(filepath: Path | str, model: torch.nn.Module, optimizer: to
 
     checkpoint_path = Path(filepath)
     if not checkpoint_path.parent.exists():
-        print(f"Creating directory {checkpoint_path.parent}...")
+        print(f"Creating directory '{checkpoint_path.parent}'...")
         checkpoint_path.parent.mkdir(parents=True, exist_ok=True)
 
     torch.save(checkpoint, checkpoint_path)
-    print(f"Model saved as '{checkpoint_path.name}' in '{checkpoint_path.parent}'.\n")
+    print(f"Model saved to '{Path(*checkpoint_path.parts[-3:])}'.\n")
 
 
 def load_model_checkpoint(filepath: Path | str) -> tuple[torch.nn.Module, torch.optim.Optimizer, torch.optim.lr_scheduler.ReduceLROnPlateau | None, int]:
@@ -388,12 +388,12 @@ class TrainingHistory:
 
         # Check directories exist
         if not filepath.parent.exists():
-            print(f"Creating directory {filepath.parent}...")
+            print(f"Creating directory '{filepath.parent}'...")
             filepath.parent.mkdir(parents=True, exist_ok=True)
 
         # Save the state of the object
         torch.save(self.__dict__, filepath)
-        print(f"History saved to '{filepath}'.\n")
+        print(f"History saved to '{Path(*filepath.parts[-2:])}'.\n")
 
     @classmethod
     def load_history(cls, file: str):
@@ -437,7 +437,7 @@ class TrainingHistory:
         """
         summary = [
             f"Training History Summary for Model: {self.model_name}",
-            f"Model directory: {self.last_updated_model.parents}" if self.last_updated_model else f"Model directory (as per config): {MODEL_DIR / self.model_name}",
+            f"Model directory: '{self.last_updated_model.parent}'" if self.last_updated_model else f"Model directory (as per config): '{MODEL_DIR / self.model_name}'",
             f"{'-' * 50}",
             f"Epochs Run: {self.epochs_run}",
             f"Last Updated Model: {self.last_updated_model.name}\n" if self.last_updated_model else "Last Updated Model Path: None\n",
@@ -447,7 +447,7 @@ class TrainingHistory:
             f"Optimizer: {self.optim}",
             f"Loss Function: {self.loss_fn}",
             f"Scheduler:\n\t- Patience: {self.scheduler['patience']}\n\t- Factor: {self.scheduler['factor']}\n" if self.scheduler is not None else "Scheduler: None\n",
-            f"Best Validation Loss: {self.bests['best_loss']:.4f } " if self.bests['best_loss'] is not None else "Best Validation Loss: None",
+            f"Best Validation Loss: {self.bests['best_loss']:.4f}" if self.bests['best_loss'] is not None else "Best Validation Loss: None",
             f"Best Validation Loss Model: {self.bests['best_loss_model'].name if self.bests['best_loss_model'] else 'None'}",  # type: ignore
             f"Best Validation Weighted F1: {self.bests['best_f1_avg']:.4f}" if self.bests['best_f1_avg'] is not None else "Best Validation Weighted F1: None",
             f"Best Validation Weighted F1 Model: {self.bests['best_f1_avg_model'].name if self.bests['best_f1_avg_model'] else 'None'}",  # type: ignore

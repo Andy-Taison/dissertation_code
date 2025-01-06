@@ -10,34 +10,45 @@ class VaeLoss:
         """
         Initialise VAE Loss with a specific reconstruction loss function.
 
-        :param recon_loss_name: Name of reconstruction loss to use ("mse", "smoothl1")
+        :param recon_loss_name: Name of reconstruction loss to use ("mse", "smoothl1", "bce")
         """
         self.loss_name = recon_loss_name.lower()
 
         # Assign reconstruction loss function
+        # Reduction is none for applying class weights element wise in __call__
         if self.loss_name == "mse":
-            self.recon_loss_fn = nn.MSELoss(reduction='sum')
+            self.recon_loss_fn = nn.MSELoss(reduction='none')
         elif self.loss_name == "smoothl1":
-            self.recon_loss_fn = nn.SmoothL1Loss(reduction='sum')
+            self.recon_loss_fn = nn.SmoothL1Loss(reduction='none')
+        elif self.loss_name == "bce":
+            self.recon_loss_fn = nn.BCELoss(reduction='none')
         else:
             raise ValueError(f"Unsupported reconstruction loss: {recon_loss_name}")
 
         self.loss_name = f"VAE Loss: {type(self.recon_loss_fn).__name__}, KL Divergence"
 
-    def __call__(self, x: torch.Tensor, x_decoder: torch.Tensor, z_mean: torch.Tensor, z_log_var: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
+    def __call__(self, x: torch.Tensor, x_decoder: torch.Tensor, z_mean: torch.Tensor, z_log_var: torch.Tensor, class_weights: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
         """
-        Calculates VAE loss (reconstruction loss + KL divergence), each is returned individually as tensors.
+        Calculates VAE loss (weighted reconstruction loss + beta * KL divergence), each is returned individually as tensors.
+        Beta is applied in train/test loops.
 
         :param x: Input tensor with shape (batch_size, *input_dim)
         :param x_decoder: Decoder output reshaped to (batch_size, *input_dim), (sigmoid) normalized in range [0, 1]
         :param z_mean: Latent space mean with shape (batch_size, latent_dim)
         :param z_log_var: Log variance of latent space with shape (batch_size, latent_dim)
-        :return: Reconstruction loss, KL divergence
+        :param class_weights: Class weight tensor to weight loss to account for class imbalance (descriptor values are sparse)
+        :return: Reconstruction loss weighted with mean reduction, KL divergence
         """
-        # Normalize input to match decoder output range [0, 1]
-        x_norm = x / 4
+        # Ensure tensors are flat for applying weights
+        x_flat = x.view(-1).to(torch.long)  # Long for indexing
+        x_decoder_flat = x_decoder.view(-1)
 
-        recon_loss = self.recon_loss_fn(x_decoder, x_norm)
+        weights_map = class_weights[x_flat]
+
+        raw_loss = self.recon_loss_fn(x_decoder_flat, x_flat.to(torch.float))  # Element wise due to reduction being 'none'
+        weighted_loss = weights_map * raw_loss
+        recon_loss = weighted_loss.mean()
+
         kl_div = -0.5 * torch.sum(1 + z_log_var - z_mean.pow(2) - z_log_var.exp())
 
         return recon_loss, kl_div

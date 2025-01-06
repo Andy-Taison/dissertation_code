@@ -4,13 +4,14 @@ Training functions
 
 import torch
 from ..config import DEVICE, NUM_CLASSES
-from ..metrics.metrics import calculate_metrics
+from ..metrics.metrics import calculate_metrics, compute_class_weights
 from .history_checkpoint import TrainingHistory
 
 def train(model: torch.nn.Module, dataloader: torch.utils.data.DataLoader, loss_fn, optimizer: torch.optim.Optimizer, beta: int = 1) -> dict:
     """
     Single epoch training loop.
     Uses decoder output to calculate loss (differentiable), and reconstructed output (decoder output scaled, rounded and clamped) for metrics.
+    Reconstruction loss is weighted.
 
     :param model: VAE model
     :param dataloader: DataLoader object
@@ -44,20 +45,23 @@ def train(model: torch.nn.Module, dataloader: torch.utils.data.DataLoader, loss_
         # Forward pass
         x_reconstructed, x_decoder, z, z_mean, z_log_var = model(x)
 
+        # Get metrics
+        accuracy, recall, precision, f1_score, prediction_table = calculate_metrics(x, x_reconstructed)
+        batch_support = torch.sum(prediction_table, dim=1)  # True positives + False negatives
+        class_weights = compute_class_weights(batch_support)
+
         # Compute loss
-        recon_loss, kl_div = loss_fn(x, x_decoder, z_mean, z_log_var)
+        recon_loss, kl_div = loss_fn(x, x_decoder, z_mean, z_log_var, class_weights)
         loss = recon_loss + beta * kl_div
 
         # Backpropagation
         loss.backward()  # Compute gradients
         optimizer.step()  # Update parameters
 
-        # Metrics
+        # Update metrics
         total_recon_loss += recon_loss.item()
         total_kl_div += kl_div.item()
-        accuracy, recall, precision, f1_score, prediction_table = calculate_metrics(x, x_reconstructed)
         total_accuracy += accuracy
-        batch_support = torch.sum(prediction_table, dim=1)  # True positives + False negatives
         total_recall += recall * batch_support  # Recall weighted by batch support
         total_precision += precision * batch_support  # Precision weighted by batch support
         total_f1 += f1_score * batch_support  # F1 scores weighted by batch support
@@ -113,6 +117,7 @@ def test(model: torch.nn.Module, dataloader: torch.utils.data.DataLoader, loss_f
     """
     Single epoch test/validation loop.
     Uses decoder output to calculate loss (differentiable), and reconstructed output (decoder output scaled, rounded and clamped) for metrics.
+    Reconstruction loss is weighted.
 
     :param model: VAE model
     :param dataloader: DataLoader object
@@ -143,16 +148,19 @@ def test(model: torch.nn.Module, dataloader: torch.utils.data.DataLoader, loss_f
             # Forward pass
             x_reconstructed, x_decoder, z, z_mean, z_log_var = model(x)
 
+            # Get metrics
+            accuracy, recall, precision, f1_score, prediction_table = calculate_metrics(x, x_reconstructed)
+            batch_support = torch.sum(prediction_table, dim=1)  # True positives + False negatives
+            class_weights = compute_class_weights(batch_support)
+
             # Compute loss
-            recon_loss, kl_div = loss_fn(x, x_decoder, z_mean, z_log_var)
+            recon_loss, kl_div = loss_fn(x, x_decoder, z_mean, z_log_var, class_weights)
             loss = recon_loss + beta * kl_div
 
-            # Metrics
+            # Update metrics
             total_recon_loss += recon_loss.item()
             total_kl_div += kl_div.item()
-            accuracy, recall, precision, f1_score, prediction_table = calculate_metrics(x, x_reconstructed)
             total_accuracy += accuracy
-            batch_support = torch.sum(prediction_table, dim=1)  # True positives + False negatives
             total_recall += recall * batch_support  # Recall weighted by batch support
             total_precision += precision * batch_support  # Precision weighted by batch support
             total_f1 += f1_score * batch_support  # F1 scores weighted by batch support
@@ -227,7 +235,7 @@ def train_val(model: torch.nn.Module, train_dataloader: torch.utils.data.DataLoa
     # Initialise training history when training from scratch
     if training_history is None:
         training_history = TrainingHistory(model, train_dataloader, optimizer, loss_fn, scheduler)
-        print(f"New training history created '{training_history.model_name}'.\n")
+        print(f"New training history object created '{training_history.model_name}'.\n")
     else:
         # Check passed training history matches other objects
         if training_history.model_name != model.name:

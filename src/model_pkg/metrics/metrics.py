@@ -16,8 +16,8 @@ def compute_prediction_table(x: torch.Tensor, x_reconstructed: torch.Tensor) -> 
     :return: Prediction table
     """
     # Flatten tensors
-    x_flat = x.view(-1).to(torch.long)
-    x_reconstructed_flat = x_reconstructed.view(-1).to(torch.long)
+    x_flat = x.view(-1).to(torch.long)  # Long for indexing
+    x_reconstructed_flat = x_reconstructed.view(-1).to(torch.long)  # Long for indexing
 
     prediction_table = torch.zeros(NUM_CLASSES, NUM_CLASSES, dtype=torch.int64)
 
@@ -25,6 +25,22 @@ def compute_prediction_table(x: torch.Tensor, x_reconstructed: torch.Tensor) -> 
         prediction_table[cls, x_reconstructed_flat[idx]] += 1
 
     return prediction_table
+
+def compute_class_weights(batch_support: torch.Tensor) -> torch.Tensor:
+    """
+    Calculates class weights using batch support, used to account for class imbalance (descriptor values are sparse).
+
+    :param batch_support: Batch support 1D tensor
+    :return: Class weights tensor
+    """
+    # Inverses batch support to obtain weights
+    weights = 1.0 / batch_support
+    weights[torch.isinf(weights)] = 1  # Replaces inf with 1
+
+    # Normalises
+    weights /= weights.sum()
+
+    return weights
 
 def compute_accuracy(prediction_table: torch.Tensor) -> float:
     """
