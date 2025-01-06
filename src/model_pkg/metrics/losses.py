@@ -31,6 +31,7 @@ class VaeLoss:
         """
         Calculates VAE loss (weighted reconstruction loss + beta * KL divergence), each is returned individually as tensors.
         Reconstruction loss is weighted (loss reduction must be 'none' for element wise application). Mean reduction applied.
+        KL divergence is averaged across batch size.
         Beta is applied in train/test loops.
 
         :param x: Input tensor with shape (batch_size, *input_dim)
@@ -50,6 +51,6 @@ class VaeLoss:
         weighted_loss = weights_map * raw_loss
         recon_loss = weighted_loss.mean()
 
-        kl_div = -0.5 * torch.sum(1 + z_log_var - z_mean.pow(2) - z_log_var.exp())
+        kl_div = -0.5 * torch.sum(1 + z_log_var - z_mean.pow(2) - z_log_var.exp()) / x.shape[0]  # Averaged across batch size
 
         return recon_loss, kl_div

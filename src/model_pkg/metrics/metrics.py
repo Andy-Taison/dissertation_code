@@ -46,6 +46,7 @@ def compute_accuracy(prediction_table: torch.Tensor) -> float:
     """
     Compute accuracy from prediction table.
     Accuracy = correct predictions / total samples.
+    Returned value will be between 0 (no correct predictions) and 1 (all predictions correct).
 
     :param prediction_table: Prediction table tensor where rows represent classes (descriptor values), and columns represent predictions (reconstructed)
     :return: Accuracy as float
@@ -59,6 +60,7 @@ def compute_recall(prediction_table: torch.Tensor) -> torch.Tensor:
     """
     Compute recall for each class from prediction table.
     Recall = true positives / (true positives + false negatives).
+    Returned value will be between 0 (no actual positives were correctly predicted) and 1 (all actual positives were correctly predicted).
 
     :param prediction_table: Prediction table tensor where rows represent classes (descriptor values), and columns represent predictions (reconstructed)
     :return: Recall as float tensor
@@ -75,6 +77,7 @@ def compute_precision(prediction_table: torch.Tensor) -> torch.Tensor:
     """
     Compute precision for each class from prediction table.
     Precision = true positives / (true positives + false positives).
+    Returned value will be between 0 (no true positive predictions) and 1 (all positive predictions were correct).
 
     :param prediction_table: Prediction table tensor where rows represent classes (descriptor values), and columns represent predictions (reconstructed)
     :return: Precision as float tensor
@@ -90,6 +93,7 @@ def compute_precision(prediction_table: torch.Tensor) -> torch.Tensor:
 def compute_f1_score(precision: torch.Tensor, recall: torch.Tensor) -> torch.Tensor:
     """
     Compute F1 score from precision and recall tensors.
+    Returned value will be between 0 (precision and/or recall are zero (poor performance)) and 1 (perfect precision and recall).
 
     :param precision: Precision tensor
     :param recall: Recall tensor

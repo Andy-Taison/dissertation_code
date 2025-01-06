@@ -12,6 +12,7 @@ def train(model: torch.nn.Module, dataloader: torch.utils.data.DataLoader, loss_
     Single epoch training loop.
     Uses decoder output to calculate loss (differentiable), and reconstructed output (decoder output scaled, rounded and clamped) for metrics.
     Reconstruction loss is weighted.
+    Displayed loss, reconstruction loss and KL divergence are scaled for easier interpretability due to weighted recon and averaged KL.
 
     :param model: VAE model
     :param dataloader: DataLoader object
@@ -74,7 +75,7 @@ def train(model: torch.nn.Module, dataloader: torch.utils.data.DataLoader, loss_
         if batch_idx % 5 == 0:
             print(f"[{processed:>5d}/{size:>5d}]")
             print(f"Batch metrics (train):")
-            print(f"\tLoss = {loss.item():>8.4f}")
+            print(f"\tLoss = {loss.item() * 100:>8.4f}")  # Scaled for easier interpretability due to weighted recon and averaged KL
             print(f"\tAccuracy = {accuracy * 100:>6.2f}%")
             print(f"\tF1 score (unweighted average across all classes for batch) = {f1_score.mean().item():>6.4f}\n")
 
@@ -93,8 +94,8 @@ def train(model: torch.nn.Module, dataloader: torch.utils.data.DataLoader, loss_
     epoch_f1_weighted_avg = (total_f1 / total_support.sum()).sum().item()  # normalises weighted f1 and sums to get weighted average
 
     print(f"Train metrics (averages):")
-    print(f"\tRecon loss = {epoch_recon_loss:>8.4f}")
-    print(f"\tKL div = {epoch_kl_div:>8.4f}")
+    print(f"\tRecon loss = {epoch_recon_loss * 100:>8.4f}")  # Scaled for easier interpretability due to weighted recon
+    print(f"\tKL div = {epoch_kl_div * 100:>8.4f}")  # Scaled for easier interpretability due to averaged KL
     print(f"\tAccuracy = {epoch_accuracy * 100:>6.2f}%")
     print(f"\tF1 score (weighted average) = {epoch_f1_weighted_avg:>6.4f}\n")
 
@@ -118,6 +119,7 @@ def test(model: torch.nn.Module, dataloader: torch.utils.data.DataLoader, loss_f
     Single epoch test/validation loop.
     Uses decoder output to calculate loss (differentiable), and reconstructed output (decoder output scaled, rounded and clamped) for metrics.
     Reconstruction loss is weighted.
+    Displayed loss, reconstruction loss and KL divergence are scaled for easier interpretability due to weighted recon and averaged KL.
 
     :param model: VAE model
     :param dataloader: DataLoader object
@@ -173,7 +175,7 @@ def test(model: torch.nn.Module, dataloader: torch.utils.data.DataLoader, loss_f
             if batch_idx % 5 == 0:
                 print(f"[{processed:>5d}/{size:>5d}]")
                 print(f"Batch metrics (test):")
-                print(f"\tLoss = {loss.item():>8.4f}")
+                print(f"\tLoss = {loss.item() * 100:>8.4f}")  # Scaled for easier interpretability due to weighted recon and averaged KL
                 print(f"\tAccuracy = {accuracy * 100:>6.2f}%")
                 print(f"\tF1 score (unweighted average across all classes for batch) = {f1_score.mean().item():>6.4f}\n")
 
@@ -192,8 +194,8 @@ def test(model: torch.nn.Module, dataloader: torch.utils.data.DataLoader, loss_f
     epoch_f1_weighted_avg = (total_f1 / total_support.sum()).sum().item()  # normalises weighted f1 and sums to get weighted average
 
     print(f"Test metrics (averages):")
-    print(f"\tRecon loss = {epoch_recon_loss:>8.4f}")
-    print(f"\tKL div = {epoch_kl_div:>8.4f}")
+    print(f"\tRecon loss = {epoch_recon_loss * 100:>8.4f}")  # Scaled for easier interpretability due to weighted recon
+    print(f"\tKL div = {epoch_kl_div * 100:>8.4f}")  # Scaled for easier interpretability due to averaged KL
     print(f"\tAccuracy = {epoch_accuracy * 100:>6.2f}%")
     print(f"\tF1 score (weighted average) = {epoch_f1_weighted_avg:>6.4f}\n")
 

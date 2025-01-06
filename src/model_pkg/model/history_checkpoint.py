@@ -434,6 +434,7 @@ class TrainingHistory:
     def __str__(self) -> str:
         """
         String representation of TrainingHistory object.
+        Displayed loss, reconstruction loss and KL divergence are scaled for easier interpretability due to weighted recon and averaged KL.
         """
         summary = [
             f"Training History Summary for Model: {self.model_name}",
@@ -447,21 +448,21 @@ class TrainingHistory:
             f"Optimizer: {self.optim}",
             f"Loss Function: {self.loss_fn}",
             f"Scheduler:\n\t- Patience: {self.scheduler['patience']}\n\t- Factor: {self.scheduler['factor']}\n" if self.scheduler is not None else "Scheduler: None\n",
-            f"Best Validation Loss: {self.bests['best_loss']:.4f}" if self.bests['best_loss'] is not None else "Best Validation Loss: None",
+            f"Best Validation Loss: {self.bests['best_loss'] * 100:.4f}" if self.bests['best_loss'] is not None else "Best Validation Loss: None",  # type: ignore
             f"Best Validation Loss Model: {self.bests['best_loss_model'].name if self.bests['best_loss_model'] else 'None'}",  # type: ignore
             f"Best Validation Weighted F1: {self.bests['best_f1_avg']:.4f}" if self.bests['best_f1_avg'] is not None else "Best Validation Weighted F1: None",
             f"Best Validation Weighted F1 Model: {self.bests['best_f1_avg_model'].name if self.bests['best_f1_avg_model'] else 'None'}",  # type: ignore
             f"{'-' * 50}",
             "Training Metrics (Last Epoch):",
-            f"\t- Reconstruction Loss: {self.train['recon'][-1]:.4f}" if self.train['recon'] else "\t- Reconstruction Loss: None",
-            f"\t- KL Divergence: {self.train['kl'][-1]:.4f}" if self.train['kl'] else "\t- KL Divergence: None",
+            f"\t- Reconstruction Loss: {self.train['recon'][-1] * 100:.4f}" if self.train['recon'] else "\t- Reconstruction Loss: None",
+            f"\t- KL Divergence: {self.train['kl'][-1] * 100:.4f}" if self.train['kl'] else "\t- KL Divergence: None",
             f"\t- Accuracy: {self.train['accuracy'][-1]:.4f}" if self.train['accuracy'] else "\t- Accuracy: None",
             f"\t- Weighted F1: {self.train['f1_weighted_avg'][-1]:.4f}" if self.train['f1_weighted_avg'] else "\t- Weighted F1: None",
             f"\t- Learning Rate: {self.train['lr'][-1]}",
             f"{'-' * 50}",
             "Validation Metrics (Last Epoch):",
-            f"\t- Reconstruction Loss: {self.val['recon'][-1]:.4f}" if self.val['recon'] else "\t- Reconstruction Loss: None",
-            f"\t- KL Divergence: {self.val['kl'][-1]:.4f}" if self.val['kl'] else "\t- KL Divergence: None",
+            f"\t- Reconstruction Loss: {self.val['recon'][-1] * 100:.4f}" if self.val['recon'] else "\t- Reconstruction Loss: None",
+            f"\t- KL Divergence: {self.val['kl'][-1] * 100:.4f}" if self.val['kl'] else "\t- KL Divergence: None",
             f"\t- Beta: {self.val['beta'][-1]}",
             f"\t- Accuracy: {self.val['accuracy'][-1]:.4f}" if self.val['accuracy'] else "\t- Accuracy: None",
             f"\t- Weighted F1: {self.val['f1_weighted_avg'][-1]:.4f}" if self.val['f1_weighted_avg'] else "\t- Weighted F1: None",
