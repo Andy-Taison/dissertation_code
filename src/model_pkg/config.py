@@ -6,13 +6,13 @@ import numpy as np
 from pathlib import Path
 
 # Repository/project directory
-BASE_DIR = Path("../")
+BASE_DIR = Path.cwd().parent  # Can also use Path("../") for relative address, may need adjusting depending on project setup - should point to
 
 # Directories
 DATA_DIR = BASE_DIR / "data" / "raw"  # Path to raw data CSV files
 PROCESSED_DIR = BASE_DIR / "data" / "processed"  # Path to store processed CSV files
-MODEL_DIR = BASE_DIR / "outputs" / "models"  # Path to store trained models
-HISTORY_DIR = BASE_DIR / "outputs" / "history"  # Path to store training history metrics
+MODEL_DIR = BASE_DIR / "outputs" / "model_checkpoints"  # Path to store checkpointed trained models (files include optimizer and optional scheduler if used)
+HISTORY_DIR = BASE_DIR / "outputs" / "metric_history"  # Path to store training history metrics
 
 # Training configurations
 BATCH_SIZE = 64
@@ -36,4 +36,3 @@ np.random.seed(RANDOM_STATE)
 # Check if GPU available
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print(f"Using {DEVICE} device\n")
-

@@ -22,7 +22,7 @@ def train(model: torch.nn.Module, dataloader: torch.utils.data.DataLoader, loss_
     # Training mode
     model.train()
 
-    size = len(dataloader.dataset)
+    size = len(dataloader.dataset)  # type: ignore
     processed = 0
 
     # Cumulative totals
@@ -123,7 +123,7 @@ def test(model: torch.nn.Module, dataloader: torch.utils.data.DataLoader, loss_f
     # Evaluation mode
     model.eval()
 
-    size = len(dataloader.dataset)
+    size = len(dataloader.dataset)  # type: ignore
     processed = 0
 
     # Cumulative totals
@@ -243,13 +243,13 @@ def train_val(model: torch.nn.Module, train_dataloader: torch.utils.data.DataLoa
         if training_history.scheduler is not None:
             if scheduler is None:
                 raise ValueError("A scheduler is in training history, but no scheduler was passed.")
-            if training_history.scheduler["patience"] != scheduler.patience:
+            if training_history.scheduler["patience"] != scheduler.patience:  # type: ignore
                 raise ValueError(
-                    f"Training history scheduler patience: {training_history.scheduler['patience']} does not match passed scheduler patience: {scheduler.patience}."
+                    f"Training history scheduler patience: {training_history.scheduler['patience']} does not match passed scheduler patience: {scheduler.patience}."  # type: ignore
                 )
-            if training_history.scheduler["factor"] != scheduler.factor:
+            if training_history.scheduler["factor"] != scheduler.factor:  # type: ignore
                 raise ValueError(
-                    f"Training history scheduler factor: {training_history.scheduler['factor']} does not match passed scheduler factor: {scheduler.factor}."
+                    f"Training history scheduler factor: {training_history.scheduler['factor']} does not match passed scheduler factor: {scheduler.factor}."  # type: ignore
                 )
         elif scheduler is not None:
             raise ValueError("A scheduler was passed, but none is recorded in training history.")

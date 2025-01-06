@@ -9,9 +9,9 @@ from .visualisation.robot import load_grid_from_file, visualise_robot
 from .model.model import VAE
 from .metrics.losses import VaeLoss
 from .model.train_test import train_val, test
-from .model.history_checkpoint import TrainingHistory
+from .model.history_checkpoint import TrainingHistory, load_model_checkpoint
 
 __version__ = "0.1.0"
 
-# define what should be available when `from code import *` is used
-__all__ = ["config", "combine_csv_files", "split_and_save_data", "create_dataset_and_loader", "load_grid_from_file", "visualise_robot", "VAE", "VaeLoss", "train_val", "test", "TrainingHistory"]
+# Define what should be available when `from code import *` is used
+__all__ = ["config", "combine_csv_files", "split_and_save_data", "create_dataset_and_loader", "load_grid_from_file", "visualise_robot", "VAE", "VaeLoss", "train_val", "test", "TrainingHistory", "load_model_checkpoint"]

@@ -135,4 +135,3 @@ class VAE(nn.Module):
         x_reconstructed = torch.clamp(x_reconstructed, min=0, max=4)  # Ensure range is [0, 4]
 
         return x_reconstructed, x_decoder, z, z_mean, z_log_var
-

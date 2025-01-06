@@ -18,7 +18,7 @@ def run():
     # Preprocess data and save
     # combined_data = combine_csv_files(config.DATA_DIR)
     # train_data, val_data, test_data = split_and_save_data(combined_data, config.PROCESSED_DIR)
-
+    
     # Load processed data
     processed_data_dir = Path(config.PROCESSED_DIR)
     train_data = pd.read_csv(processed_data_dir / "train.csv", header=None)
@@ -53,9 +53,7 @@ def run():
     criterion = VaeLoss("mse")
     optimizer = optim.Adam(vae.parameters(), lr=config.LEARNING_RATE)
 
-    # CHECK LOADING OF HISTORY
     # CHECK LOADING AND RUNNING OF SAVED MODELS
-    # CHECK ROLL BACK
 
     # for testing
     from torch.utils.data import DataLoader, Subset
@@ -66,11 +64,19 @@ def run():
     subset_val_loader = DataLoader(subset_val_ds, batch_size=config.BATCH_SIZE)
 
     # Train VAE
-    history = train_val(vae, subset_train_loader, subset_val_loader, criterion, optimizer, config.EPOCHS)
-    # history = TrainingHistory.load_history("test_history_.pth")
+    # history = train_val(vae, subset_train_loader, subset_val_loader, criterion, optimizer, config.EPOCHS)
+    # print(history)
 
-    print(history)
+    # history = TrainingHistory.load_history("test_history.pth")
+    # print(history)
+    # history.rollback("last_improved_model")
+    # history.save_history()
 
+    # model, optimizer, scheduler, epoch = load_model_checkpoint(Path(config.MODEL_DIR / "test" / "best_f1_avg_epoch_7.pth"))
+    # print(model)
+    # print(optimizer)
+    # print(scheduler)
+    # print(epoch)
 
     # history = train_val(vae, train_loader, val_loader, criterion, optimizer, config.EPOCHS)
 

@@ -5,6 +5,7 @@ TrainingHistory class used to track and save training history. It also calls che
 
 import torch
 from pathlib import Path
+import re
 from ..config import DEVICE, NUM_CLASSES, MODEL_DIR, HISTORY_DIR, PATIENCE, EPOCHS
 from ..metrics.losses import VaeLoss
 from . import model as model_module  # Used for reconstructing model in load_model_checkpoint
@@ -88,9 +89,25 @@ def load_model_checkpoint(filepath: Path | str) -> tuple[torch.nn.Module, torch.
         scheduler.__dict__.update(checkpoint['scheduler_config'])  # Restore attributes
         scheduler.load_state_dict(checkpoint['scheduler_state_dict'])  # Restores parameters
 
-    print("Checkpoint loaded\n")
+    print("Checkpoint loaded.\n")
 
     return model, optimizer, scheduler, checkpoint['epoch']
+
+
+def extract_epoch_number(filename: str | Path) -> int:
+    """
+    Extracts the epoch number from a filename.
+    Filename must have the epoch number immediately prior to the extension '.pth'.
+
+    :param filename: Filename to search
+    :return: Extracted epoch number
+    """
+    filename = str(filename)
+    pattern = re.compile(r"_(\d+)\.pth$")
+    match = pattern.search(filename)
+    if match:
+        return int(match.group(1))
+    raise ValueError(f"Could not extract epoch number from filename '{filename}'.\n")
 
 
 class TrainingHistory:
@@ -167,18 +184,20 @@ class TrainingHistory:
         """
         Should be used with validation metrics only, not training metrics.
         Checks for improvement of total loss or weighted F1 average.
+        If improvement metrics changed, also adjust rollback method.
         Model is checkpointed in either condition along with first epoch, early stopping and final epoch.
         Note TrainingHistory status is not saved here, neither is history updated, however metric bests are updated.
         This method should be carried out prior to updating epoch history for value comparisons.
         Models are saved using MODEL_DIR from config along with model name and epoch.
+        Epoch number should be immediately prior to the extension for rollback and extract_epoch_number methods.
 
         Early stopping terminate condition True returned when epoch reaches config PATIENCE with no improvement.
 
         :param val_epoch_metrics: Validation metrics dictionary
         :param epoch: Current epoch
-        :param model: Model
-        :param optimizer: Optimizer
-        :param scheduler: Scheduler if using (optional)
+        :param model: Model for checkpointing
+        :param optimizer: Optimizer for checkpointing
+        :param scheduler: Scheduler if using (optional) for checkpointing
         :return: True when patience epoch reached with no improvement, or final epoch reached
         """
         improved = False
@@ -186,7 +205,7 @@ class TrainingHistory:
 
         # Loss
         if self.last_updated_model is None or epoch_loss < self.bests['best_loss']:
-            filepath = Path(MODEL_DIR) / model.name / f"best_loss_epoch_{epoch}.pth"
+            filepath = Path(MODEL_DIR) / self.model_name / f"best_loss_epoch_{epoch}.pth"
             checkpoint_model(filepath, model, optimizer, epoch, scheduler)
             self.bests['best_loss_model'] = filepath
             self.bests['best_loss'] = epoch_loss
@@ -197,7 +216,7 @@ class TrainingHistory:
 
         # Weighted F1 average
         if self.bests['best_f1_avg'] is None or val_epoch_metrics['weighted_f1'] > self.bests['best_f1_avg']:
-            filepath = Path(MODEL_DIR) / model.name / f"best_f1_avg_epoch_{epoch}.pth"
+            filepath = Path(MODEL_DIR) / self.model_name / f"best_f1_avg_epoch_{epoch}.pth"
             checkpoint_model(filepath, model, optimizer, epoch, scheduler)
             self.bests['best_f1_avg_model'] = filepath
             self.bests['best_f1_avg'] = val_epoch_metrics['weighted_f1']
@@ -212,14 +231,14 @@ class TrainingHistory:
 
         if self.epochs_without_improvement >= PATIENCE:
             # Checkpoint early stop model
-            filepath = Path(MODEL_DIR) / model.name / f"terminated_model_epoch_{epoch}.pth"
+            filepath = Path(MODEL_DIR) / self.model_name / f"terminated_model_epoch_{epoch}.pth"
             checkpoint_model(filepath, model, optimizer, epoch, scheduler)
             self.last_updated_model = filepath
 
             return True  # Terminate training condition
         elif epoch >= EPOCHS:
             # Checkpoint final model
-            filepath = Path(MODEL_DIR) / model.name / f"final_model_epoch_{epoch}.pth"
+            filepath = Path(MODEL_DIR) / self.model_name / f"final_model_epoch_{epoch}.pth"
             checkpoint_model(filepath, model, optimizer, epoch, scheduler)
             self.last_updated_model = filepath
 
@@ -254,13 +273,118 @@ class TrainingHistory:
         history['beta'].append(epoch_metrics['beta'])
         if 'lr' in history:
             history['lr'].append(epoch_metrics['lr'])
+        if 'patience' in history:
+            history['patience'].append(PATIENCE)
+
+    def rollback(self, reset_to: int | str | Path):
+        """
+        Inplace function.
+        Rolls back TrainingHistory to a specified state.
+        Cannot forward history.
+        Last improved model is updated based on validation loss and validation weighted F1 average.
+
+        Does not save history. Call save_history method to save rolled back TrainingHistory.
+        When saving, this may overwrite previous TrainingHistory files.
+
+        :param reset_to: An epoch number to reset to the end of that epoch. Alternatively a string/Path referring to a filename or a stored attribute ('last_improved_model', 'best_loss_model', 'best_f1_avg_model')
+        """
+        model_dir = Path(MODEL_DIR) / self.model_name
+        epoch = None
+
+        if isinstance(reset_to, int):
+            # Reset to epoch number
+            if reset_to >= self.epochs_run:
+                raise ValueError(f"Not enough epochs run ({self.epochs_run}) to reset to epoch {reset_to}.")
+            elif reset_to <= 0:
+                raise ValueError(f"When resetting to an epoch number, 'reset_to' must be greater than 0 and less than epochs run: {self.epochs_run}.")
+            epoch = reset_to
+            print(f"Resetting history to epoch {epoch}...")
+        elif isinstance(reset_to, str):
+            # Reset by attribute name
+            if reset_to == "last_improved_model":
+                if self.last_improved_model is None:
+                    raise ValueError(f"'{reset_to}' is None and cannot be used to rollback.")
+                epoch = extract_epoch_number(self.last_improved_model.name)
+                print(f"Resetting history to last_improved_model: {self.last_improved_model.name}...")
+            elif reset_to in self.bests:
+                attr_value = self.bests[reset_to]
+                if attr_value is None:
+                    raise ValueError(f"'{reset_to}' is None and cannot be used to rollback.")
+                epoch = extract_epoch_number(self.bests[reset_to].name)
+                print(f"Resetting history to {reset_to}: {self.bests[reset_to].name}...")
+            else:
+                # reset_to assumed to be a Path
+                reset_to = Path(reset_to)
+
+        if isinstance(reset_to, Path):
+            # Reset by filename or absolute path
+            if not reset_to.is_absolute():
+                reset_to = model_dir / reset_to
+            if not reset_to.exists():
+                raise FileNotFoundError(f"Checkpoint file '{reset_to}' not found.\nPlease enter either '<filename>.pth' or an absolute path.")
+            epoch = extract_epoch_number(reset_to.name)
+            if epoch >= self.epochs_run:
+                raise ValueError(f"Not enough epochs run ({self.epochs_run}) to reset to epoch {reset_to}.")
+            print(f"Resetting history based on provided filename: {reset_to}...")
+
+        # Reset epochs_run
+        if epoch:
+            self.epochs_run = epoch
+        else:
+            # Avoids potential damage to history
+            raise ValueError("'reset_to' must be an int, str, or Path.")
+
+        # Rollback train/val dictionaries
+        for key in self.train.keys():
+            self.train[key] = self.train[key][:epoch]
+        for key in self.val.keys():
+            self.val[key] = self.val[key][:epoch]
+
+        # Find and update bests
+        val_recon = torch.tensor(self.val['recon'], device=DEVICE)
+        beta = torch.tensor(self.val['beta'], device=DEVICE)
+        val_kl = torch.tensor(self.val['kl'], device=DEVICE)
+
+        loss = val_recon + beta * val_kl
+        best_loss_epoch = torch.argmin(loss).item() + 1
+
+        weighted_f1 = torch.tensor(self.val['f1_weighted_avg'], device=DEVICE)
+        best_weighted_f1_epoch = torch.argmax(weighted_f1).item() + 1
+
+        self.bests['best_loss_model'] = model_dir / f"best_loss_epoch_{best_loss_epoch}.pth"
+        self.bests['best_loss'] = loss[best_loss_epoch - 1].item()  # type: ignore
+        self.bests['best_f1_avg_model'] = model_dir / f"best_f1_avg_epoch_{best_weighted_f1_epoch}.pth"
+        self.bests['best_f1_avg'] = weighted_f1[best_weighted_f1_epoch - 1].item()  # type: ignore
+
+        # Last improved
+        if best_weighted_f1_epoch >= best_loss_epoch:
+            self.last_improved_model = model_dir / f"best_f1_avg_epoch_{best_weighted_f1_epoch}.pth"
+        else:
+            self.last_improved_model = model_dir / f"best_loss_epoch_{best_loss_epoch}.pth"
+
+        last_improved_epoch = extract_epoch_number(self.last_improved_model.name)
+        self.epochs_without_improvement = epoch - last_improved_epoch
+
+        # Last updated
+        available_files = list(model_dir.glob("*.pth"))
+        epoch_files = [(extract_epoch_number(file.name), file) for file in available_files]
+        valid_files = [(file_epoch, file) for file_epoch, file in epoch_files if file_epoch <= epoch]
+        if not valid_files:
+            raise FileNotFoundError(f"No valid checkpoint file found in '{model_dir}' for epoch <= {epoch}.")
+        self.last_updated_model = max(valid_files, key=lambda x: x[0])[1]
+
+        print(f"\nTrainingHistory rolled back to epoch {self.epochs_run}. Updated attributes:")
+        print(f"\t- Last updated model: {self.last_updated_model.name}")
+        print(f"\t- Last improved model: {self.last_improved_model.name}")
+        print(f"\t- Best loss: {self.bests['best_loss']:.4f}, Model: {self.bests['best_loss_model'].name if self.bests['best_loss_model'] else 'None'}")  # type: ignore
+        print(f"\t- Best F1 average: {self.bests['best_f1_avg']:.4f}, Model: {self.bests['best_f1_avg_model'].name if self.bests['best_f1_avg_model'] else 'None'}\n")  # type: ignore
 
     def save_history(self):
         """
         Save training history to file using PyTorch's save functionality.
         History is saved using model_name attribute and HISTORY_DIR set in config.
         """
-        filepath = Path(HISTORY_DIR) / f"{self.model_name}_history_{self.epochs_run}_epochs.pth"
+        filepath = Path(HISTORY_DIR) / f"{self.model_name}_history.pth"
 
         # Check directories exist
         if not filepath.parent.exists():
@@ -307,45 +431,43 @@ class TrainingHistory:
 
         return history_obj
 
-    def roll_back(self):
-        pass
-
     def __str__(self) -> str:
         """
         String representation of TrainingHistory object.
         """
         summary = [
             f"Training History Summary for Model: {self.model_name}",
+            f"Model directory: {self.last_updated_model.parents}" if self.last_updated_model else f"Model directory (as per config): {MODEL_DIR / self.model_name}",
             f"{'-' * 50}",
             f"Epochs Run: {self.epochs_run}",
-            f"Last Updated Model Path: {self.last_updated_model}\n" if self.last_updated_model else "Last Updated Model Path: None\n",
+            f"Last Updated Model: {self.last_updated_model.name}\n" if self.last_updated_model else "Last Updated Model Path: None\n",
             f"Epochs Without Improvement: {self.epochs_without_improvement}",
-            f"Last Improved Model Path: {self.last_improved_model}\n" if self.last_improved_model else "Last Improved Model Path: None\n",
+            f"Last Improved Model: {self.last_improved_model.name}\n" if self.last_improved_model else "Last Improved Model Path: None\n",
             f"Batch Size: {self.batch_size}",
             f"Optimizer: {self.optim}",
             f"Loss Function: {self.loss_fn}",
             f"Scheduler:\n\t- Patience: {self.scheduler['patience']}\n\t- Factor: {self.scheduler['factor']}\n" if self.scheduler is not None else "Scheduler: None\n",
-            f"Best Validation Loss: {self.bests['best_loss']:.4f}" if self.bests['best_loss'] is not None else "Best Validation Loss: None",
-            f"Best Validation Loss Model Path: {self.bests['best_loss_model']}",
+            f"Best Validation Loss: {self.bests['best_loss']:.4f } " if self.bests['best_loss'] is not None else "Best Validation Loss: None",
+            f"Best Validation Loss Model: {self.bests['best_loss_model'].name if self.bests['best_loss_model'] else 'None'}",  # type: ignore
             f"Best Validation Weighted F1: {self.bests['best_f1_avg']:.4f}" if self.bests['best_f1_avg'] is not None else "Best Validation Weighted F1: None",
-            f"Best Validation Weighted F1 Model Path: {self.bests['best_f1_avg_model']}",
+            f"Best Validation Weighted F1 Model: {self.bests['best_f1_avg_model'].name if self.bests['best_f1_avg_model'] else 'None'}",  # type: ignore
             f"{'-' * 50}",
-            "Training Metrics:",
-            f"\t- Reconstruction Loss (Last Epoch): {self.train['recon'][-1]:.4f}" if self.train['recon'] else "\t- Reconstruction Loss: None",
-            f"\t- KL Divergence (Last Epoch): {self.train['kl'][-1]:.4f}" if self.train['kl'] else "\t- KL Divergence: None",
-            f"\t- Accuracy (Last Epoch): {self.train['accuracy'][-1]:.4f}" if self.train['accuracy'] else "\t- Accuracy: None",
-            f"\t- Weighted F1 (Last Epoch): {self.train['f1_weighted_avg'][-1]:.4f}" if self.train['f1_weighted_avg'] else "\t- Weighted F1: None",
-            f"\t- Learning Rate (Last Epoch): {self.train['lr'][-1]}",
+            "Training Metrics (Last Epoch):",
+            f"\t- Reconstruction Loss: {self.train['recon'][-1]:.4f}" if self.train['recon'] else "\t- Reconstruction Loss: None",
+            f"\t- KL Divergence: {self.train['kl'][-1]:.4f}" if self.train['kl'] else "\t- KL Divergence: None",
+            f"\t- Accuracy: {self.train['accuracy'][-1]:.4f}" if self.train['accuracy'] else "\t- Accuracy: None",
+            f"\t- Weighted F1: {self.train['f1_weighted_avg'][-1]:.4f}" if self.train['f1_weighted_avg'] else "\t- Weighted F1: None",
+            f"\t- Learning Rate: {self.train['lr'][-1]}",
             f"{'-' * 50}",
-            "Validation Metrics:",
-            f"\t- Reconstruction Loss (Last Epoch): {self.val['recon'][-1]:.4f}" if self.val['recon'] else "\t- Reconstruction Loss: None",
-            f"\t- KL Divergence (Last Epoch): {self.val['kl'][-1]:.4f}" if self.val['kl'] else "\t- KL Divergence: None",
-            f"\t- Accuracy (Last Epoch): {self.val['accuracy'][-1]:.4f}" if self.val['accuracy'] else "\t- Accuracy: None",
-            f"\t- Weighted F1 (Last Epoch): {self.val['f1_weighted_avg'][-1]:.4f}" if self.val['f1_weighted_avg'] else "\t- Weighted F1: None",
+            "Validation Metrics (Last Epoch):",
+            f"\t- Reconstruction Loss: {self.val['recon'][-1]:.4f}" if self.val['recon'] else "\t- Reconstruction Loss: None",
+            f"\t- KL Divergence: {self.val['kl'][-1]:.4f}" if self.val['kl'] else "\t- KL Divergence: None",
+            f"\t- Beta: {self.val['beta'][-1]}",
+            f"\t- Accuracy: {self.val['accuracy'][-1]:.4f}" if self.val['accuracy'] else "\t- Accuracy: None",
+            f"\t- Weighted F1: {self.val['f1_weighted_avg'][-1]:.4f}" if self.val['f1_weighted_avg'] else "\t- Weighted F1: None",
             f"{'-' * 50}",
             "Model Architecture Used:",
             "\n".join([f"- '{name}':\n{module}\n" for name, module in self.model_architecture]).rstrip("\n"),  # Removes final newline
             f"{'-' * 50}"
         ]
         return "\n".join(summary) + "\n"
-
