@@ -3,9 +3,10 @@ Training functions
 """
 
 import torch
-from ..config import DEVICE, NUM_CLASSES
+from pathlib import Path
+from ..config import DEVICE, NUM_CLASSES, MODEL_CHECKPOINT_DIR
 from ..metrics.metrics import calculate_metrics, compute_class_weights
-from .history_checkpoint import TrainingHistory
+from .history_checkpoint import TrainingHistory, remove_old_improvement_models
 
 def train(model: torch.nn.Module, dataloader: torch.utils.data.DataLoader, loss_fn, optimizer: torch.optim.Optimizer, beta: int = 1) -> dict:
     """
@@ -213,7 +214,7 @@ def test(model: torch.nn.Module, dataloader: torch.utils.data.DataLoader, loss_f
     }
 
 
-def train_val(model: torch.nn.Module, train_dataloader: torch.utils.data.DataLoader, val_dataloader: torch.utils.data.DataLoader, loss_fn, optimizer: torch.optim.Optimizer, epochs: int, beta: int = 1, training_history: TrainingHistory = None, scheduler: torch.optim.lr_scheduler.ReduceLROnPlateau = None) -> TrainingHistory:
+def train_val(model: torch.nn.Module, train_dataloader: torch.utils.data.DataLoader, val_dataloader: torch.utils.data.DataLoader, loss_fn, optimizer: torch.optim.Optimizer, epochs: int, beta: int = 1, training_history: TrainingHistory = None, scheduler: torch.optim.lr_scheduler.ReduceLROnPlateau = None, prune_old_checkpoints: bool = True) -> TrainingHistory:
     """
     Train and validate dataloader objects should use the same batch size (train dataloader batch size used for history tracking).
     Training continues from last_updated_model if training_history provided.
@@ -229,6 +230,7 @@ def train_val(model: torch.nn.Module, train_dataloader: torch.utils.data.DataLoa
     :param beta: Optional beta to scale KL divergence, defaults 1 (standard VAE)
     :param training_history: Optional, pass to continue training from saved history
     :param scheduler: Scheduler if using (optional), should be a ReduceLROnPlateau scheduler where the learning rate is adjusted based on (reconstruction loss + beta * KL divergence)
+    :param prune_old_checkpoints: Removes old checkpoint files (saves memory)
     :return: TrainingHistory tracking object
     """
     if train_dataloader.__getattribute__("batch_size") != val_dataloader.__getattribute__("batch_size"):
@@ -277,6 +279,11 @@ def train_val(model: torch.nn.Module, train_dataloader: torch.utils.data.DataLoa
         training_history.update_epoch(train_metrics, "train", False)
         training_history.update_epoch(val_metrics, "val")
         training_history.save_history()
+
+        # Remove old checkpoint files if new files were added
+        if prune_old_checkpoints and training_history.epochs_without_improvement == 0:
+            print("Pruning old checkpoints...")
+            remove_old_improvement_models(Path(MODEL_CHECKPOINT_DIR) / training_history.model_name)
 
         if terminate:
             print("Early stop terminating...")

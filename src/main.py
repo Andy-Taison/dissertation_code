@@ -70,7 +70,7 @@ def run():
     # history.rollback("last_improved_model")  # Rollback does not save history
     # history.save_history()  # Saving rolled back history will overwrite old history (models unaffected)
 
-    # model, optimizer, scheduler, epoch = load_model_checkpoint(Path(config.MODEL_DIR / "test" / "best_f1_avg_epoch_7.pth"))
+    # model, optimizer, scheduler, epoch = load_model_checkpoint(Path(config.MODEL_CHECKPOINT_DIR / "test" / "best_f1_avg_epoch_7.pth"))
     # print(model)
     # print(optimizer)
     # print(scheduler)

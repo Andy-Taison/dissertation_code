@@ -6,9 +6,50 @@ TrainingHistory class used to track and save training history. It also calls che
 import torch
 from pathlib import Path
 import re
-from ..config import DEVICE, NUM_CLASSES, MODEL_DIR, HISTORY_DIR, PATIENCE, EPOCHS
+from ..config import DEVICE, NUM_CLASSES, MODEL_CHECKPOINT_DIR, HISTORY_DIR, PATIENCE, EPOCHS
 from ..metrics.losses import VaeLoss
 from . import model as model_module  # Used for reconstructing model in load_model_checkpoint
+
+def pop_max(group: list[tuple]) -> list:
+    """
+    Removes the item from the group based on the first element of each tuple item.
+    If the group is empty, it returns the empty group.
+
+    :param group: List of tuples
+    """
+    if group:
+        max_item = max(group, key=lambda x: x[0])
+        group.pop(group.index(max_item))
+    return group
+
+def remove_old_improvement_models(model_dir: Path | str):
+    """
+    Deletes old model files from 'model_dir' that start with 'best_f1_avg' or 'best_loss'.
+    Keeps the latest epoch file along with 'final_model' and 'terminated_model' files.
+
+    :param model_dir: Model directory to delete files from
+    """
+    model_dir = Path(model_dir)
+    available_files = list(model_dir.glob("*.pth"))
+
+    # Filter keeping files starting with 'best'
+    pattern = re.compile(r"^best")
+    epoch_files = [(extract_epoch_number(file.name), file) for file in available_files if pattern.search(str(file.name))]
+
+    # Separate into groups
+    best_f1_files = [epoch_file for epoch_file in epoch_files if "best_f1_avg" in epoch_file[1].name]
+    best_loss_files = [epoch_file for epoch_file in epoch_files if "best_loss" in epoch_file[1].name]
+
+    # Remove files from groups with the maximum epoch number
+    f1_files_to_remove = pop_max(best_f1_files)
+    loss_files_to_remove = pop_max(best_loss_files)
+
+    remove = f1_files_to_remove + loss_files_to_remove
+
+    for file in remove:
+        file[1].unlink()
+
+    print("Old improvement files pruned.\n")
 
 def checkpoint_model(filepath: Path | str, model: torch.nn.Module, optimizer: torch.optim.Optimizer, epoch: int, scheduler: torch.optim.lr_scheduler.ReduceLROnPlateau = None):
     """
@@ -188,7 +229,7 @@ class TrainingHistory:
         Model is checkpointed in either condition along with first epoch, early stopping and final epoch.
         Note TrainingHistory status is not saved here, neither is history updated, however metric bests are updated.
         This method should be carried out prior to updating epoch history for value comparisons.
-        Models are saved using MODEL_DIR from config along with model name and epoch.
+        Models are saved using MODEL_CHECKPOINT_DIR from config along with model name and epoch.
         Epoch number should be immediately prior to the extension for rollback and extract_epoch_number methods.
 
         Early stopping terminate condition True returned when epoch reaches config PATIENCE with no improvement.
@@ -205,7 +246,7 @@ class TrainingHistory:
 
         # Loss
         if self.last_updated_model is None or epoch_loss < self.bests['best_loss']:
-            filepath = Path(MODEL_DIR) / self.model_name / f"best_loss_epoch_{epoch}.pth"
+            filepath = Path(MODEL_CHECKPOINT_DIR) / self.model_name / f"best_loss_epoch_{epoch}.pth"
             checkpoint_model(filepath, model, optimizer, epoch, scheduler)
             self.bests['best_loss_model'] = filepath
             self.bests['best_loss'] = epoch_loss
@@ -216,7 +257,7 @@ class TrainingHistory:
 
         # Weighted F1 average
         if self.bests['best_f1_avg'] is None or val_epoch_metrics['weighted_f1'] > self.bests['best_f1_avg']:
-            filepath = Path(MODEL_DIR) / self.model_name / f"best_f1_avg_epoch_{epoch}.pth"
+            filepath = Path(MODEL_CHECKPOINT_DIR) / self.model_name / f"best_f1_avg_epoch_{epoch}.pth"
             checkpoint_model(filepath, model, optimizer, epoch, scheduler)
             self.bests['best_f1_avg_model'] = filepath
             self.bests['best_f1_avg'] = val_epoch_metrics['weighted_f1']
@@ -231,14 +272,14 @@ class TrainingHistory:
 
         if self.epochs_without_improvement >= PATIENCE:
             # Checkpoint early stop model
-            filepath = Path(MODEL_DIR) / self.model_name / f"terminated_model_epoch_{epoch}.pth"
+            filepath = Path(MODEL_CHECKPOINT_DIR) / self.model_name / f"terminated_model_epoch_{epoch}.pth"
             checkpoint_model(filepath, model, optimizer, epoch, scheduler)
             self.last_updated_model = filepath
 
             return True  # Terminate training condition
         elif epoch >= EPOCHS:
             # Checkpoint final model
-            filepath = Path(MODEL_DIR) / self.model_name / f"final_model_epoch_{epoch}.pth"
+            filepath = Path(MODEL_CHECKPOINT_DIR) / self.model_name / f"final_model_epoch_{epoch}.pth"
             checkpoint_model(filepath, model, optimizer, epoch, scheduler)
             self.last_updated_model = filepath
 
@@ -288,7 +329,7 @@ class TrainingHistory:
 
         :param reset_to: An epoch number to reset to the end of that epoch. Alternatively a string/Path referring to a filename or a stored attribute ('last_improved_model', 'best_loss_model', 'best_f1_avg_model')
         """
-        model_dir = Path(MODEL_DIR) / self.model_name
+        model_dir = Path(MODEL_CHECKPOINT_DIR) / self.model_name
         epoch = None
 
         if isinstance(reset_to, int):
@@ -438,7 +479,7 @@ class TrainingHistory:
         """
         summary = [
             f"Training History Summary for Model: {self.model_name}",
-            f"Model directory: '{self.last_updated_model.parent}'" if self.last_updated_model else f"Model directory (as per config): '{MODEL_DIR / self.model_name}'",
+            f"Model directory: '{self.last_updated_model.parent}'" if self.last_updated_model else f"Model directory (as per config): '{MODEL_CHECKPOINT_DIR / self.model_name}'",
             f"{'-' * 50}",
             f"Epochs Run: {self.epochs_run}",
             f"Last Updated Model: {self.last_updated_model.name}\n" if self.last_updated_model else "Last Updated Model Path: None\n",
