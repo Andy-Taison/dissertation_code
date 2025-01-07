@@ -26,6 +26,7 @@ def compute_prediction_table(x: torch.Tensor, x_reconstructed: torch.Tensor) -> 
 
     return prediction_table
 
+
 def compute_class_weights(batch_support: torch.Tensor) -> torch.Tensor:
     """
     Calculates class weights using batch support, used to account for class imbalance (descriptor values are sparse).
@@ -42,6 +43,7 @@ def compute_class_weights(batch_support: torch.Tensor) -> torch.Tensor:
 
     return weights
 
+
 def compute_accuracy(prediction_table: torch.Tensor) -> float:
     """
     Compute accuracy from prediction table.
@@ -55,6 +57,7 @@ def compute_accuracy(prediction_table: torch.Tensor) -> float:
     total = torch.sum(prediction_table)
 
     return (correct / total).item()
+
 
 def compute_recall(prediction_table: torch.Tensor) -> torch.Tensor:
     """
@@ -73,6 +76,7 @@ def compute_recall(prediction_table: torch.Tensor) -> torch.Tensor:
 
     return recall
 
+
 def compute_precision(prediction_table: torch.Tensor) -> torch.Tensor:
     """
     Compute precision for each class from prediction table.
@@ -90,6 +94,7 @@ def compute_precision(prediction_table: torch.Tensor) -> torch.Tensor:
 
     return precision
 
+
 def compute_f1_score(precision: torch.Tensor, recall: torch.Tensor) -> torch.Tensor:
     """
     Compute F1 score from precision and recall tensors.
@@ -103,6 +108,7 @@ def compute_f1_score(precision: torch.Tensor, recall: torch.Tensor) -> torch.Ten
     f1_score[torch.isnan(f1_score)] = 0  # Replace nan values from division by zero
 
     return f1_score
+
 
 def calculate_metrics(x: torch.Tensor, x_reconstructed: torch.Tensor) -> tuple[float, torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
     """
@@ -119,3 +125,31 @@ def calculate_metrics(x: torch.Tensor, x_reconstructed: torch.Tensor) -> tuple[f
     f1_score = compute_f1_score(precision, recall)
 
     return accuracy, recall, precision, f1_score, prediction_table
+
+
+def get_best_tradeoff_score(recon: list, kl: list, beta: list, f1_weighted_avg: list, loss_f1_tradeoff: int = 0.7) -> tuple[int, float]:
+    """
+    Finds best tradeoff score (loss_f1_tradeoff x loss + (1 - loss_f1_tradeoff) x (1 - best_f1_avg)) and the epoch it occurred in.
+
+    :param recon: List of epoch reconstruction losses
+    :param kl: List of epoch KL divergence values
+    :param beta: List of epoch betas used
+    :param f1_weighted_avg: List of epoch F1 weighted average scores
+    :param loss_f1_tradeoff: Tradeoff value to use, higher puts emphasis on loss, lower emphasises F1
+    :return: Best epoch, Best tradeoff score
+    """
+    # Convert lists to tensors
+    recon_tensor = torch.tensor(recon)
+    kl_tensor = torch.tensor(kl)
+    beta_tensor = torch.tensor(beta)
+    f1_tensor = torch.tensor(f1_weighted_avg)
+
+    # Calculates loss for each epoch
+    loss = recon_tensor + beta_tensor * kl_tensor
+
+    # Inverts F1 score for combination with loss
+    score = loss_f1_tradeoff * loss + (1 - loss_f1_tradeoff) * (1 - f1_tensor)
+    best_epoch = torch.argmin(score).item() + 1
+    best_score = torch.min(score).item()
+
+    return best_epoch, best_score

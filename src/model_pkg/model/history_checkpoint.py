@@ -91,50 +91,6 @@ def checkpoint_model(filepath: Path | str, model: torch.nn.Module, optimizer: to
     print(f"Model saved to '{Path(*checkpoint_path.parts[-3:])}'\n")
 
 
-def load_model_checkpoint(filepath: Path | str) -> tuple[torch.nn.Module, torch.optim.Optimizer, torch.optim.lr_scheduler.ReduceLROnPlateau | None, int]:
-    """
-    Function to load a PyTorch model, optimizer, and optionally scheduler along with number of epochs run.
-    States as saved will be restored.
-    Model class structure should match the structure of the model as it was saved (architecture is stored in TrainingHistory).
-    Scheduler is assumed to be ReduceLROnPlateau.
-
-    :param filepath: Filepath to checkpoint to load
-    :return: model, optimizer, scheduler, epochs_run
-    """
-    checkpoint_path = Path(filepath)
-    if not checkpoint_path.parent.exists():
-        raise FileNotFoundError(f"Directory {checkpoint_path.parent} not found.")
-    if not checkpoint_path.exists():
-        raise FileNotFoundError(f"Checkpoint file '{checkpoint_path.name}' does not exist in '{checkpoint_path.parent}'")
-
-    print(f"Loading model and optimizer checkpoint from '{checkpoint_path}'...")
-    checkpoint = torch.load(checkpoint_path, weights_only=False, map_location=DEVICE)  # map_location prevents errors when checkpoint was saved with GPU, but loaded with CPU
-
-    # Restore model
-    model_class = getattr(model_module, checkpoint['model_class'])  # Convert stored string class to class object
-    model = model_class.__new__(model_class)  # Initialise skeleton object bypassing __init__
-    model.__dict__.update(checkpoint['model_config'])  # Restores attributes
-    model = model.to(DEVICE)
-    model.load_state_dict(checkpoint['model_state_dict'])  # Restores parameters
-
-    # Restore optimizer
-    optimizer_class = getattr(torch.optim, checkpoint['optimizer_class'])  # Convert stored string class to class object
-    optimizer = optimizer_class(model.parameters(), **checkpoint['optimizer_args'])  # Initialise optimizer using original args
-    optimizer.load_state_dict(checkpoint['optimizer_state_dict'])  # Restores parameters
-
-    # Restore the scheduler (always assumed to be ReduceLROnPlateau)
-    scheduler = None
-    if 'scheduler_state_dict' in checkpoint:
-        print("Loading scheduler.")
-        scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer)
-        scheduler.__dict__.update(checkpoint['scheduler_config'])  # Restore attributes
-        scheduler.load_state_dict(checkpoint['scheduler_state_dict'])  # Restores parameters
-
-    print("Checkpoint loaded.\n")
-
-    return model, optimizer, scheduler, checkpoint['epoch']
-
-
 def extract_epoch_number(filename: str | Path) -> int:
     """
     Extracts the epoch number from a filename.
@@ -192,7 +148,7 @@ class TrainingHistory:
             'best_loss_model': None,
             'best_loss': None,
             'best_f1_avg_model': None,
-            'best_f1_avg': None,
+            'best_f1_avg': None
         }
 
         self.train = {
@@ -517,3 +473,51 @@ class TrainingHistory:
             f"{'-' * 50}"
         ]
         return "\n".join(summary)
+
+
+def load_model_checkpoint(source: Path | str | TrainingHistory) -> tuple[torch.nn.Module, torch.optim.Optimizer, torch.optim.lr_scheduler.ReduceLROnPlateau | None, int]:
+    """
+    Function to load a PyTorch model, optimizer, and optionally scheduler along with number of epochs run.
+    States as saved will be restored.
+    Model class structure should match the structure of the model as it was saved (architecture is stored in TrainingHistory).
+    Scheduler is assumed to be ReduceLROnPlateau.
+
+    :param source: Filepath to checkpoint or TrainingHistory to load, when TrainingHistory, will load 'last_updated_model'
+    :return: model, optimizer, scheduler, epochs_run
+    """
+    if isinstance(source, TrainingHistory):
+        checkpoint_path = source.last_updated_model
+    else:
+        checkpoint_path = Path(source)
+
+    if not checkpoint_path.parent.exists():
+        raise FileNotFoundError(f"Directory {checkpoint_path.parent} not found.")
+    if not checkpoint_path.exists():
+        raise FileNotFoundError(f"Checkpoint file '{checkpoint_path.name}' does not exist in '{checkpoint_path.parent}'")
+
+    print(f"Loading model and optimizer checkpoint from '{checkpoint_path}'...")
+    checkpoint = torch.load(checkpoint_path, weights_only=False, map_location=DEVICE)  # map_location prevents errors when checkpoint was saved with GPU, but loaded with CPU
+
+    # Restore model
+    model_class = getattr(model_module, checkpoint['model_class'])  # Convert stored string class to class object
+    model = model_class.__new__(model_class)  # Initialise skeleton object bypassing __init__
+    model.__dict__.update(checkpoint['model_config'])  # Restores attributes
+    model = model.to(DEVICE)
+    model.load_state_dict(checkpoint['model_state_dict'])  # Restores parameters
+
+    # Restore optimizer
+    optimizer_class = getattr(torch.optim, checkpoint['optimizer_class'])  # Convert stored string class to class object
+    optimizer = optimizer_class(model.parameters(), **checkpoint['optimizer_args'])  # Initialise optimizer using original args
+    optimizer.load_state_dict(checkpoint['optimizer_state_dict'])  # Restores parameters
+
+    # Restore the scheduler (always assumed to be ReduceLROnPlateau)
+    scheduler = None
+    if 'scheduler_state_dict' in checkpoint:
+        print("Loading scheduler.")
+        scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer)
+        scheduler.__dict__.update(checkpoint['scheduler_config'])  # Restore attributes
+        scheduler.load_state_dict(checkpoint['scheduler_state_dict'])  # Restores parameters
+
+    print("Checkpoint loaded.\n")
+
+    return model, optimizer, scheduler, checkpoint['epoch']
