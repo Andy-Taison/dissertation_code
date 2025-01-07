@@ -38,6 +38,7 @@ def run():
 
     # visualise_robot(grid_data[0], "Test title")
 
+    """
     # Define model
     vae = VAE(config.INPUT_DIM, config.LATENT_DIM, "test").to(config.DEVICE)
 
@@ -53,17 +54,19 @@ def run():
     criterion = VaeLoss("mse")
     optimizer = optim.Adam(vae.parameters(), lr=config.LEARNING_RATE)
 
-    # for testing
+    """
+
+    # For testing
     from torch.utils.data import DataLoader, Subset
     subset_indices = list(range(128))  # Indices for the first 128 samples
     subset_train_ds = Subset(train_ds, subset_indices)
     subset_val_ds = Subset(val_ds, subset_indices)
-    subset_train_loader = DataLoader(subset_train_ds, batch_size=config.BATCH_SIZE, shuffle=True)
-    subset_val_loader = DataLoader(subset_val_ds, batch_size=config.BATCH_SIZE)
+    # subset_train_loader = DataLoader(subset_train_ds, batch_size=config.BATCH_SIZE, shuffle=True)
+    # subset_val_loader = DataLoader(subset_val_ds, batch_size=config.BATCH_SIZE)
 
     # Train VAE
-    history = train_val(vae, subset_train_loader, subset_val_loader, criterion, optimizer, config.EPOCHS)  # History will be to the latest model, which most likely will not be the best model
-    print(history)
+    # history = train_val(vae, subset_train_loader, subset_val_loader, criterion, optimizer, config.EPOCHS)  # History will be to the latest model, which most likely will not be the best model
+    # print(history)
 
     # history = TrainingHistory.load_history("test_history.pth")
     # print(history)
@@ -71,14 +74,13 @@ def run():
     # history.save_history()  # Saving rolled back history will overwrite old history (models unaffected)
 
     # model, optimizer, scheduler, epoch = load_model_checkpoint(Path(config.MODEL_CHECKPOINT_DIR / "test" / "best_f1_avg_epoch_7.pth"))
-    # print(model)
-    # print(optimizer)
-    # print(scheduler)
-    # print(epoch)
 
-    # history = train_val(vae, train_loader, val_loader, criterion, optimizer, config.EPOCHS)
+    train_grid_search(subset_train_ds, subset_val_ds, "test", False)
+    best_history = perform_grid_search()
 
-    print("Pipeline complete.")
+    # train_grid_search(train_ds, val_ds, "base")
+
+    print("\nPipeline complete!")
 
 
 if __name__ == "__main__":

@@ -233,13 +233,16 @@ def train_val(model: torch.nn.Module, train_dataloader: torch.utils.data.DataLoa
     :param prune_old_checkpoints: Removes old checkpoint files (saves memory)
     :return: TrainingHistory tracking object
     """
+    print("*" * 50)
+    print("Train / Validation loop started...\n")
+
     if train_dataloader.__getattribute__("batch_size") != val_dataloader.__getattribute__("batch_size"):
         raise ValueError("Train and validate dataloaders do not have the same batch size.")
 
     # Initialise training history when training from scratch
     if training_history is None:
         training_history = TrainingHistory(model, train_dataloader, optimizer, loss_fn, scheduler)
-        print(f"New training history object created '{training_history.model_name}'.\n")
+        print(f"New training history object created '{training_history.model_name}'\n")
     else:
         # Check passed training history matches other objects
         if training_history.model_name != model.name:
@@ -270,7 +273,8 @@ def train_val(model: torch.nn.Module, train_dataloader: torch.utils.data.DataLoa
 
     for epoch_idx in range(training_history.epochs_run, epochs):
         epoch = epoch_idx + 1
-        print(f"Epoch {epoch}: '{model.name}'\n---------------------------------------------------")
+        print(f"Epoch {epoch}: '{model.name}'")
+        print("-" * 50)
 
         train_metrics = train(model, train_dataloader, loss_fn, optimizer, beta)
         val_metrics = test(model, val_dataloader, loss_fn, beta)
@@ -292,6 +296,7 @@ def train_val(model: torch.nn.Module, train_dataloader: torch.utils.data.DataLoa
         if scheduler:
             scheduler.step(val_metrics['recon'] + val_metrics['beta'] * val_metrics['kl'])
 
-    print("Done!\n")
+    print("Train / Validation loop complete!")
+    print("*" * 50 + "\n")
 
     return training_history

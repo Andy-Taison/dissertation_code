@@ -4,13 +4,15 @@ Defines loss functions
 
 import torch
 import torch.nn as nn
+from ..config import NUM_CLASSES
 
 class VaeLoss:
     def __init__(self, recon_loss_name: str):
         """
         Initialise VAE Loss with a specific reconstruction loss function.
+        BCE expects values to be in range [0,1]
 
-        :param recon_loss_name: Name of reconstruction loss to use ("mse", "smoothl1", "bce")
+        :param recon_loss_name: Name of reconstruction loss to use ("mse", "bce", "smoothl1")
         """
         self.loss_name = recon_loss_name.lower()
 
@@ -18,10 +20,10 @@ class VaeLoss:
         # Reduction is none for applying class weights element wise in __call__
         if self.loss_name == "mse":
             self.recon_loss_fn = nn.MSELoss(reduction='none')
-        elif self.loss_name == "smoothl1":
-            self.recon_loss_fn = nn.SmoothL1Loss(reduction='none')
         elif self.loss_name == "bce":
             self.recon_loss_fn = nn.BCELoss(reduction='none')
+        elif self.loss_name == "smoothl1":
+            self.recon_loss_fn = nn.SmoothL1Loss(reduction='none')
         else:
             raise ValueError(f"Unsupported reconstruction loss: {recon_loss_name}")
 
@@ -30,7 +32,7 @@ class VaeLoss:
     def __call__(self, x: torch.Tensor, x_decoder: torch.Tensor, z_mean: torch.Tensor, z_log_var: torch.Tensor, class_weights: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
         """
         Calculates VAE loss (weighted reconstruction loss + beta * KL divergence), each is returned individually as tensors.
-        Reconstruction loss is weighted (loss reduction must be 'none' for element wise application). Mean reduction applied.
+        Reconstruction loss is weighted (loss reduction must be 'none' when initialised for element wise application). Mean reduction applied.
         KL divergence is averaged across batch size.
         Beta is applied in train/test loops.
 
@@ -41,14 +43,23 @@ class VaeLoss:
         :param class_weights: Class weight tensor to weight loss to account for class imbalance (descriptor values are sparse)
         :return: Reconstruction loss weighted with mean reduction, KL divergence
         """
-        # Ensure tensors are flat for applying weights
-        x_flat = x.view(-1).to(torch.long)  # Long for indexing
-        x_decoder_flat = x_decoder.view(-1)
+        # Normalize x to match x_decoder range [0, 1]
+        x_normalized = x / (NUM_CLASSES - 1)  # Divided by max descriptor value
 
+        # Calculate reconstruction loss, element wise due to reduction being 'none'
+        if self.loss_name == "bce":
+            raw_loss = self.recon_loss_fn(x_decoder, x_normalized)  # Sigmoid already applied for x_decoder
+        else:
+            x_flat = x_normalized.view(-1).to(torch.float)
+            decoder_x_flat = x_decoder.view(-1)
+            raw_loss = self.recon_loss_fn(decoder_x_flat, x_flat)
+
+        # Apply class weights
+        x_flat = x.view(-1).to(torch.long)  # Flatten x for indexing class_weights, long for indexing
         weights_map = class_weights[x_flat]
+        weighted_loss = raw_loss.view(-1) * weights_map
 
-        raw_loss = self.recon_loss_fn(x_decoder_flat, x_flat.to(torch.float))  # Element wise due to reduction being 'none'
-        weighted_loss = weights_map * raw_loss
+        # Mean reduction
         recon_loss = weighted_loss.mean()
 
         kl_div = -0.5 * torch.sum(1 + z_log_var - z_mean.pow(2) - z_log_var.exp()) / x.shape[0]  # Averaged across batch size

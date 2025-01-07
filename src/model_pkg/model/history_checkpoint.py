@@ -88,7 +88,7 @@ def checkpoint_model(filepath: Path | str, model: torch.nn.Module, optimizer: to
         checkpoint_path.parent.mkdir(parents=True, exist_ok=True)
 
     torch.save(checkpoint, checkpoint_path)
-    print(f"Model saved to '{Path(*checkpoint_path.parts[-3:])}'.\n")
+    print(f"Model saved to '{Path(*checkpoint_path.parts[-3:])}'\n")
 
 
 def load_model_checkpoint(filepath: Path | str) -> tuple[torch.nn.Module, torch.optim.Optimizer, torch.optim.lr_scheduler.ReduceLROnPlateau | None, int]:
@@ -179,11 +179,13 @@ class TrainingHistory:
 
         self.batch_size = dataloader.__getattribute__("batch_size")
         self.optim = optimizer.__class__.__name__
+        self.weight_decay = optimizer.param_groups[0]['weight_decay']
         self.loss_fn = criterion.loss_name
         self.scheduler = {
             "patience": scheduler.patience,
             "factor": scheduler.factor
         } if scheduler is not None else None
+        self.latent_dim = model.latent_dim
         self.model_architecture = [(name, module) for name, module in model.named_modules()]
 
         self.bests = {
@@ -434,7 +436,7 @@ class TrainingHistory:
 
         # Save the state of the object
         torch.save(self.__dict__, filepath)
-        print(f"History saved to '{Path(*filepath.parts[-2:])}'.\n")
+        print(f"History saved to '{Path(*filepath.parts[-2:])}'\n")
 
     @classmethod
     def load_history(cls, file: str):
@@ -478,21 +480,22 @@ class TrainingHistory:
         Displayed loss, reconstruction loss and KL divergence are scaled for easier interpretability due to weighted recon and averaged KL.
         """
         summary = [
-            f"Training History Summary for Model: {self.model_name}",
+            f"Training History Summary for Model: '{self.model_name}'",
             f"Model directory: '{self.last_updated_model.parent}'" if self.last_updated_model else f"Model directory (as per config): '{MODEL_CHECKPOINT_DIR / self.model_name}'",
             f"{'-' * 50}",
             f"Epochs Run: {self.epochs_run}",
-            f"Last Updated Model: {self.last_updated_model.name}\n" if self.last_updated_model else "Last Updated Model Path: None\n",
+            f"Last Updated Model: '{self.last_updated_model.name}'\n" if self.last_updated_model else "Last Updated Model Path: None\n",
             f"Epochs Without Improvement: {self.epochs_without_improvement}",
-            f"Last Improved Model: {self.last_improved_model.name}\n" if self.last_improved_model else "Last Improved Model Path: None\n",
+            f"Last Improved Model: '{self.last_improved_model.name}'\n" if self.last_improved_model else "Last Improved Model Path: None\n",
             f"Batch Size: {self.batch_size}",
             f"Optimizer: {self.optim}",
+            f"Weight Decay: {self.weight_decay}",
             f"Loss Function: {self.loss_fn}",
             f"Scheduler:\n\t- Patience: {self.scheduler['patience']}\n\t- Factor: {self.scheduler['factor']}\n" if self.scheduler is not None else "Scheduler: None\n",
             f"Best Validation Loss: {self.bests['best_loss'] * 100:.4f}" if self.bests['best_loss'] is not None else "Best Validation Loss: None",  # type: ignore
-            f"Best Validation Loss Model: {self.bests['best_loss_model'].name if self.bests['best_loss_model'] else 'None'}",  # type: ignore
+            f"Best Validation Loss Model: '{self.bests['best_loss_model'].name if self.bests['best_loss_model'] else 'None'}'",  # type: ignore
             f"Best Validation Weighted F1: {self.bests['best_f1_avg']:.4f}" if self.bests['best_f1_avg'] is not None else "Best Validation Weighted F1: None",
-            f"Best Validation Weighted F1 Model: {self.bests['best_f1_avg_model'].name if self.bests['best_f1_avg_model'] else 'None'}",  # type: ignore
+            f"Best Validation Weighted F1 Model: '{self.bests['best_f1_avg_model'].name if self.bests['best_f1_avg_model'] else 'None'}'",  # type: ignore
             f"{'-' * 50}",
             "Training Metrics (Last Epoch):",
             f"\t- Reconstruction Loss: {self.train['recon'][-1] * 100:.4f}" if self.train['recon'] else "\t- Reconstruction Loss: None",
@@ -509,7 +512,8 @@ class TrainingHistory:
             f"\t- Weighted F1: {self.val['f1_weighted_avg'][-1]:.4f}" if self.val['f1_weighted_avg'] else "\t- Weighted F1: None",
             f"{'-' * 50}",
             "Model Architecture Used:",
+            f"Latent Dim: {self.latent_dim}\n",
             "\n".join([f"- '{name}':\n{module}\n" for name, module in self.model_architecture]).rstrip("\n"),  # Removes final newline
             f"{'-' * 50}"
         ]
-        return "\n".join(summary) + "\n"
+        return "\n".join(summary)
