@@ -6,7 +6,7 @@ import torch
 from pathlib import Path
 from ..config import DEVICE, NUM_CLASSES, MODEL_CHECKPOINT_DIR
 from ..metrics.metrics import calculate_metrics, compute_class_weights
-from .history_checkpoint import TrainingHistory, remove_old_improvement_models
+from .history_checkpoint import TrainingHistory, remove_old_improvement_models, extract_epoch_number
 
 def train(model: torch.nn.Module, dataloader: torch.utils.data.DataLoader, loss_fn, optimizer: torch.optim.Optimizer, beta: int = 1) -> dict:
     """
@@ -287,7 +287,7 @@ def train_val(model: torch.nn.Module, train_dataloader: torch.utils.data.DataLoa
         # Remove old checkpoint files if new files were added
         if prune_old_checkpoints and training_history.epochs_without_improvement == 0:
             print("Pruning old checkpoints...")
-            remove_old_improvement_models(Path(MODEL_CHECKPOINT_DIR) / training_history.model_name)
+            remove_old_improvement_models(Path(MODEL_CHECKPOINT_DIR) / training_history.model_name, extract_epoch_number(training_history.bests['best_f1_avg_model']), extract_epoch_number(training_history.bests['best_loss_model']))
 
         if terminate:
             print("Early stop terminating...")

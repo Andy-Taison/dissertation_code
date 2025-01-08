@@ -10,24 +10,17 @@ from ..config import DEVICE, NUM_CLASSES, MODEL_CHECKPOINT_DIR, HISTORY_DIR, PAT
 from ..metrics.losses import VaeLoss
 from . import model as model_module  # Used for reconstructing model in load_model_checkpoint
 
-def pop_max(group: list[tuple]) -> list:
-    """
-    Removes the item from the group based on the first element of each tuple item.
-    If the group is empty, it returns the empty group.
-
-    :param group: List of tuples
-    """
-    if group:
-        max_item = max(group, key=lambda x: x[0])
-        group.pop(group.index(max_item))
-    return group
-
-def remove_old_improvement_models(model_dir: Path | str):
+def remove_old_improvement_models(model_dir: Path | str, f1_epoch: int = -1, loss_epoch: int = -1):
     """
     Deletes old model files from 'model_dir' that start with 'best_f1_avg' or 'best_loss'.
-    Keeps the latest epoch file along with 'final_model' and 'terminated_model' files.
+    Keeps the latest valid epoch file along with 'final_model' and 'terminated_model' files.
+    When specifying an epoch, will look for valid files to keep up to and including the epoch specified.
+    If no valid files when specifying epoch, all will be removed.
+    The first epoch starts at 1.
 
     :param model_dir: Model directory to delete files from
+    :param f1_epoch: best_f1_avg checkpoint epoch number to keep (keeps only the latest that exists up to that epoch), use -1 (default) to maintain latest
+    :param loss_epoch: best_loss checkpoint epoch number to keep (keeps only the latest that exists up to that epoch), use -1 (default) to maintain latest
     """
     model_dir = Path(model_dir)
     available_files = list(model_dir.glob("*.pth"))
@@ -36,16 +29,32 @@ def remove_old_improvement_models(model_dir: Path | str):
     pattern = re.compile(r"^best")
     epoch_files = [(extract_epoch_number(file.name), file) for file in available_files if pattern.search(str(file.name))]
 
-    # Separate into groups
-    best_f1_files = [epoch_file for epoch_file in epoch_files if "best_f1_avg" in epoch_file[1].name]
-    best_loss_files = [epoch_file for epoch_file in epoch_files if "best_loss" in epoch_file[1].name]
+    # Separate into groups, files where epoch number cannot be extracted are not deleted
+    f1_files = [epoch_file for epoch_file in epoch_files if "best_f1_avg" in epoch_file[1].name and epoch_file[0] is not None]
+    loss_files = [epoch_file for epoch_file in epoch_files if "best_loss" in epoch_file[1].name and epoch_file[0] is not None]
 
-    # Remove files from groups with the maximum epoch number
-    f1_files_to_remove = pop_max(best_f1_files)
-    loss_files_to_remove = pop_max(best_loss_files)
+    # Get files suitable to keep
+    if f1_epoch > 0:
+        valid_f1 = [epoch_file for epoch_file in f1_files if epoch_file[0] <= f1_epoch]
+    else:
+        valid_f1 = f1_files
+    # Removes latest epoch file to keep from deletion list
+    if valid_f1:
+        keep_f1 = max(valid_f1, key=lambda x: x[0])
+        f1_files.remove(keep_f1)
 
-    remove = f1_files_to_remove + loss_files_to_remove
+    if loss_epoch > 0:
+        valid_loss = [epoch_file for epoch_file in loss_files if epoch_file[0] <= loss_epoch]
+    else:
+        valid_loss = loss_files
+    # Remove latest epoch file to keep from deletion list
+    if valid_loss:
+        keep_loss = max(valid_loss, key=lambda x: x[0])
+        loss_files.remove(keep_loss)
 
+    remove = f1_files + loss_files
+
+    # Delete files
     for file in remove:
         file[1].unlink()
 
@@ -91,10 +100,10 @@ def checkpoint_model(filepath: Path | str, model: torch.nn.Module, optimizer: to
     print(f"Model saved to '{Path(*checkpoint_path.parts[-3:])}'\n")
 
 
-def extract_epoch_number(filename: str | Path) -> int:
+def extract_epoch_number(filename: str | Path) -> int | None:
     """
     Extracts the epoch number from a filename.
-    Filename must have the epoch number immediately prior to the extension '.pth' to be extracted.
+    Filename must have the epoch number immediately prior to the extension '.pth' to be extracted, else None will be returned.
 
     :param filename: Filename to search
     :return: Extracted epoch number
@@ -104,7 +113,8 @@ def extract_epoch_number(filename: str | Path) -> int:
     match = pattern.search(filename)
     if match:
         return int(match.group(1))
-    raise ValueError(f"Could not extract epoch number from filename '{filename}'.\n")
+    else:
+        return None
 
 
 class TrainingHistory:
@@ -310,8 +320,8 @@ class TrainingHistory:
                 attr_value = self.bests[reset_to]
                 if attr_value is None:
                     raise ValueError(f"'{reset_to}' is None and cannot be used to rollback.")
-                epoch = extract_epoch_number(self.bests[reset_to].name)
-                print(f"Resetting history to {reset_to}: {self.bests[reset_to].name}...")
+                epoch = extract_epoch_number(attr_value.name)
+                print(f"Resetting history to {reset_to}: {attr_value.name}...")
             else:
                 # reset_to assumed to be a Path
                 reset_to = Path(reset_to)
@@ -323,6 +333,8 @@ class TrainingHistory:
             if not reset_to.exists():
                 raise FileNotFoundError(f"Checkpoint file '{reset_to}' not found.\nPlease enter either '<filename>.pth' or an absolute path.")
             epoch = extract_epoch_number(reset_to.name)
+            if epoch is None:
+                raise ValueError(f"Cannot extract epoch number from '{reset_to.name}', check filename format.")
             if epoch >= self.epochs_run:
                 raise ValueError(f"Not enough epochs run ({self.epochs_run}) to reset to epoch {reset_to}.")
             print(f"Resetting history based on provided filename: {reset_to}...")

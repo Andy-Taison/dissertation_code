@@ -22,6 +22,7 @@ from .history_checkpoint import TrainingHistory
 
 def create_grid() -> list[dict]:
     """
+    Not currently setup to work with a scheduler. Will need to add here and pass to train_val in train_grid_search if wanting to include.
     Creates a grid of training configurations as a list of dictionaries containing:
     - 'batch_size'
     - 'latent_dim'
@@ -63,7 +64,7 @@ def create_grid() -> list[dict]:
     return grid
 
 
-def train_grid_search(train_ds: TensorDataset, val_ds: TensorDataset, model_architecture_name: str, clear_history_list: bool = False, history_list_filename: str = "grid_search_list"):
+def train_grid_search(train_ds: TensorDataset, val_ds: TensorDataset, model_architecture_name: str, clear_history_list: bool = False, history_list_filename: str = "grid_search_list", prune_old_checkpoints: bool = True):
     """
     Conducts training for grid search.
     Grid is created based on 'create_grid' function.
@@ -72,11 +73,16 @@ def train_grid_search(train_ds: TensorDataset, val_ds: TensorDataset, model_arch
 
     Ensure to clear or delete list file when starting a new grid search to not include other training history files in search.
 
+    Note in certain cases where search_grid_history tradeoff score epoch does not match either best weighted F1 average epoch or best loss epoch, loading of the checkpoint will not be possible.
+    This is only the case when checkpointing files are pruned (default).
+    However, the TrainingHistory object can still be loaded to obtain metrics.
+
     :param train_ds: Training dataset
     :param val_ds: Validation dataset
     :param model_architecture_name: Unique prefix for history file and checkpointing
     :param clear_history_list: When False, files already listed in '<history_list_filename>.txt' are skipped, when True '<history_list_filename>.txt' is overwritten
     :param history_list_filename: Filename without extension for storing paths to trained history files
+    :param prune_old_checkpoints: Removes old checkpoint files (saves memory)
     """
     print("*" * 50)
     print("Starting grid search training...")
@@ -128,12 +134,12 @@ def train_grid_search(train_ds: TensorDataset, val_ds: TensorDataset, model_arch
             optimizer = setup['optimizer']['type'](vae.parameters(), **optim_params)
 
             # Train VAE
-            history = train_val(vae, train_loader, val_loader, criterion, optimizer, EPOCHS, setup['beta'])  # History will be to the latest model, which most likely will not be the best model
+            history = train_val(vae, train_loader, val_loader, criterion, optimizer, EPOCHS, setup['beta'], prune_old_checkpoints=prune_old_checkpoints)  # History will be to the latest model, which most likely will not be the best model
 
             # Add path to file
             history_path = f"{history.model_name}_history.pth"
             file.write(history_path + "\n")
-            print(f"Added '{history_path}' to {Path(*search_list_path.parts[-2:])}")
+            print(f"Added '{history_path}' to '{Path(*search_list_path.parts[-2:])}'")
 
     print("\nGrid search training complete!")
     if completed_histories:

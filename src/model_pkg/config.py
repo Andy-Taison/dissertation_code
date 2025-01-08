@@ -7,7 +7,7 @@ from pathlib import Path
 
 # Repository/project directory
 # When running locally, use this:
-#BASE_DIR = Path.cwd().parent  # Can also use Path("../") for relative address, may need adjusting depending on project setup - sho$
+# BASE_DIR = Path.cwd().parent  # Can also use Path("../") for relative address, may need adjusting depending on project setup - sho$
 # When running on the HPC use this:
 BASE_DIR = Path("/users/40538519/sharedscratch")
 
