@@ -54,7 +54,6 @@ def run():
     criterion = VaeLoss("mse")
     optimizer = optim.Adam(vae.parameters(), lr=config.LEARNING_RATE)
 
-
     # For testing
     from torch.utils.data import DataLoader, Subset
     subset_indices = list(range(128))  # Indices for the first 128 samples
@@ -75,26 +74,28 @@ def run():
     # model, optimizer, scheduler, epoch = load_model_checkpoint(Path(config.MODEL_CHECKPOINT_DIR / "test" / "best_f1_avg_epoch_7.pth"))
 
     train_grid_search(subset_train_ds, subset_val_ds, "test")
-    best_history, best_score, best_epoch = perform_grid_search()
+    best_history, best_score, best_epoch = search_grid_history()
     print(best_score)
     print(best_epoch)
     """
 
     # Grid search
     train_grid_search(train_ds, val_ds, "base")
-    best_history, best_score, best_epoch = perform_grid_search()
+    best_history, best_score, best_epoch = search_grid_history()
 
     # Rollback to best performing history and model to load checkpoint
     if best_epoch < best_history.epochs_run:
         best_history.rollback(best_epoch)  # Rollback does not save history
-        best_history.save_history()
+    best_history.save_history(f"best_performing_{best_history.model_name}")
+
+    print(best_history)
 
     # Get best performing model, optimizer and scheduler
-    model, optimizer, scheduler, epoch = load_model_checkpoint(best_history)
-    print(model)
-    print(optimizer)
-    print(scheduler)
-    print(epoch)
+    # model, optimizer, scheduler, epoch = load_model_checkpoint(best_history)
+    # print(model)
+    # print(optimizer)
+    # print(scheduler)
+    # print(epoch)
 
     print("\nPipeline complete!")
 

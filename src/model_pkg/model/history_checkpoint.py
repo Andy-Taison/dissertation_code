@@ -94,7 +94,7 @@ def checkpoint_model(filepath: Path | str, model: torch.nn.Module, optimizer: to
 def extract_epoch_number(filename: str | Path) -> int:
     """
     Extracts the epoch number from a filename.
-    Filename must have the epoch number immediately prior to the extension '.pth'.
+    Filename must have the epoch number immediately prior to the extension '.pth' to be extracted.
 
     :param filename: Filename to search
     :return: Extracted epoch number
@@ -127,6 +127,7 @@ class TrainingHistory:
         :param scheduler: Scheduler if using (optional), should be a ReduceLROnPlateau scheduler where the learning rate is adjusted based on (reconstruction loss + beta * KL divergence)
         """
         self.model_name = model.name
+        self.alt_history_filename = None  # Used to save TrainingHistory to file under different name to model_name
 
         self.epochs_run = 0
         self.epochs_without_improvement = 0
@@ -283,9 +284,9 @@ class TrainingHistory:
         Last improved model is updated based on validation loss and validation weighted F1 average.
 
         Does not save history. Call save_history method to save rolled back TrainingHistory.
-        When saving, this may overwrite previous TrainingHistory files.
+        When saving, this may overwrite previous TrainingHistory files if not changing filename when saving.
 
-        :param reset_to: An epoch number to reset to the end of that epoch. Alternatively a string/Path referring to a filename or a stored attribute ('last_improved_model', 'best_loss_model', 'best_f1_avg_model')
+        :param reset_to: An epoch number to reset to the end of that epoch. Alternatively a string/Path referring to a filename or a stored attribute ['last_improved_model', 'best_loss_model', 'best_f1_avg_model']
         """
         model_dir = Path(MODEL_CHECKPOINT_DIR) / self.model_name
         epoch = None
@@ -350,9 +351,20 @@ class TrainingHistory:
         weighted_f1 = torch.tensor(self.val['f1_weighted_avg'], device=DEVICE)
         best_weighted_f1_epoch = torch.argmax(weighted_f1).item() + 1
 
-        self.bests['best_loss_model'] = model_dir / f"best_loss_epoch_{best_loss_epoch}.pth"
+        best_loss_model_path = model_dir / f"best_loss_epoch_{best_loss_epoch}.pth"
+        if best_loss_model_path.exists():
+            self.bests['best_loss_model'] = best_loss_model_path
+        else:
+            print(f"\nBest loss model checkpoint for epoch {best_loss_epoch} does not exist.")
+            self.bests['best_loss_model'] = None
         self.bests['best_loss'] = loss[best_loss_epoch - 1].item()  # type: ignore
-        self.bests['best_f1_avg_model'] = model_dir / f"best_f1_avg_epoch_{best_weighted_f1_epoch}.pth"
+
+        best_f1_model_path = model_dir / f"best_f1_avg_epoch_{best_weighted_f1_epoch}.pth"
+        if best_f1_model_path.exists():
+            self.bests['best_f1_avg_model'] = best_f1_model_path
+        else:
+            print(f"\nBest weighted F1 average model checkpoint for epoch {best_weighted_f1_epoch} does not exist.")
+            self.bests['best_f1_avg_model'] = None
         self.bests['best_f1_avg'] = weighted_f1[best_weighted_f1_epoch - 1].item()  # type: ignore
 
         # Last improved
@@ -363,14 +375,20 @@ class TrainingHistory:
 
         last_improved_epoch = extract_epoch_number(self.last_improved_model.name)
         self.epochs_without_improvement = epoch - last_improved_epoch
+        if not self.last_improved_model.exists():
+            print(f"\nLast improved model checkpoint file '{self.last_improved_model}' does not exist.")
+            self.last_improved_model = None
 
-        # Last updated
+        # Last updated and check that checkpoint file exists for epoch
         available_files = list(model_dir.glob("*.pth"))
         epoch_files = [(extract_epoch_number(file.name), file) for file in available_files]
         valid_files = [(file_epoch, file) for file_epoch, file in epoch_files if file_epoch <= epoch]
         if not valid_files:
-            raise FileNotFoundError(f"No valid checkpoint file found in '{model_dir}' for epoch <= {epoch}.")
-        self.last_updated_model = max(valid_files, key=lambda x: x[0])[1]
+            print(f"\nNo valid checkpoint file found in '{model_dir}' for epoch <= {epoch}.")
+            print("Loading checkpoint will not be possible.")
+            self.last_updated_model = None
+        else:
+            self.last_updated_model = max(valid_files, key=lambda x: x[0])[1]
 
         print(f"\nTrainingHistory rolled back to epoch {self.epochs_run}. Updated attributes:")
         print(f"\t- Last updated model: {self.last_updated_model.name}")
@@ -378,12 +396,24 @@ class TrainingHistory:
         print(f"\t- Best loss: {self.bests['best_loss']:.4f}, Model: {self.bests['best_loss_model'].name if self.bests['best_loss_model'] else 'None'}")  # type: ignore
         print(f"\t- Best F1 average: {self.bests['best_f1_avg']:.4f}, Model: {self.bests['best_f1_avg_model'].name if self.bests['best_f1_avg_model'] else 'None'}\n")  # type: ignore
 
-    def save_history(self):
+    def save_history(self, change_filename_to: str = None):
         """
         Save training history to file using PyTorch's save functionality.
-        History is saved using model_name attribute and HISTORY_DIR set in config.
+        History is saved under '<alt_history_filename>.pth' if set, or '<model_name>_history.pth'.
+        Saved in 'HISTORY_DIR' as set in config.
+
+        :param change_filename_to: Change and save under alternative filename (provide without extension)
         """
-        filepath = Path(HISTORY_DIR) / f"{self.model_name}_history.pth"
+        if change_filename_to is not None:
+            self.alt_history_filename = change_filename_to
+            print(f"Alternative history filename updated: '{change_filename_to}'")
+
+        if self.alt_history_filename is not None:
+            filepath = Path(HISTORY_DIR) / f"{self.alt_history_filename}.pth"
+            print(f"Saving to alternative history filename: '{filepath.name}'...")
+        else:
+            filepath = Path(HISTORY_DIR) / f"{self.model_name}_history.pth"
+            print(f"Saving history to: '{filepath.name}'...")
 
         # Check directories exist
         if not filepath.parent.exists():
@@ -437,7 +467,8 @@ class TrainingHistory:
         """
         summary = [
             f"Training History Summary for Model: '{self.model_name}'",
-            f"Model directory: '{self.last_updated_model.parent}'" if self.last_updated_model else f"Model directory (as per config): '{MODEL_CHECKPOINT_DIR / self.model_name}'",
+            f"History Saved Under Alternative Filename: '{self.alt_history_filename}'" if self.alt_history_filename else None,
+            f"Model Directory: '{self.last_updated_model.parent}'" if self.last_updated_model else f"Model Directory (as per config): '{MODEL_CHECKPOINT_DIR / self.model_name}'",
             f"{'-' * 50}",
             f"Epochs Run: {self.epochs_run}",
             f"Last Updated Model: '{self.last_updated_model.name}'\n" if self.last_updated_model else "Last Updated Model Path: None\n",
@@ -472,21 +503,39 @@ class TrainingHistory:
             "\n".join([f"- '{name}':\n{module}\n" for name, module in self.model_architecture]).rstrip("\n"),  # Removes final newline
             f"{'-' * 50}"
         ]
+
+        # Remove any None entries from list
+        summary = [line for line in summary if line is not None]
+
         return "\n".join(summary)
 
 
-def load_model_checkpoint(source: Path | str | TrainingHistory) -> tuple[torch.nn.Module, torch.optim.Optimizer, torch.optim.lr_scheduler.ReduceLROnPlateau | None, int]:
+def load_model_checkpoint(source: Path | str | TrainingHistory, load: str = "updated") -> tuple[torch.nn.Module, torch.optim.Optimizer, torch.optim.lr_scheduler.ReduceLROnPlateau | None, int]:
     """
     Function to load a PyTorch model, optimizer, and optionally scheduler along with number of epochs run.
     States as saved will be restored.
     Model class structure should match the structure of the model as it was saved (architecture is stored in TrainingHistory).
     Scheduler is assumed to be ReduceLROnPlateau.
 
-    :param source: Filepath to checkpoint or TrainingHistory to load, when TrainingHistory, will load 'last_updated_model'
+    :param source: Filepath to checkpoint or TrainingHistory to load, when TrainingHistory, will load 'last_updated_model' by default (use rollback first or load option to load different checkpoints)
+    :param load: Model to load when used with TrainingHistory object [default: 'updated', 'improved', 'f1', 'loss']
     :return: model, optimizer, scheduler, epochs_run
     """
     if isinstance(source, TrainingHistory):
-        checkpoint_path = source.last_updated_model
+        match load:
+            case 'updated':
+                model_path = source.last_updated_model
+            case 'improved':
+                model_path = source.last_improved_model
+            case 'f1':
+                model_path = source.bests['best_f1_avg_model']
+            case 'loss':
+                model_path = source.bests['best_loss_model']
+            case _:
+                raise ValueError("Invalid model to load, choose from [default: 'updated', 'improved', 'f1', 'loss'].")
+        if model_path is None:
+            raise ValueError("Model path attribute is None, cannot load checkpoint.")
+        checkpoint_path = model_path
     else:
         checkpoint_path = Path(source)
 

@@ -58,7 +58,7 @@ def create_grid() -> list[dict]:
         for decay in weight_decay
         for beta in betas
     ]
-    print(f"Grid created with {len(grid)} configuration(s).\n")
+    print(f"Grid created with {len(grid)} configuration(s).")
 
     return grid
 
@@ -67,8 +67,10 @@ def train_grid_search(train_ds: TensorDataset, val_ds: TensorDataset, model_arch
     """
     Conducts training for grid search.
     Grid is created based on 'create_grid' function.
-    Stores list of history file paths to '<history_list_filename>.txt' which is stored in the 'HISTORY_DIR' as specified in config.
+    Stores list of history filenames to '<history_list_filename>.txt' which is stored in the 'HISTORY_DIR' as specified in config.
     This file is used when conducting the actual grid search.
+
+    Ensure to clear or delete list file when starting a new grid search to not include other training history files in search.
 
     :param train_ds: Training dataset
     :param val_ds: Validation dataset
@@ -76,8 +78,8 @@ def train_grid_search(train_ds: TensorDataset, val_ds: TensorDataset, model_arch
     :param clear_history_list: When False, files already listed in '<history_list_filename>.txt' are skipped, when True '<history_list_filename>.txt' is overwritten
     :param history_list_filename: Filename without extension for storing paths to trained history files
     """
-    print("=" * 50)
-    print("Starting grid search...")
+    print("*" * 50)
+    print("Starting grid search training...")
     grid = create_grid()
 
     search_list_path = Path(HISTORY_DIR) / f"{history_list_filename}.txt"
@@ -103,7 +105,8 @@ def train_grid_search(train_ds: TensorDataset, val_ds: TensorDataset, model_arch
 
             # Check if history path is already in file
             if f"{model_name}_history.pth" in completed_histories:
-                print(f"Skipping, already completed: '{model_name}'")
+                print(f"Skipping configuration, already completed: '{model_name}'")
+                completed_histories.remove(f"{model_name}_history.pth")  # Completed histories set used to check if files in search_list_path were not found
                 continue
             else:
                 print(f"\nConfiguration [{i + 1:>4d}/{len(grid):>4d}]:")
@@ -130,16 +133,25 @@ def train_grid_search(train_ds: TensorDataset, val_ds: TensorDataset, model_arch
             # Add path to file
             history_path = f"{history.model_name}_history.pth"
             file.write(history_path + "\n")
-            print(f"'{history_path}' added to {Path(*search_list_path.parts[-2:])}")
+            print(f"Added '{history_path}' to {Path(*search_list_path.parts[-2:])}")
 
     print("\nGrid search training complete!")
-    print("=" * 50 + "\n")
+    if completed_histories:
+        print(f"\nFiles were found in '{search_list_path.name}' that were not part of the grid training configuration:")
+        for file in completed_histories:
+            print(file)
+        print("\nEnsure to remove these before searching grid if not wanting to include them.")
+    print("*" * 50 + "\n")
 
 
-def perform_grid_search(history_list_filename: str = "grid_search_list", loss_f1_tradeoff: int = 0.7) -> tuple[TrainingHistory, float, int] | None:
+def search_grid_history(history_list_filename: str = "grid_search_list", loss_f1_tradeoff: int = 0.7) -> tuple[TrainingHistory, float, int] | None:
     """
     Finds best tradeoff score (loss_f1_tradeoff x_best loss + (1 - loss_f1_tradeoff) x (1 - best_f1_avg)) of the models listed in 'history_list_filename'.
     'history_list_filename' should exist in 'HISTORY_DIR' as specified in config.
+
+    Note in certain cases where tradeoff score epoch does not match either best weighted F1 average epoch or best loss epoch, loading of the checkpoint will not be possible.
+    This is only the case when checkpointing files are pruned (default).
+    However, the TrainingHistory object can still be loaded to obtain metrics.
 
     :param history_list_filename: txt file listing all TrainingHistory filenames to perform grid search on
     :param loss_f1_tradeoff: Balances loss and weighted F1 average to compare histories for the grid search

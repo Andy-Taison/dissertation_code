@@ -10,7 +10,7 @@ from .model.model import VAE
 from .metrics.losses import VaeLoss
 from .model.train_test import train_val, test
 from .model.history_checkpoint import TrainingHistory, load_model_checkpoint
-from .model.grid_search import train_grid_search, perform_grid_search
+from .model.grid_search import train_grid_search, search_grid_history
 
 __version__ = "0.1.0"
 
@@ -28,4 +28,4 @@ __all__ = ["config",
            "TrainingHistory",
            "load_model_checkpoint",
            "train_grid_search",
-           "perform_grid_search"]
+           "search_grid_history"]

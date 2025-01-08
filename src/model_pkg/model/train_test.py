@@ -233,7 +233,7 @@ def train_val(model: torch.nn.Module, train_dataloader: torch.utils.data.DataLoa
     :param prune_old_checkpoints: Removes old checkpoint files (saves memory)
     :return: TrainingHistory tracking object
     """
-    print("*" * 50)
+    print("=" * 50)
     print("Train / Validation loop started...\n")
 
     if train_dataloader.__getattribute__("batch_size") != val_dataloader.__getattribute__("batch_size"):
@@ -297,6 +297,6 @@ def train_val(model: torch.nn.Module, train_dataloader: torch.utils.data.DataLoa
             scheduler.step(val_metrics['recon'] + val_metrics['beta'] * val_metrics['kl'])
 
     print("Train / Validation loop complete!")
-    print("*" * 50 + "\n")
+    print("=" * 50 + "\n")
 
     return training_history
