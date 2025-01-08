@@ -1,19 +1,19 @@
-#!/bin/bash -l
-#SBATCH --job-name=vae_test       # Job name
-#SBATCH --output=output_%j.txt    # Standard output log file (with job ID)
-#SBATCH --error=error_%j.txt      # Standard error log file (with job ID)
-#SBATCH --partition=gpu           # Partition name for GPU jobs
-#SBATCH --gres=gpu:1              # Request one GPU
-#SBATCH --cpus-per-task=4         # Number of CPU cores per task
-#SBATCH --mem=16G                 # Amount of memory requested
-#SBATCH --time=01:00:00           # Maximum runtime (1 hour)
+#!/bin/bash
 
-# Load necessary modules
-module load python/3.x            # Replace with the Python version on the HPC
-module load pytorch/1.x-cuda11    # Replace with the available PyTorch module
+# Job script for Training Model
+# Description: Runs the main.py script for your project, leveraging GPU resources on the HPC.
 
-# Activate virtual environment (optional if you create one on HPC)
-# source ~/venv/bin/activate
+#SBATCH -J train_model           # Job name
+#SBATCH -p gpu                   # Use the GPU partition
+#SBATCH --gres=gpu:1             # Request 1 GPU
+# #SBATCH --nodelist=gpu04       # Uncomment to specify exact gpu to use
+#SBATCH -N 1                     # Request 1 node
+#SBATCH -n 1                     # Request 1 task
+#SBATCH -o /users/%u/job_output_%j.out  # Standard output file
+#SBATCH -e /users/%u/job_error_%j.err   # Standard error file
 
-# Run the Python code
-python -m code.model.train        # Adjust if the entry point is different
+echo "Job started..."
+
+# Run the Python script
+python -u ~/sharedscratch/code/src/main.py
+echo "Script execution completed."
