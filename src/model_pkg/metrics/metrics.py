@@ -3,7 +3,7 @@ Metric calculation functions
 """
 
 import torch
-from ..config import NUM_CLASSES
+from ..config import NUM_CLASSES, DEVICE
 
 def compute_prediction_table(x: torch.Tensor, x_reconstructed: torch.Tensor) -> torch.Tensor:
     """
@@ -18,9 +18,9 @@ def compute_prediction_table(x: torch.Tensor, x_reconstructed: torch.Tensor) -> 
     # Flatten tensors
     x_flat = x.view(-1).to(torch.long)  # Long for indexing
     x_reconstructed_flat = x_reconstructed.view(-1).to(torch.long)  # Long for indexing
-
-    prediction_table = torch.zeros(NUM_CLASSES, NUM_CLASSES, dtype=torch.int64)
-
+    
+    prediction_table = torch.zeros(NUM_CLASSES, NUM_CLASSES, dtype=torch.int64).to(DEVICE)
+    
     for idx, cls in enumerate(x_flat):
         prediction_table[cls, x_reconstructed_flat[idx]] += 1
 

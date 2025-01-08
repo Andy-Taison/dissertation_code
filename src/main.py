@@ -53,7 +53,8 @@ def run():
     # Initialise training components
     criterion = VaeLoss("mse")
     optimizer = optim.Adam(vae.parameters(), lr=config.LEARNING_RATE)
-
+    """
+    """
     # For testing
     from torch.utils.data import DataLoader, Subset
     subset_indices = list(range(128))  # Indices for the first 128 samples
@@ -91,11 +92,11 @@ def run():
     print(best_history)
 
     # Get best performing model, optimizer and scheduler
-    # model, optimizer, scheduler, epoch = load_model_checkpoint(best_history)
-    # print(model)
-    # print(optimizer)
-    # print(scheduler)
-    # print(epoch)
+    model, optimizer, scheduler, epoch = load_model_checkpoint(best_history)
+    print(model)
+    print(optimizer)
+    print(scheduler)
+    print(epoch)
 
     print("\nPipeline complete!")
 

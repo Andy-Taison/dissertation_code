@@ -44,18 +44,19 @@ class VaeLoss:
         :return: Reconstruction loss weighted with mean reduction, KL divergence
         """
         # Normalize x to match x_decoder range [0, 1]
-        x_normalized = x / (NUM_CLASSES - 1)  # Divided by max descriptor value
+        x_normalised = x / (NUM_CLASSES - 1)  # Divided by max descriptor value
 
         # Calculate reconstruction loss, element wise due to reduction being 'none'
         if self.loss_name == "bce":
-            raw_loss = self.recon_loss_fn(x_decoder, x_normalized)  # Sigmoid already applied for x_decoder
+            raw_loss = self.recon_loss_fn(x_decoder, x_normalised)  # Sigmoid already applied for x_decoder
         else:
-            x_flat = x_normalized.view(-1).to(torch.float)
+            x_flat = x_normalised.view(-1).to(torch.float)
             decoder_x_flat = x_decoder.view(-1)
             raw_loss = self.recon_loss_fn(decoder_x_flat, x_flat)
 
         # Apply class weights
         x_flat = x.view(-1).to(torch.long)  # Flatten x for indexing class_weights, long for indexing
+
         weights_map = class_weights[x_flat]
         weighted_loss = raw_loss.view(-1) * weights_map
 

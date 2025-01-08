@@ -6,7 +6,10 @@ import numpy as np
 from pathlib import Path
 
 # Repository/project directory
-BASE_DIR = Path.cwd().parent  # Can also use Path("../") for relative address, may need adjusting depending on project setup - should point to
+# When running locally, use this:
+#BASE_DIR = Path.cwd().parent  # Can also use Path("../") for relative address, may need adjusting depending on project setup - sho$
+# When running on the HPC use this:
+BASE_DIR = Path("/users/40538519/sharedscratch")
 
 # Directories
 DATA_DIR = BASE_DIR / "data" / "raw"  # Path to raw data CSV files
