@@ -1,1 +1,0 @@
-test_bs32_ld2_mse_adam_lr0.0001_wd0_be1_history.pth
