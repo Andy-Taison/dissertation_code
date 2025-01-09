@@ -4,6 +4,7 @@ Defines VAE model modules
 
 import torch
 import torch.nn as nn
+from ..config import NUM_CLASSES
 
 class Encoder(nn.Module):
     """
@@ -130,7 +131,7 @@ class VAE(nn.Module):
         x_decoder = x_decoder.view(-1, *self.input_dim)  # Reshape to match original dimensions
 
         # Adjust values to obtain original descriptor values
-        x_reconstructed = x_decoder * 4  # Scale output to [0, 4]
+        x_reconstructed = x_decoder * (NUM_CLASSES - 1)  # Scale output to [0, 4]
         x_reconstructed = torch.round(x_reconstructed)  # Round to the nearest integer
         x_reconstructed = torch.clamp(x_reconstructed, min=0, max=4)  # Ensure range is [0, 4]
 

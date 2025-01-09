@@ -72,8 +72,8 @@ def train(model: torch.nn.Module, dataloader: torch.utils.data.DataLoader, loss_
         # Update count
         processed += len(ids)
 
-        # print progress every 5 batches
-        if batch_idx % 5 == 0:
+        # print progress every 50 batches
+        if batch_idx % 50 == 0:
             print(f"[{processed:>5d}/{size:>5d}]")
             print(f"Batch metrics (train):")
             print(f"\tLoss = {loss.item() * 100:>8.4f}")  # Scaled for easier interpretability due to weighted recon and averaged KL
@@ -172,8 +172,8 @@ def test(model: torch.nn.Module, dataloader: torch.utils.data.DataLoader, loss_f
             # Update count
             processed += len(ids)
 
-            # print progress every 5 batches
-            if batch_idx % 5 == 0:
+            # print progress every 50 batches
+            if batch_idx % 50 == 0:
                 print(f"[{processed:>5d}/{size:>5d}]")
                 print(f"Batch metrics (test):")
                 print(f"\tLoss = {loss.item() * 100:>8.4f}")  # Scaled for easier interpretability due to weighted recon and averaged KL

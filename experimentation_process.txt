@@ -1,0 +1,2 @@
+When setup grid search, had 18000 configurations, obviously far too many, cut down to 288.
+First experiment run (with full dataset and 288 configurations), in 12 hours 35 mins, only had got to 3rd epoch and 143872/196262 samples of 1st configuration - excessivly long, need to cut down.
