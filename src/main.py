@@ -16,8 +16,20 @@ def run():
     print("Starting VAE pipeline...\n")
 
     # Preprocess data and save
-    # combined_data = combine_csv_files(config.DATA_DIR)
-    # train_data, val_data, test_data = split_and_save_data(combined_data, config.PROCESSED_DIR)
+    combined_data = combine_csv_files(config.DATA_DIR)
+    print("Combined full dataset")
+    summarise_dataset(combined_data)
+    cleaned_df = clean_data(combined_data)
+    train_data, val_data, test_data = split_data(cleaned_df)
+    save_split_datasets(config.PROCESSED_DIR, train_data, val_data, test_data)
+    print("Training dataset")
+    summarise_dataset(train_data)
+    print("Validation dataset")
+    summarise_dataset(val_data)
+    print("Test dataset")
+    summarise_dataset(test_data)
+
+    # save_split_datasets(config.PROCESSED_DIR, test_data, train_data, val_data)
 
     # Load processed data
     processed_data_dir = Path(config.PROCESSED_DIR)
@@ -26,8 +38,14 @@ def run():
     test_data = pd.read_csv(processed_data_dir / "test.csv", header=None)
 
     # Create datasets and dataloaders
+    print("Training dataset")
+    summarise_dataset(train_data)
     train_ds, train_loader = create_dataset_and_loader(train_data, batch_size=config.BATCH_SIZE, shuffle=True)
+    print("Validation dataset")
+    summarise_dataset(val_data)
     val_ds, val_loader = create_dataset_and_loader(val_data, batch_size=config.BATCH_SIZE)
+    print("Test dataset")
+    summarise_dataset(test_data)
     test_ds, test_loader = create_dataset_and_loader(test_data, batch_size=config.BATCH_SIZE)
     print(f"Preprocessed datasets loaded: train ({len(train_ds)}), val ({len(val_ds)}), and test ({len(test_ds)}) sets.\n")
 
@@ -54,7 +72,7 @@ def run():
     criterion = VaeLoss("mse")
     optimizer = optim.Adam(vae.parameters(), lr=config.LEARNING_RATE)
     """
-
+    """
     # For testing
     from torch.utils.data import DataLoader, Subset
     subset_indices = list(range(128))  # Indices for the first 128 samples
@@ -78,11 +96,11 @@ def run():
     best_history, best_score, best_epoch = search_grid_history()
     print(best_score)
     print(best_epoch)
-
+    """
 
     # Grid search
-    # train_grid_search(train_ds, val_ds, "base")
-    # best_history, best_score, best_epoch = search_grid_history()
+    train_grid_search(train_ds, val_ds, "base")
+    best_history, best_score, best_epoch = search_grid_history()
 
     # Rollback to best performing history and model to load checkpoint
     if best_epoch < best_history.epochs_run:
@@ -98,7 +116,6 @@ def run():
     print(scheduler)
     print(epoch)
 
-    print(best_history.train['training_time'])
     print("\nPipeline complete!")
 
 

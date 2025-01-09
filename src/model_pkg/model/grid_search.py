@@ -37,7 +37,7 @@ def create_grid() -> list[dict]:
     print("Creating grid...")
     batch_sizes = [64]  #[32, 64]  # Possibly trial 16, and 128 later
     latent_dims = [2, 4]  #[2, 4, 8]  # Possibly trial 16 later
-    loss_functions = ["mse"]  #["mse", "bce"]  # Possibly later trail "smoothL1", bce expects probabilities in range [0,1], otherwise use bcewithlogitsloss as internally applies sigmoid
+    loss_functions = ["mse", "bce"]  # Possibly later trail "smoothL1", bce expects probabilities in range [0,1], otherwise use bcewithlogitsloss as internally applies sigmoid
     optimizer = [
         {"type": optim.Adam, "params": {}, "model_name": "adam"},
         # # {"type": optim.SGD, "params": {"nesterov": True}, "model_name": "sgd"},  # Potential for later

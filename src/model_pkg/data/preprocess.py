@@ -61,23 +61,43 @@ def combine_csv_files(directory: str) -> pd.DataFrame:
     return combined_df
 
 
-def split_and_save_data(dataframe: pd.DataFrame, processed_directory: str, val_size: float = 0.1, test_size: float = 0.2) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+def clean_data(dataset: pd.DataFrame) -> pd.DataFrame:
     """
-    Split data into train, validate, and test sets, saves as CSV files.
+    Function to clean the dataset.
+    Removes duplicate rows.
+    Removes rows with only zero values.
+
+    :param dataset: Dataset to clean
+    :return: Cleaned dataset
+    """
+    print("Cleaning dataset...")
+    # Obtains 3D grid data (last 1331 columns, 3rd column to end if original csv or 5th if combined csv)
+    grids = dataset.iloc[:, -1331:]
+
+    # Remove duplicate rows
+    dups_removed = grids.drop_duplicates()
+
+    # Keep only rows that have at least 1 non-zero value
+    cleaned_grids = dups_removed[(dups_removed != 0).any(axis=1)]
+
+    # Reattach preceding columns
+    preceding_cols = dataset.iloc[:, :-1331]
+    cleaned_df = pd.concat([preceding_cols.loc[cleaned_grids.index], cleaned_grids], axis=1)
+
+    print("Dataset cleaned.\n")
+
+    return cleaned_df
+
+
+def split_data(dataframe: pd.DataFrame, val_size: float = 0.1, test_size: float = 0.2) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+    """
+    Split data into train, validate, and test sets.
 
     :param dataframe: Data
-    :param processed_directory: Directory to store dataset CSV files
     :param val_size: Proportion of entire dataset for the validation set
     :param test_size: Proportion of entire dataset for the test set
     :return: train_data, val_data, test_data
     """
-    processed_data_dir = Path(processed_directory)
-    processed_data_dir.mkdir(parents=True, exist_ok=True)
-
-    train_path = processed_data_dir / "train.csv"
-    val_path = processed_data_dir / "val.csv"
-    test_path = processed_data_dir / "test.csv"
-
     print("Splitting datasets...")
 
     # Split data into train/test
@@ -88,12 +108,76 @@ def split_and_save_data(dataframe: pd.DataFrame, processed_directory: str, val_s
         train_data, test_size=val_size / (1 - test_size), random_state=RANDOM_STATE
     )
 
-    # Save split datasets
-    train_data.to_csv(train_path, index=False, header=None)
-    val_data.to_csv(val_path, index=False, header=None)
-    test_data.to_csv(test_path, index=False, header=None)
-
-    print(f"Data split into train ({len(train_data)}), val ({len(val_data)}), and test ({len(test_data)}) sets.")
-    print(f"Datasets saved as:\n\t{train_path}\n\t{val_path}\n\t{test_path}\n")
+    print(f"Data split into train ({len(train_data)}), val ({len(val_data)}), and test ({len(test_data)}) sets.\n")
 
     return train_data, val_data, test_data
+
+
+def save_split_datasets(processed_directory: str | Path, train_data: pd.DataFrame, val_data: pd.DataFrame, test_data: pd.DataFrame):
+    """
+    Saves datasets as 'train.csv', 'val.csv', and 'test.csv' in 'processed_directory'.
+
+    :param processed_directory: Directory to store dataset CSV files
+    :param train_data: Dataset to save in 'train.csv'
+    :param val_data: Dataset to save in 'val.csv'
+    :param test_data: Dataset to save in 'test.csv'
+    """
+    processed_data_dir = Path(processed_directory)
+    processed_data_dir.mkdir(parents=True, exist_ok=True)
+
+    train_path = processed_data_dir / "train.csv"
+    val_path = processed_data_dir / "val.csv"
+    test_path = processed_data_dir / "test.csv"
+
+    # Save split datasets
+    print(f"Saving split datasets...")
+    train_data.to_csv(train_path, index=False, header=None)  # type: ignore
+    val_data.to_csv(val_path, index=False, header=None)  # type: ignore
+    test_data.to_csv(test_path, index=False, header=None)  # type: ignore
+    print(f"Datasets saved as:\n\t{train_path}\n\t{val_path}\n\t{test_path}\n")
+
+
+def summarise_dataset(dataset: pd.DataFrame):
+    """
+    Prints a summary of the dataset passed
+
+    :param dataset: Dataset to summarise
+    """
+    # Obtains 3D grid data (last 1331 columns, 3rd column to end if original csv or 5th if combined csv)
+    grids = dataset.iloc[:, -1331:]
+
+    # Counts for each descriptor value
+    total_counts = grids.stack().value_counts()
+
+    # Proportion of each class
+    proportions = (total_counts / grids.size * 100).round(2)
+
+    # Sparsity
+    zeros_per_row = grids.eq(0).sum(axis=1)
+    avg_zeros_per_row = zeros_per_row.mean()
+    avg_class_per_row = grids[grids > 0].count(axis=1).mean()
+
+    # Non-zero
+    non_zero_counts_per_row = grids.gt(0).sum(axis=1)
+    rows_with_only_zero = (non_zero_counts_per_row == 0).sum()
+    rows_with_one_non_zero = (non_zero_counts_per_row == 1).sum()
+    rows_with_multiple_non_zero = (non_zero_counts_per_row > 1).sum()
+
+    # Unique rows
+    unique_rows = len(grids.drop_duplicates())
+
+    # Dataset dimensions
+    num_rows, num_columns = grids.shape
+
+    # Print summary
+    print("Dataset Summary:")
+    print("-" * 50)
+    print(f"Dimensions: {num_rows} rows x {num_columns} columns")
+    print(f"\nOverall Class Counts:\n{total_counts.to_string()}")
+    print(f"\nProportion of Each Class (%):\n{proportions.to_string()}")
+    print(f"\nAverage Zeros Per Row: {avg_zeros_per_row:.2f}")
+    print(f"Average Non-Zero Classes Per Row: {avg_class_per_row:.2f}")
+    print(f"Rows with Only Zero Values: {rows_with_only_zero} ({rows_with_only_zero / num_rows * 100:.2f}%)")
+    print(f"Rows with Exactly 1 Non-Zero Value: {rows_with_one_non_zero} ({rows_with_one_non_zero / num_rows * 100:.2f}%)")
+    print(f"Rows with Multiple Non-Zero Values: {rows_with_multiple_non_zero} ({rows_with_multiple_non_zero / num_rows * 100:.2f}%)")
+    print(f"Unique Rows: {unique_rows} ({unique_rows / num_rows * 100:.2f})%\n")

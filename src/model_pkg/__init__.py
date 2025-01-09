@@ -3,7 +3,7 @@ Defines public API for src package
 """
 
 from . import config
-from .data.preprocess import combine_csv_files, split_and_save_data
+from .data.preprocess import combine_csv_files, split_data, save_split_datasets, summarise_dataset, clean_data
 from .data.loaders import create_dataset_and_loader
 from .visualisation.robot import load_grid_from_file, visualise_robot
 from .model.model import VAE
@@ -17,7 +17,10 @@ __version__ = "0.1.0"
 # Define what should be available when `from code import *` is used
 __all__ = ["config",
            "combine_csv_files",
-           "split_and_save_data",
+           "split_data",
+           "save_split_datasets",
+           "summarise_dataset",
+           "clean_data",
            "create_dataset_and_loader",
            "load_grid_from_file",
            "visualise_robot",
