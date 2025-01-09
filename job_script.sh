@@ -14,6 +14,26 @@
 
 echo "Job started..."
 
+echo "Loading Anaconda module..."
+module load apps/anaconda3/2023.03/bin
+echo "Module loaded."
+
+# Initialize Conda
+echo "Initialising Conda..."
+eval "$(conda shell.bash hook)"
+echo "Conda initialised."
+
+# Activate virtual environment
+echo "Activating virtual environment..."
+source ~/venv/bin/activate
+echo "Environment activated."
+
 # Run the Python script
-python -u ~/sharedscratch/code/src/main.py
+echo "Running script..."
+python -u ~/sharedscratch/src/main.py
 echo "Script execution completed."
+
+echo "Deactivating environment..."
+conda deactivate
+
+echo "Job complete."

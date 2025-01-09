@@ -16,20 +16,18 @@ def run():
     print("Starting VAE pipeline...\n")
 
     # Preprocess data and save
-    combined_data = combine_csv_files(config.DATA_DIR)
-    print("Combined full dataset")
-    summarise_dataset(combined_data)
-    cleaned_df = clean_data(combined_data)
-    train_data, val_data, test_data = split_data(cleaned_df)
-    save_split_datasets(config.PROCESSED_DIR, train_data, val_data, test_data)
-    print("Training dataset")
-    summarise_dataset(train_data)
-    print("Validation dataset")
-    summarise_dataset(val_data)
-    print("Test dataset")
-    summarise_dataset(test_data)
-
-    # save_split_datasets(config.PROCESSED_DIR, test_data, train_data, val_data)
+    # combined_data = combine_csv_files(config.DATA_DIR)
+    # print("Combined full dataset")
+    # summarise_dataset(combined_data)
+    # cleaned_df = clean_data(combined_data)
+    # train_data, val_data, test_data = split_data(cleaned_df)
+    # save_split_datasets(config.PROCESSED_DIR, train_data, val_data, test_data)
+    # print("Training dataset")
+    # summarise_dataset(train_data)
+    # print("Validation dataset")
+    # summarise_dataset(val_data)
+    # print("Test dataset")
+    # summarise_dataset(test_data)
 
     # Load processed data
     processed_data_dir = Path(config.PROCESSED_DIR)
