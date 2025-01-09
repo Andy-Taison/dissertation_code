@@ -1,8 +1,8 @@
-When setup grid search, had 18000 configurations, obviously far too many, cut down to 288.
+* When setup grid search, had 18000 configurations, obviously far too many, cut down to 288.
 First experiment run (with full dataset (280375 total samples, 196262 training samples) and 288 configurations), in 12 hours 35 mins, only had got to 3rd epoch and 143872/196262 samples of 1st configuration - excessivly long, need to cut down.
 
 
-Scaled back training and grid search configurations.
+* Scaled back training and grid search configurations, cleaned dataset.
 Now training to 30 epochs max with early stop patience 5.
 Added a timer to the train/validation loops to track as a metric for evaluation.
 Added functionality to summarise data, found duplicate rows and rows with only zero descriptor values (won't add value).
