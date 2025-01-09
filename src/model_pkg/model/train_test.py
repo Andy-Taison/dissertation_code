@@ -272,9 +272,17 @@ def train_val(model: torch.nn.Module, train_dataloader: torch.utils.data.DataLoa
 
         print(f"Continuing training, epochs run so far: {training_history.epochs_run}\n")
 
+    time_to_train = []  # Maintains average time to train from each configuration for progress statements
+
     for epoch_idx in range(training_history.epochs_run, epochs):
         epoch = epoch_idx + 1
         print(f"Epoch {epoch:>3d}/{epochs:>3d}: '{model.name}'")
+        if time_to_train:
+            average_train_time = sum(time_to_train) / len(time_to_train)
+            estimated_completion = time.time() + average_train_time * (epochs - epoch_idx)
+            formatted_estimate = time.strftime('%d-%b-%Y %H:%M:%S', time.localtime(estimated_completion))
+            print(f"Estimated training validation loop completion: {formatted_estimate}")
+        start_epoch_timer = time.perf_counter()
         print("-" * 50)
 
         # Train with timer
@@ -305,6 +313,9 @@ def train_val(model: torch.nn.Module, train_dataloader: torch.utils.data.DataLoa
 
         if scheduler:
             scheduler.step(val_metrics['recon'] + val_metrics['beta'] * val_metrics['kl'])
+
+        stop_epoch_timer = time.perf_counter()
+        time_to_train.append(start_epoch_timer - stop_epoch_timer)
 
     print("Train / Validation loop complete!")
     print("=" * 50 + "\n")

@@ -90,7 +90,7 @@ def train_grid_search(train_ds: TensorDataset, val_ds: TensorDataset, model_arch
     grid = create_grid()
 
     search_list_path = Path(HISTORY_DIR) / f"{history_list_filename}.txt"
-    time_to_train = []  # maintains average time to train each configuration for progress statements
+    time_to_train = []  # Maintains average time to train from each configuration for progress statements
 
     # Check directories exist
     search_list_path.parent.mkdir(parents=True, exist_ok=True)
@@ -117,14 +117,14 @@ def train_grid_search(train_ds: TensorDataset, val_ds: TensorDataset, model_arch
                 completed_histories.remove(f"{model_name}_history.pth")  # Completed histories set used to check if files in search_list_path were not found
                 continue
             else:
+                print(f"\nConfiguration [{i + 1:>4d}/{len(grid):>4d}]:")
                 if time_to_train:
                     average_train_time = sum(time_to_train) / len(time_to_train)
                     estimated_completion = time.time() + average_train_time * (len(grid) - i)
-                    formatted_estimate = time.strftime('%d-%m-%Y %H:%M:%S', time.localtime(estimated_completion))
+                    formatted_estimate = time.strftime('%d-%b-%Y %H:%M:%S', time.localtime(estimated_completion))
                     print(f"\nConfiguration [{i + 1:>4d}/{len(grid):>4d}]:")
                     print(f"Estimated grid search training completion: {formatted_estimate}")
-                else:
-                    print(f"\nConfiguration [{i + 1:>4d}/{len(grid):>4d}]:")
+
             # Create dataloaders updating batch_size
             train_loader = DataLoader(train_ds, batch_size=setup['batch_size'], shuffle=True)
             val_loader = DataLoader(val_ds, batch_size=setup['batch_size'], shuffle=False)
