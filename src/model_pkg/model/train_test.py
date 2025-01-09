@@ -4,6 +4,7 @@ Training functions
 
 import torch
 from pathlib import Path
+import time
 from ..config import DEVICE, NUM_CLASSES, MODEL_CHECKPOINT_DIR
 from ..metrics.metrics import calculate_metrics, compute_class_weights
 from .history_checkpoint import TrainingHistory, remove_old_improvement_models, extract_epoch_number
@@ -25,7 +26,7 @@ def train(model: torch.nn.Module, dataloader: torch.utils.data.DataLoader, loss_
     # Training mode
     model.train()
 
-    size = len(dataloader.dataset)  # type: ignore
+    num_samples = len(dataloader.dataset)  # type: ignore
     processed = 0
 
     # Cumulative totals
@@ -74,7 +75,7 @@ def train(model: torch.nn.Module, dataloader: torch.utils.data.DataLoader, loss_
 
         # print progress every 50 batches
         if batch_idx % 50 == 0:
-            print(f"[{processed:>5d}/{size:>5d}]")
+            print(f"Processed [{processed:>5d}/{num_samples:>5d}]")
             print(f"Batch metrics (train):")
             print(f"\tLoss = {loss.item() * 100:>8.4f}")  # Scaled for easier interpretability due to weighted recon and averaged KL
             print(f"\tAccuracy = {accuracy * 100:>6.2f}%")
@@ -131,7 +132,7 @@ def test(model: torch.nn.Module, dataloader: torch.utils.data.DataLoader, loss_f
     # Evaluation mode
     model.eval()
 
-    size = len(dataloader.dataset)  # type: ignore
+    num_samples = len(dataloader.dataset)  # type: ignore
     processed = 0
 
     # Cumulative totals
@@ -174,7 +175,7 @@ def test(model: torch.nn.Module, dataloader: torch.utils.data.DataLoader, loss_f
 
             # print progress every 50 batches
             if batch_idx % 50 == 0:
-                print(f"[{processed:>5d}/{size:>5d}]")
+                print(f"Processed [{processed:>5d}/{num_samples:>5d}]")
                 print(f"Batch metrics (test):")
                 print(f"\tLoss = {loss.item() * 100:>8.4f}")  # Scaled for easier interpretability due to weighted recon and averaged KL
                 print(f"\tAccuracy = {accuracy * 100:>6.2f}%")
@@ -273,11 +274,20 @@ def train_val(model: torch.nn.Module, train_dataloader: torch.utils.data.DataLoa
 
     for epoch_idx in range(training_history.epochs_run, epochs):
         epoch = epoch_idx + 1
-        print(f"Epoch {epoch}: '{model.name}'")
+        print(f"Epoch {epoch:>3d}/{epochs:>3d}: '{model.name}'")
         print("-" * 50)
 
+        # Train with timer
+        start_timer = time.perf_counter()
         train_metrics = train(model, train_dataloader, loss_fn, optimizer, beta)
+        stop_timer = time.perf_counter()
+        train_metrics['training_time'] = stop_timer - start_timer
+
+        # Validate with timer
+        start_timer = time.perf_counter()
         val_metrics = test(model, val_dataloader, loss_fn, beta)
+        stop_timer = time.perf_counter()
+        val_metrics['training_time'] = stop_timer - start_timer
 
         terminate = training_history.check_and_save_model_improvement(val_metrics, epoch, model, optimizer, scheduler)
         training_history.update_epoch(train_metrics, "train", False)

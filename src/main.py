@@ -54,7 +54,7 @@ def run():
     criterion = VaeLoss("mse")
     optimizer = optim.Adam(vae.parameters(), lr=config.LEARNING_RATE)
     """
-    """
+
     # For testing
     from torch.utils.data import DataLoader, Subset
     subset_indices = list(range(128))  # Indices for the first 128 samples
@@ -78,11 +78,11 @@ def run():
     best_history, best_score, best_epoch = search_grid_history()
     print(best_score)
     print(best_epoch)
-    """
+
 
     # Grid search
-    train_grid_search(train_ds, val_ds, "base")
-    best_history, best_score, best_epoch = search_grid_history()
+    # train_grid_search(train_ds, val_ds, "base")
+    # best_history, best_score, best_epoch = search_grid_history()
 
     # Rollback to best performing history and model to load checkpoint
     if best_epoch < best_history.epochs_run:
@@ -98,6 +98,7 @@ def run():
     print(scheduler)
     print(epoch)
 
+    print(best_history.train['training_time'])
     print("\nPipeline complete!")
 
 

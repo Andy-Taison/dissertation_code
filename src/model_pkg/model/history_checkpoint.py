@@ -10,6 +10,20 @@ from ..config import DEVICE, NUM_CLASSES, MODEL_CHECKPOINT_DIR, HISTORY_DIR, PAT
 from ..metrics.losses import VaeLoss
 from . import model as model_module  # Used for reconstructing model in load_model_checkpoint
 
+def avg_and_format_time(times: list[float]) -> str:
+    """
+    Calculates average time from a list of times in seconds.
+    Formats average time into a string in the format 'hours:minutes:seconds'.
+
+    :param times: List of times in seconds
+    :return: Formatted string total time
+    """
+    avg_time = sum(times) / len(times)
+    hours = round(avg_time / 3600)
+    minutes = round((avg_time % 3600) / 60)
+    seconds = round(avg_time % 60)
+    return f"{hours:02}:{minutes:02}:{seconds:02}"
+
 def remove_old_improvement_models(model_dir: Path | str, f1_epoch: int = -1, loss_epoch: int = -1):
     """
     Deletes old model files from 'model_dir' that start with 'best_f1_avg' or 'best_loss'.
@@ -144,7 +158,7 @@ class TrainingHistory:
         self.last_updated_model = None
         self.last_improved_model = None
 
-        self.batch_size = dataloader.__getattribute__("batch_size")
+        self.batch_size = dataloader.batch_size
         self.optim = optimizer.__class__.__name__
         self.weight_decay = optimizer.param_groups[0]['weight_decay']
         self.loss_fn = criterion.loss_name
@@ -173,7 +187,8 @@ class TrainingHistory:
             'f1_classes': torch.empty(0, NUM_CLASSES, device=DEVICE),
             'f1_weighted_avg': [],
             'beta': [],
-            'lr': []
+            'lr': [],
+            'training_time': []  # Training loop time in seconds
         }
 
         # No learning rate required for validation due to not using optimizer
@@ -187,7 +202,8 @@ class TrainingHistory:
             'precision_weighted_avg': [],
             'f1_classes': torch.empty(0, NUM_CLASSES, device=DEVICE),
             'f1_weighted_avg': [],
-            'beta': []
+            'beta': [],
+            'training_time': []  # Validation loop time in seconds
         }
 
     def check_and_save_model_improvement(self, val_epoch_metrics: dict, epoch: int, model: torch.nn.Module, optimizer: torch.optim.Optimizer, scheduler: torch.optim.lr_scheduler.LRScheduler = None) -> bool:
@@ -281,6 +297,7 @@ class TrainingHistory:
         history['f1_classes'] = torch.cat([history['f1_classes'], epoch_metrics['class_f1'].unsqueeze(0)])
         history['f1_weighted_avg'].append(epoch_metrics['weighted_f1'])
         history['beta'].append(epoch_metrics['beta'])
+        history['training_time'].append(epoch_metrics['training_time'])
         if 'lr' in history:
             history['lr'].append(epoch_metrics['lr'])
         if 'patience' in history:
@@ -502,6 +519,7 @@ class TrainingHistory:
             f"\t- Accuracy: {self.train['accuracy'][-1]:.4f}" if self.train['accuracy'] else "\t- Accuracy: None",
             f"\t- Weighted F1: {self.train['f1_weighted_avg'][-1]:.4f}" if self.train['f1_weighted_avg'] else "\t- Weighted F1: None",
             f"\t- Learning Rate: {self.train['lr'][-1]}",
+            f"\t- Average Training Time: {avg_and_format_time(self.train['training_time'])}" if self.train['training_time'] else "\t- Average Training Time: None",
             f"{'-' * 50}",
             "Validation Metrics (Last Epoch):",
             f"\t- Reconstruction Loss: {self.val['recon'][-1] * 100:.4f}" if self.val['recon'] else "\t- Reconstruction Loss: None",
@@ -509,6 +527,7 @@ class TrainingHistory:
             f"\t- Beta: {self.val['beta'][-1]}",
             f"\t- Accuracy: {self.val['accuracy'][-1]:.4f}" if self.val['accuracy'] else "\t- Accuracy: None",
             f"\t- Weighted F1: {self.val['f1_weighted_avg'][-1]:.4f}" if self.val['f1_weighted_avg'] else "\t- Weighted F1: None",
+            f"\t- Average Validation Time: {avg_and_format_time(self.val['training_time'])}" if self.val['training_time'] else "\t- Average Validation Time: None",
             f"{'-' * 50}",
             "Model Architecture Used:",
             f"Latent Dim: {self.latent_dim}\n",

@@ -7,9 +7,9 @@ from pathlib import Path
 
 # Repository/project directory
 # When running locally, use this:
-# BASE_DIR = Path.cwd().parent  # Can also use Path("../") for relative address, may need adjusting depending on project setup - sho$
+BASE_DIR = Path.cwd().parent  # Can also use Path("../") for relative address, may need adjusting depending on project setup - sho$
 # When running on the HPC use this:
-BASE_DIR = Path("/users/40538519/sharedscratch")
+# BASE_DIR = Path("/users/40538519/sharedscratch")
 
 # Directories
 DATA_DIR = BASE_DIR / "data" / "raw"  # Path to raw data CSV files
@@ -20,8 +20,8 @@ HISTORY_DIR = BASE_DIR / "outputs" / "metric_history"  # Path to store training 
 # Training configurations
 BATCH_SIZE = 64
 LEARNING_RATE = 0.001
-EPOCHS = 30  #100  # Maximum number of epochs to run (for dataset size, ideal will be between 50-200)
-PATIENCE = 5  #16  # How many epochs to run before stopping with no improvement in F1 score or loss (reconstruction + beta * KL)
+EPOCHS = 2 # 30  # 100  # Maximum number of epochs to run (for dataset size, ideal will be between 50-200)
+PATIENCE = 5  # 16  # How many epochs to run before stopping with no improvement in F1 score or loss (reconstruction + beta * KL)
 SCHEDULER_PATIENCE = 5  # How many epochs to run with no improvement to loss (reconstruction + beta * KL) before scheduler (if using) adjusts learning rate. Lower value is more aggressive.
 NUM_CLASSES = 5  # Descriptor values including 0, used in losses, metrics, and model and train / test functions
 
