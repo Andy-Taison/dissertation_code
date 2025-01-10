@@ -92,8 +92,8 @@ def run():
 
     train_grid_search(subset_train_ds, subset_val_ds, "test")
     best_history, best_score, best_epoch = search_grid_history()
-    print(best_score)
-    print(best_epoch)
+    print(f"Best tradeoff score: {best_score}")
+    print(f"Best tradeoff epoch: {best_epoch}")
     """
 
     # Grid search
@@ -109,10 +109,13 @@ def run():
 
     # Get best performing model, optimizer and scheduler
     model, optimizer, scheduler, epoch = load_model_checkpoint(best_history)
+    print("Loaded model:")
     print(model)
+    print("Loaded optimizer:")
     print(optimizer)
+    print("Loaded scheduler:")
     print(scheduler)
-    print(epoch)
+    print("Loaded epoch: " + str(epoch))
 
     print("\nPipeline complete!")
 

@@ -496,7 +496,7 @@ class TrainingHistory:
         """
         summary = [
             f"Training History Summary for Model: '{self.model_name}'",
-            f"History Saved Under Alternative Filename: '{self.alt_history_filename}'" if self.alt_history_filename else None,
+            f"History Saved Under Alternative Filename: '{self.alt_history_filename}.pth'" if self.alt_history_filename else None,
             f"Model Directory: '{self.last_updated_model.parent}'" if self.last_updated_model else f"Model Directory (as per config): '{MODEL_CHECKPOINT_DIR / self.model_name}'",
             f"{'-' * 50}",
             f"Epochs Run: {self.epochs_run}",
@@ -555,12 +555,16 @@ def load_model_checkpoint(source: Path | str | TrainingHistory, load: str = "upd
     if isinstance(source, TrainingHistory):
         match load:
             case 'updated':
+                print("Attempting to load last updated model...")
                 model_path = source.last_updated_model
             case 'improved':
+                print("Attempting to load last improved model...")
                 model_path = source.last_improved_model
             case 'f1':
+                print("Attempting to load best weighted F1 average model...")
                 model_path = source.bests['best_f1_avg_model']
             case 'loss':
+                print("Attempting to load best total loss model...")
                 model_path = source.bests['best_loss_model']
             case _:
                 raise ValueError("Invalid model to load, choose from [default: 'updated', 'improved', 'f1', 'loss'].")
@@ -568,6 +572,7 @@ def load_model_checkpoint(source: Path | str | TrainingHistory, load: str = "upd
             raise ValueError("Model path attribute is None, cannot load checkpoint.")
         checkpoint_path = model_path
     else:
+        print("Attempting to load model from provided path...")
         checkpoint_path = Path(source)
 
     if not checkpoint_path.parent.exists():

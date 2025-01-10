@@ -5,6 +5,7 @@ Training functions
 import torch
 from pathlib import Path
 import time
+import math
 from ..config import DEVICE, NUM_CLASSES, MODEL_CHECKPOINT_DIR
 from ..metrics.metrics import calculate_metrics, compute_class_weights
 from .history_checkpoint import TrainingHistory, remove_old_improvement_models, extract_epoch_number
@@ -38,7 +39,11 @@ def train(model: torch.nn.Module, dataloader: torch.utils.data.DataLoader, loss_
     total_f1 = torch.zeros(NUM_CLASSES).to(DEVICE)  # Total weighted F1 score for each class/descriptor value
     total_support = torch.zeros(NUM_CLASSES).to(DEVICE)  # Support for each class/descriptor value
 
+    time_to_train = []  # Maintains average time to train from each batch loop for progress statements
+
     for batch_idx, (ids, grid_data) in enumerate(dataloader):
+        start_batch_timer = time.perf_counter()
+
         # Move to GPU if available
         x = grid_data.to(DEVICE)
 
@@ -73,9 +78,17 @@ def train(model: torch.nn.Module, dataloader: torch.utils.data.DataLoader, loss_
         # Update count
         processed += len(ids)
 
+        stop_batch_timer = time.perf_counter()
+        time_to_train.append(stop_batch_timer - start_batch_timer)
+
         # print progress every 50 batches
         if batch_idx % 50 == 0:
             print(f"Processed [{processed:>5d}/{num_samples:>5d}]")
+            if time_to_train:
+                average_train_time = sum(time_to_train) / len(time_to_train)
+                estimated_completion = time.time() + average_train_time * math.ceil((num_samples - processed)/dataloader.batch_size)
+                formatted_estimate = time.strftime('%d-%b-%Y %H:%M:%S', time.localtime(estimated_completion))
+                print(f"Estimated train loop completion: {formatted_estimate}")
             print(f"Batch metrics (train):")
             print(f"\tLoss = {loss.item() * 100:>8.4f}")  # Scaled for easier interpretability due to weighted recon and averaged KL
             print(f"\tAccuracy = {accuracy * 100:>6.2f}%")
@@ -144,8 +157,12 @@ def test(model: torch.nn.Module, dataloader: torch.utils.data.DataLoader, loss_f
     total_f1 = torch.zeros(NUM_CLASSES).to(DEVICE)  # Total weighted F1 score for each class/descriptor value
     total_support = torch.zeros(NUM_CLASSES).to(DEVICE)  # Support for each class/descriptor value
 
+    time_to_train = []  # Maintains average time to train from each batch loop for progress statements
+
     with torch.no_grad():
         for batch_idx, (ids, grid_data) in enumerate(dataloader):
+            start_batch_timer = time.perf_counter()
+
             # Move to GPU if available
             x = grid_data.to(DEVICE)
 
@@ -173,9 +190,17 @@ def test(model: torch.nn.Module, dataloader: torch.utils.data.DataLoader, loss_f
             # Update count
             processed += len(ids)
 
+            stop_batch_timer = time.perf_counter()
+            time_to_train.append(stop_batch_timer - start_batch_timer)
+
             # print progress every 50 batches
             if batch_idx % 50 == 0:
                 print(f"Processed [{processed:>5d}/{num_samples:>5d}]")
+                if time_to_train:
+                    average_train_time = sum(time_to_train) / len(time_to_train)
+                    estimated_completion = time.time() + average_train_time * math.ceil((num_samples - processed)/dataloader.batch_size)
+                    formatted_estimate = time.strftime('%d-%b-%Y %H:%M:%S', time.localtime(estimated_completion))
+                    print(f"Estimated test/validation loop completion: {formatted_estimate}")
                 print(f"Batch metrics (test):")
                 print(f"\tLoss = {loss.item() * 100:>8.4f}")  # Scaled for easier interpretability due to weighted recon and averaged KL
                 print(f"\tAccuracy = {accuracy * 100:>6.2f}%")
@@ -272,7 +297,7 @@ def train_val(model: torch.nn.Module, train_dataloader: torch.utils.data.DataLoa
 
         print(f"Continuing training, epochs run so far: {training_history.epochs_run}\n")
 
-    time_to_train = []  # Maintains average time to train from each configuration for progress statements
+    time_to_train = []  # Maintains average time to train from each epoch loop for progress statements
 
     for epoch_idx in range(training_history.epochs_run, epochs):
         epoch = epoch_idx + 1
@@ -315,7 +340,7 @@ def train_val(model: torch.nn.Module, train_dataloader: torch.utils.data.DataLoa
             scheduler.step(val_metrics['recon'] + val_metrics['beta'] * val_metrics['kl'])
 
         stop_epoch_timer = time.perf_counter()
-        time_to_train.append(start_epoch_timer - stop_epoch_timer)
+        time_to_train.append(stop_epoch_timer - start_epoch_timer)
 
     print("Train / Validation loop complete!")
     print("=" * 50 + "\n")
