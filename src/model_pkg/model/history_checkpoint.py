@@ -177,32 +177,32 @@ class TrainingHistory:
         }
 
         self.train = {
-            'recon': [],
-            'kl': [],
-            'accuracy': [],
+            'recon': [],  # Average reconstruction loss per epoch, weighted by class imbalance
+            'kl': [],  # Average KL divergence per epoch
+            'accuracy': [],  # Average accuracy per epoch
             'recall_classes': torch.empty(0, NUM_CLASSES, device=DEVICE),
-            'recall_weighted_avg': [],
+            'recall_weighted_avg': [],  # Average recall per epoch, weighted by descriptor value support
             'precision_classes': torch.empty(0, NUM_CLASSES, device=DEVICE),
-            'precision_weighted_avg': [],
+            'precision_weighted_avg': [],  # Average precision per epoch, weighted by descriptor value support
             'f1_classes': torch.empty(0, NUM_CLASSES, device=DEVICE),
-            'f1_weighted_avg': [],
-            'beta': [],
-            'lr': [],
+            'f1_weighted_avg': [],  # Average F1 score per epoch, weighted by descriptor value support
+            'beta': [],  # Beta applied to KL divergence per epoch
+            'lr': [],  # Learning rate used by optimizer per epoch
             'training_time': []  # Training loop time in seconds
         }
 
         # No learning rate required for validation due to not using optimizer
         self.val = {
-            'recon': [],
-            'kl': [],
-            'accuracy': [],
+            'recon': [],  # Average reconstruction loss per epoch, weighted by class imbalance
+            'kl': [],  # Average KL divergence per epoch
+            'accuracy': [],  # Average accuracy per epoch
             'recall_classes': torch.empty(0, NUM_CLASSES, device=DEVICE),
-            'recall_weighted_avg': [],
+            'recall_weighted_avg': [],  # Average recall per epoch, weighted by descriptor value support
             'precision_classes': torch.empty(0, NUM_CLASSES, device=DEVICE),
-            'precision_weighted_avg': [],
+            'precision_weighted_avg': [],  # Average precision per epoch, weighted by descriptor value support
             'f1_classes': torch.empty(0, NUM_CLASSES, device=DEVICE),
-            'f1_weighted_avg': [],
-            'beta': [],
+            'f1_weighted_avg': [],  # Average F1 score per epoch, weighted by descriptor value support
+            'beta': [],  # Beta applied to KL divergence per epoch
             'training_time': []  # Validation loop time in seconds
         }
 
@@ -514,16 +514,17 @@ class TrainingHistory:
             f"Best Validation Weighted F1 Model: '{self.bests['best_f1_avg_model'].name if self.bests['best_f1_avg_model'] else 'None'}'",  # type: ignore
             f"{'-' * 50}",
             "Training Metrics (Last Epoch):",
-            f"\t- Reconstruction Loss: {self.train['recon'][-1] * 100:.4f}" if self.train['recon'] else "\t- Reconstruction Loss: None",
-            f"\t- KL Divergence: {self.train['kl'][-1] * 100:.4f}" if self.train['kl'] else "\t- KL Divergence: None",
+            f"\t- Reconstruction Loss, Weighted by Class Imbalance, Averaged Across Batches: {self.train['recon'][-1] * 100:.4f}" if self.train['recon'] else "\t- Reconstruction Loss: None",
+            f"\t- KL Divergence, Averaged Across Batches: {self.train['kl'][-1] * 100:.4f}" if self.train['kl'] else "\t- KL Divergence: None",
+            f"\t- Beta: {self.train['beta'][-1]}",
             f"\t- Accuracy: {self.train['accuracy'][-1]:.4f}" if self.train['accuracy'] else "\t- Accuracy: None",
             f"\t- Weighted F1: {self.train['f1_weighted_avg'][-1]:.4f}" if self.train['f1_weighted_avg'] else "\t- Weighted F1: None",
             f"\t- Learning Rate: {self.train['lr'][-1]}",
             f"\t- Average Training Time: {avg_and_format_time(self.train['training_time'])}" if self.train['training_time'] else "\t- Average Training Time: None",
             f"{'-' * 50}",
             "Validation Metrics (Last Epoch):",
-            f"\t- Reconstruction Loss: {self.val['recon'][-1] * 100:.4f}" if self.val['recon'] else "\t- Reconstruction Loss: None",
-            f"\t- KL Divergence: {self.val['kl'][-1] * 100:.4f}" if self.val['kl'] else "\t- KL Divergence: None",
+            f"\t- Reconstruction Loss, Weighted by Class Imbalance, Averaged Across Batches: {self.val['recon'][-1] * 100:.4f}" if self.val['recon'] else "\t- Reconstruction Loss: None",
+            f"\t- KL Divergence, Averaged Across Batches: {self.val['kl'][-1] * 100:.4f}" if self.val['kl'] else "\t- KL Divergence: None",
             f"\t- Beta: {self.val['beta'][-1]}",
             f"\t- Accuracy: {self.val['accuracy'][-1]:.4f}" if self.val['accuracy'] else "\t- Accuracy: None",
             f"\t- Weighted F1: {self.val['f1_weighted_avg'][-1]:.4f}" if self.val['f1_weighted_avg'] else "\t- Weighted F1: None",

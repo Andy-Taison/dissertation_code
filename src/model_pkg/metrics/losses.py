@@ -32,7 +32,7 @@ class VaeLoss:
     def __call__(self, x: torch.Tensor, x_decoder: torch.Tensor, z_mean: torch.Tensor, z_log_var: torch.Tensor, class_weights: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
         """
         Calculates VAE loss (weighted reconstruction loss + beta * KL divergence), each is returned individually as tensors.
-        Reconstruction loss is weighted (loss reduction must be 'none' when initialised for element wise application). Mean reduction applied.
+        Reconstruction loss is weighted by class imbalance (loss reduction must be 'none' when initialised for element wise application). Mean reduction applied.
         KL divergence is averaged across batch size.
         Beta is applied in train/test loops.
 
@@ -41,7 +41,7 @@ class VaeLoss:
         :param z_mean: Latent space mean with shape (batch_size, latent_dim)
         :param z_log_var: Log variance of latent space with shape (batch_size, latent_dim)
         :param class_weights: Class weight tensor to weight loss to account for class imbalance (descriptor values are sparse)
-        :return: Reconstruction loss weighted with mean reduction, KL divergence
+        :return: Reconstruction loss weighted by class imbalance with mean reduction, KL divergence
         """
         # Normalize x to match x_decoder range [0, 1]
         x_normalised = x / (NUM_CLASSES - 1)  # Divided by max descriptor value

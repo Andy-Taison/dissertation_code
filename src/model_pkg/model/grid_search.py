@@ -172,7 +172,7 @@ def search_grid_history(history_list_filename: str = "grid_search_list", loss_f1
     However, the TrainingHistory object can still be loaded to obtain metrics.
 
     :param history_list_filename: txt file listing all TrainingHistory filenames to perform grid search on
-    :param loss_f1_tradeoff: Balances loss and weighted F1 average to compare histories for the grid search
+    :param loss_f1_tradeoff: Balances loss and weighted F1 average to compare histories for the grid search, higher puts emphasis on loss, lower emphasises F1
     :return: TrainingHistory found with best score, best score, best epoch
     """
     print(">" * 50)
