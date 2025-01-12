@@ -117,6 +117,9 @@ def run():
     print(scheduler)
     print("Loaded epoch: " + str(epoch))
 
+    # Plot
+    plot_metrics(best_history, "total_loss", "f1_weighted_avg")
+
     print("\nPipeline complete!")
 
 

@@ -16,6 +16,7 @@ DATA_DIR = BASE_DIR / "data" / "raw"  # Path to raw data CSV files
 PROCESSED_DIR = BASE_DIR / "data" / "processed"  # Path to store processed CSV files
 MODEL_CHECKPOINT_DIR = BASE_DIR / "outputs" / "model_checkpoints"  # Path to store checkpointed trained models (files include optimizer and optional scheduler if used)
 HISTORY_DIR = BASE_DIR / "outputs" / "metric_history"  # Path to store training history metrics
+PLOT_DIR = BASE_DIR / "plots"  # Path to store generated plots
 
 # Training configurations
 BATCH_SIZE = 64

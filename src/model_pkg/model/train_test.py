@@ -14,7 +14,7 @@ def train(model: torch.nn.Module, dataloader: torch.utils.data.DataLoader, loss_
     """
     Single epoch training loop.
     Uses decoder output to calculate loss (differentiable), and reconstructed output (decoder output scaled, rounded and clamped) for metrics.
-    Reconstruction loss is weighted.
+    Reconstruction loss is weighted by class imbalance, and averaged across batches.
     Displayed loss, reconstruction loss and KL divergence are scaled for easier interpretability due to weighted recon and averaged KL.
 
     :param model: VAE model
@@ -133,7 +133,7 @@ def test(model: torch.nn.Module, dataloader: torch.utils.data.DataLoader, loss_f
     """
     Single epoch test/validation loop.
     Uses decoder output to calculate loss (differentiable), and reconstructed output (decoder output scaled, rounded and clamped) for metrics.
-    Reconstruction loss is weighted.
+    Reconstruction loss is weighted by class imbalance.
     Displayed loss, reconstruction loss and KL divergence are scaled for easier interpretability due to weighted recon and averaged KL.
 
     :param model: VAE model
