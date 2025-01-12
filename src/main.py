@@ -28,7 +28,7 @@ def run():
     # summarise_dataset(val_data)
     # print("Test dataset")
     # summarise_dataset(test_data)
-    '''
+
     # Load processed data
     processed_data_dir = Path(config.PROCESSED_DIR)
     train_data = pd.read_csv(processed_data_dir / "train.csv", header=None)
@@ -70,7 +70,7 @@ def run():
     criterion = VaeLoss("mse")
     optimizer = optim.Adam(vae.parameters(), lr=config.LEARNING_RATE)
     """
-    
+    """
     # For testing
     from torch.utils.data import DataLoader, Subset
     subset_indices = list(range(128))  # Indices for the first 128 samples
@@ -94,11 +94,11 @@ def run():
     best_history, best_score, best_epoch = search_grid_history()
     print(f"Best tradeoff score: {best_score}")
     print(f"Best tradeoff epoch: {best_epoch}")
-
+    """
 
     # Grid search
-    # train_grid_search(train_ds, val_ds, "base")
-    # best_history, best_score, best_epoch = search_grid_history()
+    train_grid_search(train_ds, val_ds, "base")
+    best_history, best_score, best_epoch = search_grid_history()
 
     # Rollback to best performing history and model to load checkpoint
     if best_epoch < best_history.epochs_run:
@@ -116,9 +116,9 @@ def run():
     print("Loaded scheduler:")
     print(scheduler)
     print("Loaded epoch: " + str(epoch))
-    '''
-    history = TrainingHistory.load_history("best_performing_test_bs64_ld2_bce_adam_lr0.001_wd0_be0.1.pth")
-    plot_metrics(history, "recon")
+
+    # Plot
+    plot_metrics(best_history, "total_loss", "f1_weighted_avg")
 
     print("\nPipeline complete!")
 
