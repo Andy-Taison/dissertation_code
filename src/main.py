@@ -14,7 +14,7 @@ import torch.optim as optim
 
 def run():
     print("Starting VAE pipeline...\n")
-
+    """
     # Preprocess data and save
     # combined_data = combine_csv_files(config.DATA_DIR)
     # print("Combined full dataset")
@@ -54,7 +54,7 @@ def run():
 
     # visualise_robot(grid_data[0], "Test title")
 
-    """
+
     # Define model
     vae = VAE(config.INPUT_DIM, config.LATENT_DIM, "test").to(config.DEVICE)
 
@@ -94,11 +94,11 @@ def run():
     best_history, best_score, best_epoch = search_grid_history()
     print(f"Best tradeoff score: {best_score}")
     print(f"Best tradeoff epoch: {best_epoch}")
-    """
+
 
     # Grid search
-    train_grid_search(train_ds, val_ds, "base")
-    best_history, best_score, best_epoch = search_grid_history()
+    # train_grid_search(train_ds, val_ds, "base")
+    # best_history, best_score, best_epoch = search_grid_history()
 
     # Rollback to best performing history and model to load checkpoint
     if best_epoch < best_history.epochs_run:
@@ -106,7 +106,7 @@ def run():
     best_history.save_history(f"best_performing_{best_history.model_name}")
 
     print(best_history)
-
+    
     # Get best performing model, optimizer and scheduler
     model, optimizer, scheduler, epoch = load_model_checkpoint(best_history)
     print("Loaded model:")
@@ -116,9 +116,12 @@ def run():
     print("Loaded scheduler:")
     print(scheduler)
     print("Loaded epoch: " + str(epoch))
-
+    """
+    best_history = TrainingHistory.load_history("best_performing_test_bs64_ld2_bce_adam_lr0.001_wd0_be0.1.pth")
+    his2 = TrainingHistory.load_history("test_bs64_ld2_mse_adam_lr0.001_wd0_be0.1_history.pth")
     # Plot
-    plot_metrics(best_history, "total_loss", "f1_weighted_avg")
+    plot_metrics_vs_epochs(best_history, "total_loss", "f1_weighted_avg")
+    plot_loss_tradeoffs(best_history, 'total_loss', x_lowerbound=-0.0005, y_lowerbound=-0.0001)
 
     print("\nPipeline complete!")
 

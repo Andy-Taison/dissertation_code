@@ -6,7 +6,7 @@ from . import config
 from .data.preprocess import combine_csv_files, split_data, save_split_datasets, summarise_dataset, clean_data
 from .data.loaders import create_dataset_and_loader
 from .visualisation.robot import load_grid_from_file, visualise_robot
-from .visualisation.plots import plot_metrics
+from .visualisation.plots import plot_metrics_vs_epochs, plot_loss_tradeoffs
 from .model.model import VAE
 from .metrics.losses import VaeLoss
 from .model.train_test import train_val, test
@@ -25,7 +25,8 @@ __all__ = ["config",
            "create_dataset_and_loader",
            "load_grid_from_file",
            "visualise_robot",
-           "plot_metrics",
+           "plot_metrics_vs_epochs",
+           "plot_loss_tradeoffs",
            "VAE",
            "VaeLoss",
            "train_val",

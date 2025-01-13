@@ -23,7 +23,7 @@ def format_metric(metric: str) -> str:
 
 def calculate_metric_data(history: TrainingHistory, metric: str, metrics_from: str) -> tuple[list[float], list[float]]:
     """
-    Gets metric data from TrainingHistory object and transforms if required (for 'beta * kl', 'total loss', and 'accuracy').
+    Obtains metric data from TrainingHistory object and transforms if required (for 'beta * kl', 'total loss', and 'accuracy').
 
     :param history: TrainingHistory object to obtain data from
     :param metric: Data to obtain, options - 'beta_kl', 'total_loss', 'accuracy', 'recon', 'kl', 'beta', 'accuracy', 'recall_weighted_avg', 'precision_weighted_avg', 'f1_weighted_avg', 'lr', 'training_time'
@@ -50,40 +50,66 @@ def calculate_metric_data(history: TrainingHistory, metric: str, metrics_from: s
     return data_train, data_val
 
 
-def process_metrics(training_histories: list[TrainingHistory], metrics: tuple[str], labels: list[str],
-                    metrics_from: str) -> tuple[dict, int, list[float]]:
+def process_metrics(training_histories: list[TrainingHistory], metrics: tuple[str, ...], labels: list[str],
+                    metrics_from: str, group_by_history: bool = False) -> tuple[list[dict], dict, dict] | tuple[dict, int, list[float]]:
     """
-    Collect and process data from list of TrainingHistory objects to a formatted dictionary.
-    Maximum number of epochs from the data collected and a sorted list of maximum y scale data is also returned.
+    Collect and process data from list of TrainingHistory objects
+    When 'group_by_history' is True, processes to a list of dictionaries for each TrainingHistory object.
+    When 'group_by_history' is False, processes to a formatted dictionary.
+    Maximum number of epochs from the data collected and a sorted list of maximum y scale data is also returned when 'group_by_history' is False.
 
     :param training_histories: List of TrainingHistory objects to collect and process data from
     :param metrics: List of metrics to obtain, options - 'beta_kl', 'total_loss', 'accuracy', 'recon', 'kl', 'beta', 'accuracy', 'recall_weighted_avg', 'precision_weighted_avg', 'f1_weighted_avg', 'lr', 'training_time'
     :param labels: List of labels to ID each TrainingHistory dataset, prefix to 'legend_label' in returned dictionary
     :param metrics_from: Get data from - 'train_and_val', 'train', or 'val'
-    :return: Metrics to plot dictionary, max data epochs, sorted list of maximum y scale data values
+    :param group_by_history: When True, organises data by history, when False, organises history by metric
+    :return: List of processed data, data min, and data max dictionaries when 'group_by_history', else metrics to plot dictionary, max data epochs, sorted list of maximum y scale data values
     """
-    metrics_to_plot = {"legend_label": [], "data": [], "mode": [], "metric": [], "history": []}
-    epochs = 0
-    y_scales = []
+    if group_by_history:
+        processed_data = []
+        data_min = {}
+        data_max = {}
+        for history_counter, (history, label) in enumerate(zip(training_histories, labels)):
+            history_data = {"label": label, "train": {}, "val": {}}
+            for metric in metrics:
+                train_data, val_data = calculate_metric_data(history, metric, metrics_from)
+                if train_data:
+                    history_data["train"][metric] = train_data
+                    if metric not in data_min or min(train_data) < data_min[metric]:
+                        data_min[metric] = min(train_data)
+                    if metric not in data_max or max(train_data) > data_max[metric]:
+                        data_max[metric] = max(train_data)
+                if val_data:
+                    history_data["val"][metric] = val_data
+                    if metric not in data_min or min(val_data) < data_min[metric]:
+                        data_min[metric] = min(val_data)
+                    if metric not in data_max or max(val_data) > data_max[metric]:
+                        data_max[metric] = max(val_data)
+            processed_data.append(history_data), data_min, data_max
+        return processed_data, data_min, data_max
+    else:
+        metrics_to_plot = {"legend_label": [], "data": [], "mode": [], "metric": [], "history": []}
+        epochs = 0
+        y_scales = []
 
-    for history_counter, (history, label) in enumerate(zip(training_histories, labels)):
-        for metric in metrics:
-            data_train, data_val = calculate_metric_data(history, metric, metrics_from)
-            if not data_train + data_val:
-                continue
+        for history_counter, (history, label) in enumerate(zip(training_histories, labels)):
+            for metric in metrics:
+                data_train, data_val = calculate_metric_data(history, metric, metrics_from)
+                if not data_train + data_val:
+                    continue
 
-            for data, mode in [(data_train, "train"), (data_val, "val")]:
-                if data:
-                    formatted_metric = format_metric(metric)
-                    metrics_to_plot['legend_label'].append(f"{label}{formatted_metric} ({mode.capitalize()})")
-                    metrics_to_plot['data'].append(data)
-                    metrics_to_plot['mode'].append(mode)
-                    metrics_to_plot['metric'].append(formatted_metric)
-                    metrics_to_plot['history'].append(history_counter)
-                    epochs = max(epochs, len(data))
-                    y_scales.append(max(data))
+                for data, mode in [(data_train, "train"), (data_val, "val")]:
+                    if data:
+                        formatted_metric = format_metric(metric)
+                        metrics_to_plot['legend_label'].append(f"{label}{formatted_metric} ({mode.capitalize()})")
+                        metrics_to_plot['data'].append(data)
+                        metrics_to_plot['mode'].append(mode)
+                        metrics_to_plot['metric'].append(formatted_metric)
+                        metrics_to_plot['history'].append(history_counter)
+                        epochs = max(epochs, len(data))
+                        y_scales.append(max(data))
 
-    return metrics_to_plot, epochs, sorted(y_scales)
+        return metrics_to_plot, epochs, sorted(y_scales)
 
 
 def determine_scale_limits(sorted_y_scales: list[float], threshold: int = 10) -> list[float]:
@@ -118,33 +144,15 @@ def determine_scale_limits(sorted_y_scales: list[float], threshold: int = 10) ->
     return [group1[-1], group2[-1]]
 
 
-def plot_metrics(training_histories: TrainingHistory | list[TrainingHistory], *metrics: str,
-                 filename: str | Path = None,
-                 history_labels: list[str] = None, title: str = None, xlabel: str = 'Epochs', y1_label: str = None,
-                 y2_label: str = None, metrics_from: str = 'train_and_val', y_scale_threshold: int = 10,
-                 figsize: tuple[float, float] = (15, 6)):
+def check_inputs(training_histories: TrainingHistory | list[TrainingHistory], history_labels: list[str], title: str, metrics_from: str) -> tuple[list[TrainingHistory], list[str], str]:
     """
-    Function to plot different metrics from multiple TrainingHistory objects in a line plot.
-    Supports up to 5 different TrainingHistory objects (2-5 are denoted using markers).
-    Multiple metrics can be plotted, specify each as a positional string argument, each plotted in a different colour.
-    Supports up to 6 different metrics.
-    'y_scale_threshold' determines the ratio difference between metric dataset maximum values, that determines when a second y-axis is required.
-    When a second axis is used, this will be plotted on the right.
-    When no y labels provided, the metrics plotted against them are used as the label along with the colours used.
-    Data from 'train' will be plotted as a solid line, data from 'val' will be plotted as a dotted line.
-    Generated plot is stored in 'PLOT_DIR' as specified in config.
+    Helper function to check and set inputs.
 
-    :param training_histories: TrainingHistory or list of TrainingHistory objects to plot data from
-    :param metrics: Each metric should be a positional argument, options - 'beta_kl', 'total_loss', 'accuracy', 'recon', 'kl', 'beta', 'accuracy', 'recall_weighted_avg', 'precision_weighted_avg', 'f1_weighted_avg', 'lr', 'training_time'
-    :param filename: Filename to save generated plot. When none provided, the plot title is used. Stores in 'PLOT_DIR' as specified in config
-    :param history_labels: List of labels to ID TrainingHistories, used in legend. When none provided and there are multiple TrainingHistory objects, uses 'alt_history_filename' or 'model_name'
-    :param title: Title for plot, when none provided and there are multiple TrainingHistory objects, uses 'alt_history_filename' or 'model_name', when a single TrainingHistory, set to 'Training Metrics'
-    :param xlabel: X axis label
-    :param y1_label: Left Y axis label, when none provided, uses metric name along with colour used in plot
-    :param y2_label: Right Y axis label, used when 2 axes are plotted, when none provided, uses metric name along with colour used in plot
-    :param metrics_from: Get data from - 'train_and_val', 'train', or 'val'
-    :param y_scale_threshold: Threshold for ratio difference that determines when a second axis is required
-    :param figsize: Figure size
+    :param training_histories: TrainingHistory objects to put in a list if not already
+    :param history_labels: Labels used to ID TrainingHistory objects, when None, labels are generated based on training_histories
+    :param title: Sets a title if None based on training_histories passed
+    :param metrics_from: Checks where to obtain data is valid
+    :return: training_histories, history_labels, title
     """
     # Check data to plot
     if metrics_from not in ['train_and_val', 'train', 'val']:
@@ -172,6 +180,38 @@ def plot_metrics(training_histories: TrainingHistory | list[TrainingHistory], *m
 
     if len(training_histories) != len(history_labels):
         raise ValueError("Number of 'training_histories' and 'history_labels' must match.")
+
+    return training_histories, history_labels, title
+
+
+def plot_metrics_vs_epochs(training_histories: TrainingHistory | list[TrainingHistory], *metrics: str,
+                           filename: str | Path = None,
+                           history_labels: list[str] = None, title: str = None, y1_label: str = None,
+                           y2_label: str = None, metrics_from: str = 'train_and_val', y_scale_threshold: int = 10,
+                           figsize: tuple[float, float] = (15, 6)):
+    """
+    Function to plot different metrics from multiple TrainingHistory objects in a line plot.
+    Supports up to 5 different TrainingHistory objects (2-5 are denoted using markers).
+    Multiple metrics can be plotted, specify each as a positional string argument, each plotted in a different colour.
+    Supports up to 6 different metrics.
+    'y_scale_threshold' determines the ratio difference between metric dataset maximum values, that determines when a second y-axis is required.
+    When a second axis is used, this will be plotted on the right.
+    When no y labels provided, the metrics plotted against them are used as the label along with the colours used.
+    Data from 'train' will be plotted as a solid line, data from 'val' will be plotted as a dotted line.
+    Generated plot is stored in 'PLOT_DIR' as specified in config.
+
+    :param training_histories: TrainingHistory or list of TrainingHistory objects to plot data from
+    :param metrics: Each metric should be a positional argument, options - 'beta_kl', 'total_loss', 'accuracy', 'recon', 'kl', 'beta', 'accuracy', 'recall_weighted_avg', 'precision_weighted_avg', 'f1_weighted_avg', 'lr', 'training_time'
+    :param filename: Filename to save generated plot. When none provided, the plot title is used. Stores in 'PLOT_DIR' as specified in config
+    :param history_labels: List of labels to ID TrainingHistories, used in legend. When none provided and there are multiple TrainingHistory objects, uses 'alt_history_filename' or 'model_name'
+    :param title: Title for plot, when none provided and there are multiple TrainingHistory objects, uses 'alt_history_filename' or 'model_name', when a single TrainingHistory, set to 'Training Metrics'
+    :param y1_label: Left Y axis label, when none provided, uses metric name along with colour used in plot
+    :param y2_label: Right Y axis label, used when 2 axes are plotted, when none provided, uses metric name along with colour used in plot
+    :param metrics_from: Get data from - 'train_and_val', 'train', or 'val'
+    :param y_scale_threshold: Threshold for ratio difference that determines when a second axis is required
+    :param figsize: Figure size
+    """
+    training_histories, history_labels, title = check_inputs(training_histories, history_labels, title, metrics_from)
 
     # Get data and calculate scales required
     processed_metrics, epochs, y_scales = process_metrics(training_histories, metrics, history_labels, metrics_from)
@@ -240,7 +280,7 @@ def plot_metrics(training_histories: TrainingHistory | list[TrainingHistory], *m
         legend_entries.append(line)
 
     # Configure axes
-    ax.set_xlabel(xlabel)
+    ax.set_xlabel("Epochs")
     ax.set_ylim(0, y_scales[0] * 1.1)  # Always start y-axis at 0 and extend vertically by 10%
     ax.set_ylabel(y1_label or ", ".join(primary_axis_labels))
     if ax2:
@@ -250,6 +290,103 @@ def plot_metrics(training_histories: TrainingHistory | list[TrainingHistory], *m
 
     xticks = [int(x) for x in range(1, epochs + 1, max((epochs // 7), 1))]  # Ensures a reasonable number of ticks
     ax.set_xticks(xticks)
+
+    # Add legend to the legend subplot
+    legend_ax.axis('off')
+    legend_ax.legend(handles=legend_entries, loc='upper left')
+
+    # Save plot
+    filename = title if filename is None else filename
+    filepath = Path(PLOT_DIR) / f"{filename}.png"
+    if not filepath.parent.exists():
+        print(f"Creating directory '{filepath.parent}'...")
+        filepath.parent.mkdir(parents=True, exist_ok=True)
+    fig.savefig(filepath)
+    print(f"Plot saved to '{filepath.name}.png'")
+
+    plt.show()
+    plt.close(fig)
+
+
+def plot_loss_tradeoffs(training_histories: TrainingHistory | list[TrainingHistory], loss: str,
+                        filename: str | Path = None, history_labels: list[str] = None, title: str = None,
+                        metrics_from: str = 'train_and_val', figsize: tuple[float, float] = (15, 6),
+                        x_lowerbound: float = 0, y_lowerbound: float = 0):
+    """
+    Function to plot 1 or more TrainingHistory object loss metrics.
+    Loss options - 'kl' (KL divergence vs reconstruction loss), 'kl_beta' (Beta scaled KL divergence vs reconstruction loss), 'total_loss' (Total loss vs weighted F1 average).
+    When multiple TrainingHistory objects provided, data points are coloured by TrainingHistory, else they are coloured by 'train' or 'val' metrics.
+    Supports up to 5 TrainingHistory objects.
+
+    :param training_histories: TrainingHistory or list of TrainingHistory objects to plot data from
+    :param loss: 'kl' (KL divergence vs reconstruction loss), 'kl_beta' (Beta scaled KL divergence vs reconstruction loss), 'total_loss' (Total loss vs weighted F1 average)
+    :param filename: Filename to save generated plot. When none provided, the plot title is used. Stores in 'PLOT_DIR' as specified in config
+    :param history_labels: List of labels to ID TrainingHistories, used in legend. When none provided and there are multiple TrainingHistory objects, uses 'alt_history_filename' or 'model_name'
+    :param title: Title for plot, when none provided and there are multiple TrainingHistory objects, uses 'alt_history_filename' or 'model_name', when a single TrainingHistory, set based on 'loss'
+    :param metrics_from: Get data from - 'train_and_val', 'train', or 'val'
+    :param figsize: Figure size
+    :param x_lowerbound: Adjust the x-axis lowerbound
+    :param y_lowerbound: Adjust the y-axis lowerbound
+    :return:
+    """
+    training_histories, history_labels, title = check_inputs(training_histories, history_labels, title, metrics_from)
+
+    # Update title and set metrics to obtain
+    match loss:
+        case 'kl':
+            if title == 'Training Metrics':
+                title = "KL Divergence vs Reconstruction Loss"
+            metrics = ('recon', 'kl')
+            xlabel = "Reconstruction Loss"
+            ylabel = "KL Divergence"
+        case 'kl_beta':
+            if title == 'Training Metrics':
+                title = "Beta Scaled KL Divergence vs Reconstruction Loss"
+            metrics = ('recon', 'beta_kl')
+            xlabel = "Reconstruction Loss"
+            ylabel = "Beta Scaled KL Divergence"
+        case 'total_loss':
+            if title == 'Training Metrics':
+                title = "Total Loss vs Weighted F1 Average"
+            metrics = ('f1_weighted_avg', 'total_loss')
+            xlabel = "Weighted F1 Average"
+            ylabel = "Total Loss"
+        case _:
+            raise ValueError("Invalid 'loss'. Choose from 'kl', 'kl_beta', or 'total_loss'.")
+
+    # Get data and calculate scales required
+    grouped_data, data_min, data_max = process_metrics(training_histories, metrics, history_labels, metrics_from, group_by_history=True)
+
+    # Initialise plot
+    fig = plt.figure(figsize=figsize, constrained_layout=True)
+    gs = fig.add_gridspec(3, 6)
+    ax = fig.add_subplot(gs[:, :-1])  # Main plot
+    legend_ax = fig.add_subplot(gs[:, -1])  # Legend subplot
+    fig.suptitle(title)
+
+    colour_list = ["tab:blue", "tab:orange", "tab:green", "tab:red", "tab:purple"]
+    markers = {"train": ".", "val": "x"}
+
+    # Legend entries
+    legend_entries = []
+
+    # Plot data
+    for history_idx, history_data in enumerate(grouped_data):
+        label = history_data["label"]
+        for mrk_idx, (mode, marker) in enumerate(markers.items()):
+            colour = colour_list[history_idx] if len(grouped_data) > 1 else colour_list[mrk_idx]  # Colour by history if multiple, else by mode
+            x_data = history_data[mode].get(metrics[0])
+            y_data = history_data[mode].get(metrics[1])
+            if x_data and y_data:
+                group = ax.scatter(x_data, y_data, label=f"{label}{mode.capitalize()}", color=colour, marker=marker)
+                legend_entries.append(group)
+
+    # Configure axes
+    ax.set_xlim(x_lowerbound, data_max[metrics[0]] * 1.05)
+    ax.set_xlabel(xlabel)
+    ax.set_ylim(y_lowerbound, data_max[metrics[1]] * 1.1)
+    ax.set_ylabel(ylabel)
+    ax.grid(True, alpha=0.3)  # Make grid opaque
 
     # Add legend to the legend subplot
     legend_ax.axis('off')
