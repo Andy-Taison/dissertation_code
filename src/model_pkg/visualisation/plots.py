@@ -1,3 +1,7 @@
+"""
+Functions to plot history metrics.
+"""
+
 from ..model.history_checkpoint import TrainingHistory
 import matplotlib.pyplot as plt
 from pathlib import Path

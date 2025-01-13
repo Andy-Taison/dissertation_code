@@ -8,6 +8,8 @@ matplotlib.use('TkAgg')  # Backend
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches  # For legend
 import numpy as np
+from pathlib import Path
+from ..config import PLOT_DIR
 
 
 def load_grid_from_file(filepath: str, robot_id: int, robot_id_column_idx: int = 0) -> tuple[torch.Tensor, int]:
@@ -50,13 +52,14 @@ def load_grid_from_file(filepath: str, robot_id: int, robot_id_column_idx: int =
             return torch.tensor(matrix, dtype=torch.float32), row_idx + 1
 
 
-def visualise_robot(grid_data: torch.Tensor, title: str = None) -> None:
+def visualise_robot(grid_data: torch.Tensor, title: str = None, filename: str | Path = "robot") -> None:
     """
     Visualise robot from tensor of grid data.
+    Saves as png in 'PLOT_DIR' as specified in config.
 
     :param grid_data: 11x11x11 3D space coordinate data
     :param title: Optional plot title
-    :return: None
+    :param filename: Filename to save generated visualisation. Stores in 'PLOT_DIR' as specified in config
     """
     # Verify grid data has 1331 elements (11x11x11 flattened)
     assert grid_data.numel() == 1331, "Grid data does not have the correct number of elements (1331)."
@@ -72,7 +75,8 @@ def visualise_robot(grid_data: torch.Tensor, title: str = None) -> None:
     # colours = np.where(colours == '5', "pink", colours)  # not used/caster
 
     # Plot everything
-    ax = plt.figure().add_subplot(projection='3d')
+    fig = plt.figure()
+    ax = fig.add_subplot(projection='3d')
     ax.voxels(matrix, facecolors=colours, edgecolor='k')
 
     # Set axis limits, can have rendering issues when left to automatic
@@ -97,4 +101,12 @@ def visualise_robot(grid_data: torch.Tensor, title: str = None) -> None:
     # Add the legend to the plot
     ax.legend(handles=legend_elements, loc='upper left', bbox_to_anchor=(1.05, 1), fontsize='small')
 
+    filepath = Path(PLOT_DIR) / f"{filename}.png"
+    if not filepath.parent.exists():
+        print(f"Creating directory '{filepath.parent}'...")
+        filepath.parent.mkdir(parents=True, exist_ok=True)
+    fig.savefig(filepath)
+    print(f"Robot visualisation plot saved to '{filepath.name}.png'")
+
     plt.show()
+    plt.close(fig)
