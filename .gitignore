@@ -122,6 +122,9 @@ cython_debug/
 *.pth
 *.pt
 
+# Exception: Track .pth files in 'tracked_outputs' and all of its subdirectories
+!tracked_outputs/**/*.pth
+
 # Temporary files and logs
 *.tmp
 *.log
