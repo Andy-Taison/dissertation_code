@@ -52,12 +52,12 @@ def run():
     print(f"robot_ids batch shape: {robot_ids.shape}, sample ID: {robot_ids[0]}")
     print(f"grid_data batch shape: {grid_data.shape}, grid data sample shape: {grid_data[0].shape}\n")
 
+    """
     # visualise_robot(grid_data[0], "Test title")
 
-    """
     # Define model
     vae = VAE(config.INPUT_DIM, config.LATENT_DIM, "test").to(config.DEVICE)
-
+    
     # Inspect
     # print("Model summary:")
     # summary(vae, config.INPUT_DIM)
@@ -96,7 +96,6 @@ def run():
     # Grid search training
     # train_grid_search(train_ds, val_ds, "base", clear_history_list=False)
 
-
     # Grid search using balanced loss and F1 to score
     best_history, best_score, best_epoch = search_grid_history(loss_f1_tradeoff=0.7)
     alt_name = f"best_performing_{best_history.model_name}_epoch_{best_epoch}"
@@ -104,6 +103,7 @@ def run():
     best_history.save_history(alt_name)
 
     generate_plots(best_history, alt_name)
+    print()
 
     # Rollback to best performing history epoch to load model checkpoint
     if best_epoch < best_history.epochs_run:
@@ -118,6 +118,9 @@ def run():
         best_history.latent_analysis = latent_metrics
         print()
         best_history.save_history(alt_name)
+
+        compare_reconstructed(best_model, val_loader, 3, filename=f"comparison_{alt_name}")
+        print()
     except FileNotFoundError:
         print(f"Checkpoint for '{alt_name}' has been pruned, so cannot perform latent analysis.")
 
@@ -128,6 +131,7 @@ def run():
     best_loss_history.save_history(alt_loss_name)
 
     generate_plots(best_loss_history, alt_loss_name)
+    print()
 
     # Rollback to best performing history epoch to load model checkpoint
     if best_loss_epoch < best_loss_history.epochs_run:
@@ -142,6 +146,9 @@ def run():
         best_loss_history.latent_analysis = latent_metrics
         print()
         best_loss_history.save_history(alt_loss_name)
+
+        compare_reconstructed(best_loss_model, val_loader, 3, filename=f"comparison_{alt_loss_name}")
+        print()
     except FileNotFoundError:
         print(f"Checkpoint for '{alt_loss_name}' has been pruned, so cannot perform latent analysis.")
 
@@ -152,6 +159,7 @@ def run():
     best_f1_history.save_history(alt_f1_name)
 
     generate_plots(best_f1_history, alt_f1_name)
+    print()
 
     # Rollback to best performing history epoch to load model checkpoint
     if best_f1_epoch < best_f1_history.epochs_run:
@@ -166,6 +174,8 @@ def run():
         best_f1_history.latent_analysis = latent_metrics
         print()
         best_f1_history.save_history(alt_f1_name)
+
+        compare_reconstructed(best_f1_model, val_loader, 3, filename=f"comparison_{alt_f1_name}")
     except FileNotFoundError:
         print(f"Checkpoint for '{alt_f1_name}' has been pruned, so cannot perform latent analysis.")
 

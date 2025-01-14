@@ -127,7 +127,7 @@ def find_optimal_k(latent_vectors: torch.Tensor, max_k: int = 10, title: str = "
         print(f"Creating directory '{filepath.parent}'...")
         filepath.parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(filepath)
-    print(f"Plot saved to '{filepath.name}.png'")
+    print(f"Plot saved to '{filepath.name}'")
 
     plt.show()
     plt.close(fig)
@@ -159,7 +159,7 @@ def plot_latent_space(data: np.ndarray, cluster_labels: np.ndarray, title: str, 
         print(f"Creating directory '{filepath.parent}'...")
         filepath.parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(filepath)
-    print(f"Plot saved to '{filepath.name}.png'")
+    print(f"Plot saved to '{filepath.name}'")
 
     plt.show()
     plt.close(fig)
@@ -259,6 +259,7 @@ def analyse_latent_space(model, train_dataloader: DataLoader, val_dataloader: Da
         pca_silhouette = calculate_silhouette_score(val_pca_data, pca_cluster_labels)
         umap_silhouette = calculate_silhouette_score(val_umap_data, umap_cluster_labels)
 
+        print("\nLatent analysis metrics:")
         print(f"Silhouette score (PCA): {pca_silhouette:.4f}")
         print(f"Silhouette score (UMAP): {umap_silhouette:.4f}\n")
 

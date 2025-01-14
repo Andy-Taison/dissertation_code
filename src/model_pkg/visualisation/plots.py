@@ -306,7 +306,7 @@ def plot_metrics_vs_epochs(training_histories: TrainingHistory | list[TrainingHi
         print(f"Creating directory '{filepath.parent}'...")
         filepath.parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(filepath)
-    print(f"Plot saved to '{filepath.name}.png'")
+    print(f"Plot saved to '{filepath.name}'")
 
     plt.show()
     plt.close(fig)
@@ -403,7 +403,7 @@ def plot_loss_tradeoffs(training_histories: TrainingHistory | list[TrainingHisto
         print(f"Creating directory '{filepath.parent}'...")
         filepath.parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(filepath)
-    print(f"Plot saved to '{filepath.name}.png'")
+    print(f"Plot saved to '{filepath.name}'")
 
     plt.show()
     plt.close(fig)
