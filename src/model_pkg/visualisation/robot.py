@@ -3,8 +3,6 @@ Functions to visualise robots
 """
 
 import torch
-import matplotlib
-matplotlib.use('TkAgg')  # Backend
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches  # For legend
 import numpy as np

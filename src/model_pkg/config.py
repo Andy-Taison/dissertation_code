@@ -4,6 +4,9 @@ Configuration file
 import torch
 import numpy as np
 from pathlib import Path
+import matplotlib
+# matplotlib.use('TkAgg')  # Backend, for use locally, interactive backend
+matplotlib.use('AGG')  # Backend, for use with HPC, headless environment
 
 # Repository/project directory
 # When running locally, use this:
