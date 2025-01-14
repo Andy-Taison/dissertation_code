@@ -144,7 +144,6 @@ plots/
 !tracked_outputs/**/*.pth
 # Exception: Track plots directory in 'tracked_outputs' and all of its subdirectories
 !tracked_outputs/
-!tracked_outputs/**
 !tracked_outputs/**/plots/
 
 # Stop tracking plots and outputs to avoid cluttering HPC (should still be available in earlier commits)
