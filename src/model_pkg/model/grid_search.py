@@ -36,8 +36,8 @@ def create_grid() -> list[dict]:
     :return: Grid of training configurations
     """
     print("Creating grid...")
-    batch_sizes = [64]  #[32, 64]  # Possibly trial 16, and 128 later
-    latent_dims = [2, 4]  #[2, 4, 8]  # Possibly trial 16 later
+    batch_sizes = [64]  # [32, 64]  # Possibly trial 16, and 128 later
+    latent_dims = [2, 4]  # [2, 4, 8]  # Possibly trial 16 later
     loss_functions = ["mse", "bce"]  # Possibly later trail "smoothL1", bce expects probabilities in range [0,1], otherwise use bcewithlogitsloss as internally applies sigmoid
     optimizer = [
         {"type": optim.Adam, "params": {}, "model_name": "adam"},
@@ -46,9 +46,9 @@ def create_grid() -> list[dict]:
         # # {"type": optim.RMSprop, "params": {}, "model_name": "rms"},  # Potential for later
         # {"type": optim.RMSprop, "params": {"momentum": 0.9}, "model_name": "rmsmom.9"}
     ]
-    learning_rates = [1e-3]  #[1e-4, 1e-3]  # Later potentially trial 5e-4, 5e-3, and 1e-2 for fine-tuning
-    weight_decay = [0]  #[0, 1e-4]  # Possibly later trial 1e-2
-    betas = [0.1]  #[0.1, 1]  # Possibly trial 0.5, 2, and 4 later
+    learning_rates = [1e-3]  # [1e-4, 1e-3]  # Later potentially trial 5e-4, 5e-3, and 1e-2 for fine-tuning
+    weight_decay = [0]  # [0, 1e-4]  # Possibly later trial 1e-2
+    betas = [0.1]  # [0.1, 1]  # Possibly trial 0.5, 2, and 4 later
 
     grid = [
         {"batch_size": batch_size, "latent_dim": latent_dim, "loss": loss, "optimizer": opt, "lr": lr, "decay": decay, "beta": beta}
@@ -165,7 +165,7 @@ def train_grid_search(train_ds: TensorDataset, val_ds: TensorDataset, model_arch
     print("*" * 50 + "\n")
 
 
-def search_grid_history(history_list_filename: str = "grid_search_list", loss_f1_tradeoff: int = 0.7) -> tuple[TrainingHistory, float, int] | None:
+def search_grid_history(loss_f1_tradeoff: float = 0.7, history_list_filename: str = "grid_search_list") -> tuple[TrainingHistory, float, int] | None:
     """
     Finds best tradeoff score (loss_f1_tradeoff x_best loss + (1 - loss_f1_tradeoff) x (1 - best_f1_avg)) of the models listed in 'history_list_filename'.
     'history_list_filename' should exist in 'HISTORY_DIR' as specified in config.
@@ -174,8 +174,8 @@ def search_grid_history(history_list_filename: str = "grid_search_list", loss_f1
     This is only the case when checkpointing files are pruned (default).
     However, the TrainingHistory object can still be loaded to obtain metrics.
 
-    :param history_list_filename: txt file listing all TrainingHistory filenames to perform grid search on
     :param loss_f1_tradeoff: Balances loss and weighted F1 average to compare histories for the grid search, higher puts emphasis on loss, lower emphasises F1
+    :param history_list_filename: txt file listing all TrainingHistory filenames to perform grid search on
     :return: TrainingHistory found with best score, best score, best epoch
     """
     print(">" * 50)
@@ -204,9 +204,9 @@ def search_grid_history(history_list_filename: str = "grid_search_list", loss_f1
             best_history = history
             best_epoch = epoch
 
-    print("Search complete!\n")
     print(f"Best Configuration tradeoff score: {best_score:.4f} at epoch: {best_epoch}")
     print(best_history)
+    print("Search complete!")
     print(">" * 50)
 
     return best_history, best_score, best_epoch

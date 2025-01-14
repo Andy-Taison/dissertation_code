@@ -70,7 +70,7 @@ def run():
     criterion = VaeLoss("mse")
     optimizer = optim.Adam(vae.parameters(), lr=config.LEARNING_RATE)
     """
-
+    """
     # For testing
     from torch.utils.data import DataLoader, Subset
     subset_indices = list(range(128))  # Indices for the first 128 samples
@@ -89,43 +89,97 @@ def run():
     # history.save_history()  # Saving rolled back history will overwrite old history (models unaffected)
 
     # model, optimizer, scheduler, epoch = load_model_checkpoint(Path(config.MODEL_CHECKPOINT_DIR / "test" / "best_f1_avg_epoch_7.pth"))
-
+    
     train_grid_search(subset_train_ds, subset_val_ds, "test")
-    best_history, best_score, best_epoch = search_grid_history()
-    print(f"Best tradeoff score: {best_score}")
-    print(f"Best tradeoff epoch: {best_epoch}")
+    """
+
+    # Grid search training
+    # train_grid_search(train_ds, val_ds, "base", clear_history_list=False)
 
 
-    # Grid search
-    # train_grid_search(train_ds, val_ds, "base")
-    # best_history, best_score, best_epoch = search_grid_history()
+    # Grid search using balanced loss and F1 to score
+    best_history, best_score, best_epoch = search_grid_history(loss_f1_tradeoff=0.7)
+    alt_name = f"best_performing_{best_history.model_name}_epoch_{best_epoch}"
+    print()
+    best_history.save_history(alt_name)
 
-    # Rollback to best performing history and model to load checkpoint
+    generate_plots(best_history, alt_name)
+
+    # Rollback to best performing history epoch to load model checkpoint
     if best_epoch < best_history.epochs_run:
         best_history.rollback(best_epoch)  # Rollback does not save history
-    best_history.save_history(f"best_performing_{best_history.model_name}")
 
-    print(best_history)
-    
-    # Get best performing model, optimizer and scheduler
-    model, optimizer, scheduler, epoch = load_model_checkpoint(best_history)
-    print("Loaded model:")
-    print(model)
-    print("Loaded optimizer:")
-    print(optimizer)
-    print("Loaded scheduler:")
-    print(scheduler)
-    print("Loaded epoch: " + str(epoch))
+    try:
+        # Load best tradeoff model checkpoint
+        best_model, _, _, _ = load_model_checkpoint(best_history)
 
-    # best_history = TrainingHistory.load_history("best_performing_test_bs64_ld2_bce_adam_lr0.001_wd0_be0.1.pth")
-    # his2 = TrainingHistory.load_history("test_bs64_ld2_mse_adam_lr0.001_wd0_be0.1_history.pth")
-    # # Plot
-    # plot_metrics_vs_epochs(best_history, "total_loss", "f1_weighted_avg")
-    # plot_loss_tradeoffs(best_history, 'total_loss', x_lowerbound=-0.0005, y_lowerbound=-0.0001)
+        # Analyse latent space for best tradeoff model and store to history
+        latent_metrics = analyse_latent_space(best_model, train_loader, val_loader, k=5, filename=alt_name)
+        best_history.latent_analysis = latent_metrics
+        print()
+        best_history.save_history(alt_name)
+    except FileNotFoundError:
+        print(f"Checkpoint for '{alt_name}' has been pruned, so cannot perform latent analysis.")
 
-    analyse_latent_space(model, train_loader, val_loader, "test", k=3)
+    # Grid search using only loss to score
+    best_loss_history, best_loss_score, best_loss_epoch = search_grid_history(loss_f1_tradeoff=1)
+    alt_loss_name = f"best_loss_{best_loss_history.model_name}_epoch_{best_loss_epoch}"
+    print()
+    best_loss_history.save_history(alt_loss_name)
+
+    generate_plots(best_loss_history, alt_loss_name)
+
+    # Rollback to best performing history epoch to load model checkpoint
+    if best_loss_epoch < best_loss_history.epochs_run:
+        best_loss_history.rollback(best_loss_epoch)  # Rollback does not save history
+
+    try:
+        # Load best tradeoff model checkpoint
+        best_loss_model, _, _, _ = load_model_checkpoint(best_loss_history)
+
+        # Analyse latent space for best tradeoff model and store to history
+        latent_metrics = analyse_latent_space(best_loss_model, train_loader, val_loader, k=5, filename=alt_loss_name)
+        best_loss_history.latent_analysis = latent_metrics
+        print()
+        best_loss_history.save_history(alt_loss_name)
+    except FileNotFoundError:
+        print(f"Checkpoint for '{alt_loss_name}' has been pruned, so cannot perform latent analysis.")
+
+    # Grid search using only weighted F1 to score
+    best_f1_history, best_f1_score, best_f1_epoch = search_grid_history(loss_f1_tradeoff=0)
+    alt_f1_name = f"best_f1_{best_f1_history.model_name}_epoch_{best_f1_epoch}"
+    print()
+    best_f1_history.save_history(alt_f1_name)
+
+    generate_plots(best_f1_history, alt_f1_name)
+
+    # Rollback to best performing history epoch to load model checkpoint
+    if best_f1_epoch < best_f1_history.epochs_run:
+        best_f1_history.rollback(best_f1_epoch)  # Rollback does not save history
+
+    try:
+        # Load best tradeoff model checkpoint
+        best_f1_model, _, _, _ = load_model_checkpoint(best_f1_history)
+
+        # Analyse latent space for best tradeoff model and store to history
+        latent_metrics = analyse_latent_space(best_f1_model, train_loader, val_loader, k=5, filename=alt_f1_name)
+        best_f1_history.latent_analysis = latent_metrics
+        print()
+        best_f1_history.save_history(alt_f1_name)
+    except FileNotFoundError:
+        print(f"Checkpoint for '{alt_f1_name}' has been pruned, so cannot perform latent analysis.")
 
     print("\nPipeline complete!")
+
+
+def generate_plots(history: TrainingHistory, model_name: str):
+    plot_metrics_vs_epochs(history, "recon", "beta_kl", filename=f"{model_name}_recon-beta_kl_vs_epochs")
+    plot_metrics_vs_epochs(history, "f1_weighted_avg", filename=f"{model_name}_f1_vs_epochs")
+    plot_metrics_vs_epochs(history, "total_loss", filename=f"{model_name}_total_loss_vs_epochs")
+    plot_metrics_vs_epochs(history, "accuracy", filename=f"{model_name}_acc_vs_epochs")
+    plot_loss_tradeoffs(history, "kl", filename=f"{model_name}_kl_vs_recon")
+    plot_loss_tradeoffs(history, "kl_beta", filename=f"{model_name}_beta_kl_vs_recon")
+    plot_loss_tradeoffs(history, "total_loss", filename=f"{model_name}_total_loss_vs_f1")
 
 
 if __name__ == "__main__":

@@ -97,13 +97,14 @@ def kmeans_cluster(latent_vectors: np.ndarray, n_clusters: int = 3) -> tuple[np.
     return cluster_labels, kmeans
 
 
-def find_optimal_k(latent_vectors: torch.Tensor, max_k: int = 10, filename: str | Path = "optimal_k"):
+def find_optimal_k(latent_vectors: torch.Tensor, max_k: int = 10, title: str = "Elbow Method for Optimal k", filename: str | Path = "optimal_k"):
     """
     Plots a line plot.
     Use the elbow method to find the optimal number of clusters for KMeans.
 
     :param latent_vectors: Latent space representations
     :param max_k: Maximum number of clusters to evaluate
+    :param title: Title of plot
     :param filename: Filename to save plot (without extension)
     """
     distortions = []
@@ -115,7 +116,7 @@ def find_optimal_k(latent_vectors: torch.Tensor, max_k: int = 10, filename: str 
 
     fig = plt.figure(figsize=(8, 6))
     plt.plot(list(k_range), distortions, marker='.')
-    plt.title("Elbow Method for Optimal k")
+    plt.title(title)
     plt.xlabel("Number of Clusters (k)")
     plt.ylabel("Distortion (Inertia)")
     plt.grid(True, alpha=0.3)
@@ -205,7 +206,7 @@ def calculate_pairwise_distances(latent_vectors: torch.Tensor) -> tuple[torch.Te
     return dist_matrix, dist_matrix.mean().item(), dist_matrix.std().item()
 
 
-def analyse_latent_space(model: VAE, train_dataloader: DataLoader, val_dataloader: DataLoader, title: str, k: int, filename: str | Path = None, find_k: bool = False) -> dict | None:
+def analyse_latent_space(model, train_dataloader: DataLoader, val_dataloader: DataLoader, k: int, filename: str | Path = None, find_k: bool = False, title: str = None) -> dict | None:
     """
     Extract, train, reduce, and visualise latent space with PCA and UMAP.
     When 'find_k' is True, plots to find optimal K (using elbow method) instead of plotting PCA and UMAP visualisations.
@@ -213,10 +214,10 @@ def analyse_latent_space(model: VAE, train_dataloader: DataLoader, val_dataloade
     :param model: Trained VAE model
     :param train_dataloader: Training dataset dataLoader
     :param val_dataloader: Validation dataset dataLoader
-    :param title: Title for plots (appended with plot specific information)
     :param k: K value used for KMeans clustering
     :param filename: Filename to save plots without extension (saved in 'PLOT_DIR' as specified in config), when None, does not generate PCA or UMAP plots, appends PCA or UMAP plot type to filename
     :param find_k: When True, plots to find optimal K using elbow method, when False, plots latent space
+    :param title: Title for plots (appended with plot specific information)
     :return: When 'find_k' is False, returns a dictionary of silhouette and pairwise metrics along with k value used
     """
     # Extract latent vectors
@@ -234,7 +235,10 @@ def analyse_latent_space(model: VAE, train_dataloader: DataLoader, val_dataloade
     if find_k:
         # Elbow method to find k
         print("Performing elbow method to find optimal k...")
-        find_optimal_k(val_latent, filename=filename)
+        if title:
+            find_optimal_k(val_latent, title=title, filename=filename)
+        else:
+            find_optimal_k(val_latent, filename=filename)
 
         return None
     else:
@@ -245,8 +249,9 @@ def analyse_latent_space(model: VAE, train_dataloader: DataLoader, val_dataloade
         if filename:
             pca_filename = f"{filename}_pca"
             umap_filename = f"{filename}_umap"
+            title = title if title else "Latent Space"
             # Plot
-            print("Plotting latent space using PCA and UMAP...")
+            print(f"Plotting latent space using PCA and UMAP with K={k}...")
             plot_latent_space(val_pca_data, pca_cluster_labels, f"{title} - Validation Set (PCA)", pca_filename)
             plot_latent_space(val_umap_data, umap_cluster_labels, f"{title} - Validation Set (UMAP)", umap_filename)
 
@@ -254,13 +259,14 @@ def analyse_latent_space(model: VAE, train_dataloader: DataLoader, val_dataloade
         pca_silhouette = calculate_silhouette_score(val_pca_data, pca_cluster_labels)
         umap_silhouette = calculate_silhouette_score(val_umap_data, umap_cluster_labels)
 
-        print(f"Silhouette Score (PCA): {pca_silhouette:.4f}")
-        print(f"Silhouette Score (UMAP): {umap_silhouette:.4f}\n")
+        print(f"Silhouette score (PCA): {pca_silhouette:.4f}")
+        print(f"Silhouette score (UMAP): {umap_silhouette:.4f}\n")
 
         # Calculate Euclidean pairwise distance
         distances, mean_dist, std_dist = calculate_pairwise_distances(val_latent)
         print(f"Unique distances:\n{distances.unique()}\n")
-        print(f"Mean Pairwise Distance: {mean_dist:.4f}, Standard Deviation: {std_dist:.4f}")
+        print(f"Max distance: {distances.max()}")
+        print(f"Mean pairwise distance: {mean_dist:.4f}, Standard deviation: {std_dist:.4f}")
 
         return {
             "pca_sil": pca_silhouette,

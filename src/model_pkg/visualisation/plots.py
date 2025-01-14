@@ -208,7 +208,7 @@ def plot_metrics_vs_epochs(training_histories: TrainingHistory | list[TrainingHi
     :param metrics: Each metric should be a positional argument, options - 'beta_kl', 'total_loss', 'accuracy', 'recon', 'kl', 'beta', 'accuracy', 'recall_weighted_avg', 'precision_weighted_avg', 'f1_weighted_avg', 'lr', 'training_time'
     :param filename: Filename to save generated plot. When none provided, the plot title is used. Stores in 'PLOT_DIR' as specified in config
     :param history_labels: List of labels to ID TrainingHistories, used in legend. When none provided and there are multiple TrainingHistory objects, uses 'alt_history_filename' or 'model_name'
-    :param title: Title for plot, when none provided and there are multiple TrainingHistory objects, uses 'alt_history_filename' or 'model_name', when a single TrainingHistory, set to 'Training Metrics'
+    :param title: Title for plot, when none provided and there is a single TrainingHistory object, uses 'alt_history_filename' or 'model_name', when multiple TrainingHistory objects, set to 'Training Metrics'
     :param y1_label: Left Y axis label, when none provided, uses metric name along with colour used in plot
     :param y2_label: Right Y axis label, used when 2 axes are plotted, when none provided, uses metric name along with colour used in plot
     :param metrics_from: Get data from - 'train_and_val', 'train', or 'val'
@@ -326,7 +326,7 @@ def plot_loss_tradeoffs(training_histories: TrainingHistory | list[TrainingHisto
     :param loss: 'kl' (KL divergence vs reconstruction loss), 'kl_beta' (Beta scaled KL divergence vs reconstruction loss), 'total_loss' (Total loss vs weighted F1 average)
     :param filename: Filename to save generated plot. When none provided, the plot title is used. Stores in 'PLOT_DIR' as specified in config
     :param history_labels: List of labels to ID TrainingHistories, used in legend. When none provided and there are multiple TrainingHistory objects, uses 'alt_history_filename' or 'model_name'
-    :param title: Title for plot, when none provided and there are multiple TrainingHistory objects, uses 'alt_history_filename' or 'model_name', when a single TrainingHistory, set based on 'loss'
+    :param title: Title for plot, when none provided and there is a single TrainingHistory object, uses 'alt_history_filename' or 'model_name', when multiple TrainingHistory objects, set based on 'loss'
     :param metrics_from: Get data from - 'train_and_val', 'train', or 'val'
     :param figsize: Figure size
     :param x_lowerbound: Adjust the x-axis lowerbound

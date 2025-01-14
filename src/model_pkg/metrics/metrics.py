@@ -127,7 +127,7 @@ def calculate_metrics(x: torch.Tensor, x_reconstructed: torch.Tensor) -> tuple[f
     return accuracy, recall, precision, f1_score, prediction_table
 
 
-def get_best_tradeoff_score(recon: list, kl: list, beta: list, f1_weighted_avg: list, loss_f1_tradeoff: int = 0.7) -> tuple[int, float]:
+def get_best_tradeoff_score(recon: list, kl: list, beta: list, f1_weighted_avg: list, loss_f1_tradeoff: float = 0.7) -> tuple[int, float]:
     """
     Finds best tradeoff score (loss_f1_tradeoff x loss + (1 - loss_f1_tradeoff) x (1 - best_f1_avg)) and the epoch it occurred in.
 
