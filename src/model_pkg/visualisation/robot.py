@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches  # For legend
 import numpy as np
 from pathlib import Path
-from ..config import PLOT_DIR
+from ..config import PLOT_DIR, DEVICE
 
 
 def load_grid_from_file(filepath: str, robot_id: int, robot_id_column_idx: int = 0) -> tuple[torch.Tensor, int]:
@@ -144,7 +144,7 @@ def compare_reconstructed(model: torch.nn.Module, dataloader: torch.utils.data.D
                 continue  # Skip the current num_sample
 
             ids.append(robot_id.item())
-            grid_data.append(data)
+            grid_data.append(data.to(DEVICE))
             if len(ids) >= num_sample:
                 break
         if len(ids) >= num_sample:
