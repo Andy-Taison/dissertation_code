@@ -17,5 +17,5 @@ Grid search configurations cut down to 4 to hopefully allow for quicker training
  - learning_rates = [1e-3]
  - weight_decay = [0]
  - betas = [0.1]  # Ensures KL divergence doesn't overly regularise latent space, which might hinder reconstruction learning
- 
+If training is still taking too long, will need to scale back dataset.
  

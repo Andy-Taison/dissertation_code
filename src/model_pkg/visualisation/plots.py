@@ -300,7 +300,7 @@ def plot_metrics_vs_epochs(training_histories: TrainingHistory | list[TrainingHi
     legend_ax.legend(handles=legend_entries, loc='upper left')
 
     # Save plot
-    filename = title if filename is None else filename
+    filename = title.replace(" ", "_").lower() if filename is None else filename
     filepath = Path(PLOT_DIR) / f"{filename}.png"
     if not filepath.parent.exists():
         print(f"Creating directory '{filepath.parent}'...")
@@ -397,7 +397,7 @@ def plot_loss_tradeoffs(training_histories: TrainingHistory | list[TrainingHisto
     legend_ax.legend(handles=legend_entries, loc='upper left')
 
     # Save plot
-    filename = title if filename is None else filename
+    filename = title.replace(" ", "_").lower() if filename is None else filename
     filepath = Path(PLOT_DIR) / f"{filename}.png"
     if not filepath.parent.exists():
         print(f"Creating directory '{filepath.parent}'...")

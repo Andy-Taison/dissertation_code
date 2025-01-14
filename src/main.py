@@ -14,7 +14,7 @@ import torch.optim as optim
 
 def run():
     print("Starting VAE pipeline...\n")
-    """
+
     # Preprocess data and save
     # combined_data = combine_csv_files(config.DATA_DIR)
     # print("Combined full dataset")
@@ -54,7 +54,7 @@ def run():
 
     # visualise_robot(grid_data[0], "Test title")
 
-
+    """
     # Define model
     vae = VAE(config.INPUT_DIM, config.LATENT_DIM, "test").to(config.DEVICE)
 
@@ -70,7 +70,7 @@ def run():
     criterion = VaeLoss("mse")
     optimizer = optim.Adam(vae.parameters(), lr=config.LEARNING_RATE)
     """
-    """
+
     # For testing
     from torch.utils.data import DataLoader, Subset
     subset_indices = list(range(128))  # Indices for the first 128 samples
@@ -116,12 +116,14 @@ def run():
     print("Loaded scheduler:")
     print(scheduler)
     print("Loaded epoch: " + str(epoch))
-    """
-    best_history = TrainingHistory.load_history("best_performing_test_bs64_ld2_bce_adam_lr0.001_wd0_be0.1.pth")
-    his2 = TrainingHistory.load_history("test_bs64_ld2_mse_adam_lr0.001_wd0_be0.1_history.pth")
-    # Plot
-    plot_metrics_vs_epochs(best_history, "total_loss", "f1_weighted_avg")
-    plot_loss_tradeoffs(best_history, 'total_loss', x_lowerbound=-0.0005, y_lowerbound=-0.0001)
+
+    # best_history = TrainingHistory.load_history("best_performing_test_bs64_ld2_bce_adam_lr0.001_wd0_be0.1.pth")
+    # his2 = TrainingHistory.load_history("test_bs64_ld2_mse_adam_lr0.001_wd0_be0.1_history.pth")
+    # # Plot
+    # plot_metrics_vs_epochs(best_history, "total_loss", "f1_weighted_avg")
+    # plot_loss_tradeoffs(best_history, 'total_loss', x_lowerbound=-0.0005, y_lowerbound=-0.0001)
+
+    analyse_latent_space(model, train_loader, val_loader, "test", k=3)
 
     print("\nPipeline complete!")
 

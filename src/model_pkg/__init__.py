@@ -7,6 +7,7 @@ from .data.preprocess import combine_csv_files, split_data, save_split_datasets,
 from .data.loaders import create_dataset_and_loader
 from .visualisation.robot import load_grid_from_file, visualise_robot
 from .visualisation.plots import plot_metrics_vs_epochs, plot_loss_tradeoffs
+from .visualisation.latent import analyse_latent_space
 from .model.model import VAE
 from .metrics.losses import VaeLoss
 from .model.train_test import train_val, test
@@ -27,6 +28,7 @@ __all__ = ["config",
            "visualise_robot",
            "plot_metrics_vs_epochs",
            "plot_loss_tradeoffs",
+           "analyse_latent_space",
            "VAE",
            "VaeLoss",
            "train_val",

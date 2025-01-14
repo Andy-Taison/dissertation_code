@@ -549,7 +549,7 @@ def load_model_checkpoint(source: Path | str | TrainingHistory, load: str = "upd
     Model class structure should match the structure of the model as it was saved (architecture is stored in TrainingHistory).
     Scheduler is assumed to be ReduceLROnPlateau.
 
-    :param source: Filepath to checkpoint or TrainingHistory to load, when TrainingHistory, will load 'last_updated_model' by default (use rollback first or load option to load different checkpoints)
+    :param source: Filepath to checkpoint or TrainingHistory to load, when TrainingHistory, will load 'last_updated_model' by default (use rollback first or load parameter to load different checkpoints)
     :param load: Model to load when used with TrainingHistory object [default: 'updated', 'improved', 'f1', 'loss']
     :return: model, optimizer, scheduler, epochs_run
     """

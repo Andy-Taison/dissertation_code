@@ -31,7 +31,7 @@ def create_grid() -> list[dict]:
     - 'optimizer' (list of dictionaries with keys 'type', 'params' and 'model_name')
     - 'lr'
     - 'decay'
-    - 'beta'
+    - 'beta' - higher values lead to a more constrained latent space, lower values lead to a more flexible latent space representation (and focuses on reconstruction loss)
 
     :return: Grid of training configurations
     """
@@ -108,6 +108,8 @@ def train_grid_search(train_ds: TensorDataset, val_ds: TensorDataset, model_arch
     with search_list_path.open(mode) as file:
         # Train for each configuration
         for i, setup in enumerate(grid):
+            start_timer = time.perf_counter()
+
             # Assign unique name containing test information
             model_name = f"{model_architecture_name}_bs{setup['batch_size']}_ld{setup['latent_dim']}_{setup['loss']}_{setup['optimizer']['model_name']}_lr{setup['lr']}_wd{setup['decay']}_be{setup['beta']}"
 
@@ -145,14 +147,14 @@ def train_grid_search(train_ds: TensorDataset, val_ds: TensorDataset, model_arch
             # Train VAE
             history = train_val(vae, train_loader, val_loader, criterion, optimizer, EPOCHS, setup['beta'], prune_old_checkpoints=prune_old_checkpoints)  # History will be to the latest model, which most likely will not be the best model
 
-            # Add average train and validation times to list for progress updates
-            time_to_train.append(sum(history.train['training_time']) / len(history.train['training_time']))
-            time_to_train.append(sum(history.val['training_time']) / len(history.val['training_time']))
-
             # Add path to file
             history_path = f"{history.model_name}_history.pth"
             file.write(history_path + "\n")
             print(f"Added '{history_path}' to '{Path(*search_list_path.parts[-2:])}'")
+
+            # Append training time for progress updates
+            stop_timer = time.perf_counter()
+            time_to_train.append(stop_timer - start_timer)
 
     print("\nGrid search training complete!")
     if completed_histories:
