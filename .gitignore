@@ -140,8 +140,9 @@ src/test.py
 outputs/
 plots/
 
-# Exception: Track .pth files in 'tracked_outputs' and all of its subdirectories
+# Exception: Track .pth and .out files in 'tracked_outputs' and all of its subdirectories
 !tracked_outputs/**/*.pth
+!tracked_outputs/**/*.out
 # Exception: Track plots directory in 'tracked_outputs' and all of its subdirectories
 !tracked_outputs/
 !tracked_outputs/**
