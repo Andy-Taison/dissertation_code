@@ -34,9 +34,11 @@ def compute_class_weights(batch_support: torch.Tensor) -> torch.Tensor:
     :param batch_support: Batch support 1D tensor
     :return: Class weights tensor
     """
-    # Inverses batch support to obtain weights
-    weights = 1.0 / batch_support
-    weights[torch.isinf(weights)] = 1  # Replaces inf with 1
+    # Use logarithmic scaling to boost minority class weighting
+    weights = 1.0 / torch.log(batch_support + 1)
+
+    # Replace inf values with the maximum weight
+    weights[torch.isinf(weights)] = weights[~torch.isinf(weights)].max()
 
     # Normalises
     weights /= weights.sum()
