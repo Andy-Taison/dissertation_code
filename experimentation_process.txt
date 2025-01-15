@@ -21,3 +21,8 @@ If training is still taking too long, will need to scale back dataset.
  
 Visualisations added, ready to visualise the first training configurations.
 Later on may want to interpolate the latent space and visualise (extra functionality required).
+
+
+* Noticed minority descriptor values (1-4) were being heavily predicted in the reconstruction.
+Decided to use logarithmic scaling for class weighting to help give the minority classes a boost so the model pays them more attention.
+Retrained base configuration with only this change. 
