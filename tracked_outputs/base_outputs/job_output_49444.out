@@ -1,0 +1,574 @@
+Job started...
+Loading Anaconda module...
+Module loaded.
+Initialising Conda...
+Conda initialised.
+Activating virtual environment...
+Environment activated.
+Running script...
+Using cuda device
+
+Starting VAE pipeline...
+
+Training dataset
+Dataset Summary:
+--------------------------------------------------
+Dimensions: 18911 rows x 1331 columns
+
+Overall Class Counts:
+0    25042665
+1       55691
+2       26923
+3       23793
+4       21469
+
+Proportion of Each Class (%):
+0    99.49
+1     0.22
+2     0.11
+3     0.09
+4     0.09
+
+Average Zeros Per Row: 1324.24
+Average Non-Zero Classes Per Row: 6.76
+Rows with Only Zero Values: 0 (0.00%)
+Rows with Exactly 1 Non-Zero Value: 201 (1.06%)
+Rows with Multiple Non-Zero Values: 18710 (98.94%)
+Unique Rows: 18911 (100.00)%
+
+Creating DataLoader object...
+DataLoader created.
+
+Validation dataset
+Dataset Summary:
+--------------------------------------------------
+Dimensions: 2702 rows x 1331 columns
+
+Overall Class Counts:
+0    3578278
+1       7954
+2       3811
+3       3246
+4       3073
+
+Proportion of Each Class (%):
+0    99.50
+1     0.22
+2     0.11
+3     0.09
+4     0.09
+
+Average Zeros Per Row: 1324.31
+Average Non-Zero Classes Per Row: 6.69
+Rows with Only Zero Values: 0 (0.00%)
+Rows with Exactly 1 Non-Zero Value: 30 (1.11%)
+Rows with Multiple Non-Zero Values: 2672 (98.89%)
+Unique Rows: 2702 (100.00)%
+
+Creating DataLoader object...
+DataLoader created.
+
+Test dataset
+Dataset Summary:
+--------------------------------------------------
+Dimensions: 5404 rows x 1331 columns
+
+Overall Class Counts:
+0    7156431
+1      16032
+2       7484
+3       6701
+4       6076
+
+Proportion of Each Class (%):
+0    99.50
+1     0.22
+2     0.10
+3     0.09
+4     0.08
+
+Average Zeros Per Row: 1324.28
+Average Non-Zero Classes Per Row: 6.72
+Rows with Only Zero Values: 0 (0.00%)
+Rows with Exactly 1 Non-Zero Value: 78 (1.44%)
+Rows with Multiple Non-Zero Values: 5326 (98.56%)
+Unique Rows: 5404 (100.00)%
+
+Creating DataLoader object...
+DataLoader created.
+
+Preprocessed datasets loaded: train (18911), val (2702), and test (5404) sets.
+
+robot_ids batch shape: torch.Size([64]), sample ID: 16737
+grid_data batch shape: torch.Size([64, 11, 11, 11]), grid data sample shape: torch.Size([11, 11, 11])
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+Searching grid...
+
+Best Configuration tradeoff score: 0.1781 at epoch: 28
+Training History Summary for Model: 'base_bs64_ld4_bce_adam_lr0.001_wd0_be0.1'
+Model Directory: '/users/40538519/sharedscratch/outputs/model_checkpoints/base_bs64_ld4_bce_adam_lr0.001_wd0_be0.1'
+--------------------------------------------------
+Epochs Run: 30
+Last Updated Model: 'final_model_epoch_30.pth'
+
+Epochs Without Improvement: 2
+Last Improved Model: 'best_f1_avg_epoch_28.pth'
+
+Batch Size: 64
+Optimizer: Adam
+Weight Decay: 0
+Loss Function: VAE Loss: BCELoss, KL Divergence
+Scheduler: None
+
+Best Validation Loss: 0.0858
+Best Validation Loss Model: 'best_loss_epoch_25.pth'
+Best Validation Weighted F1: 0.4085
+Best Validation Weighted F1 Model: 'best_f1_avg_epoch_28.pth'
+--------------------------------------------------
+Training Metrics (Last Epoch):
+	- Reconstruction Loss, Weighted by Class Imbalance, Averaged Across Batches: 0.0865
+	- KL Divergence, Averaged Across Batches: 0.0000
+	- Beta: 0.1
+	- Accuracy: 0.2549
+	- Weighted F1: 0.4043
+	- Learning Rate: 0.001
+	- Average Training Time: 00:24:60
+--------------------------------------------------
+Validation Metrics (Last Epoch):
+	- Reconstruction Loss, Weighted by Class Imbalance, Averaged Across Batches: 0.0858
+	- KL Divergence, Averaged Across Batches: 0.0000
+	- Beta: 0.1
+	- Accuracy: 0.2551
+	- Weighted F1: 0.4046
+	- Average Validation Time: 00:03:25
+--------------------------------------------------
+Model Architecture Used:
+Latent Dim: 4
+
+- '':
+VAE(
+  (encoder): Encoder(
+    (flatten): Flatten(start_dim=1, end_dim=-1)
+    (fc1): Linear(in_features=1331, out_features=512, bias=True)
+    (fc2): Linear(in_features=512, out_features=256, bias=True)
+    (z_mean): Linear(in_features=256, out_features=4, bias=True)
+    (z_log_var): Linear(in_features=256, out_features=4, bias=True)
+  )
+  (sampling): Sample()
+  (decoder): Decoder(
+    (fc1): Linear(in_features=4, out_features=256, bias=True)
+    (fc2): Linear(in_features=256, out_features=512, bias=True)
+    (fc3): Linear(in_features=512, out_features=1331, bias=True)
+  )
+)
+
+- 'encoder':
+Encoder(
+  (flatten): Flatten(start_dim=1, end_dim=-1)
+  (fc1): Linear(in_features=1331, out_features=512, bias=True)
+  (fc2): Linear(in_features=512, out_features=256, bias=True)
+  (z_mean): Linear(in_features=256, out_features=4, bias=True)
+  (z_log_var): Linear(in_features=256, out_features=4, bias=True)
+)
+
+- 'encoder.flatten':
+Flatten(start_dim=1, end_dim=-1)
+
+- 'encoder.fc1':
+Linear(in_features=1331, out_features=512, bias=True)
+
+- 'encoder.fc2':
+Linear(in_features=512, out_features=256, bias=True)
+
+- 'encoder.z_mean':
+Linear(in_features=256, out_features=4, bias=True)
+
+- 'encoder.z_log_var':
+Linear(in_features=256, out_features=4, bias=True)
+
+- 'sampling':
+Sample()
+
+- 'decoder':
+Decoder(
+  (fc1): Linear(in_features=4, out_features=256, bias=True)
+  (fc2): Linear(in_features=256, out_features=512, bias=True)
+  (fc3): Linear(in_features=512, out_features=1331, bias=True)
+)
+
+- 'decoder.fc1':
+Linear(in_features=4, out_features=256, bias=True)
+
+- 'decoder.fc2':
+Linear(in_features=256, out_features=512, bias=True)
+
+- 'decoder.fc3':
+Linear(in_features=512, out_features=1331, bias=True)
+--------------------------------------------------
+Search complete!
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+Alternative history filename updated: 'best_performing_base_bs64_ld4_bce_adam_lr0.001_wd0_be0.1_epoch_28'
+Saving to alternative history filename: 'best_performing_base_bs64_ld4_bce_adam_lr0.001_wd0_be0.1_epoch_28.pth'...
+History saved to 'metric_history/best_performing_base_bs64_ld4_bce_adam_lr0.001_wd0_be0.1_epoch_28.pth'
+
+Creating directory '/users/40538519/sharedscratch/plots'...
+Plot saved to 'best_performing_base_bs64_ld4_bce_adam_lr0.001_wd0_be0.1_epoch_28_recon-beta_kl_vs_epochs.png'
+Plot saved to 'best_performing_base_bs64_ld4_bce_adam_lr0.001_wd0_be0.1_epoch_28_f1_vs_epochs.png'
+Plot saved to 'best_performing_base_bs64_ld4_bce_adam_lr0.001_wd0_be0.1_epoch_28_total_loss_vs_epochs.png'
+Plot saved to 'best_performing_base_bs64_ld4_bce_adam_lr0.001_wd0_be0.1_epoch_28_acc_vs_epochs.png'
+Plot saved to 'best_performing_base_bs64_ld4_bce_adam_lr0.001_wd0_be0.1_epoch_28_kl_vs_recon.png'
+Plot saved to 'best_performing_base_bs64_ld4_bce_adam_lr0.001_wd0_be0.1_epoch_28_beta_kl_vs_recon.png'
+Plot saved to 'best_performing_base_bs64_ld4_bce_adam_lr0.001_wd0_be0.1_epoch_28_total_loss_vs_f1.png'
+
+Resetting history to epoch 28...
+
+TrainingHistory rolled back to epoch 28. Updated attributes:
+	- Last updated model: best_f1_avg_epoch_28.pth
+	- Last improved model: best_f1_avg_epoch_28.pth
+	- Best loss: 0.0009, Model: best_loss_epoch_25.pth
+	- Best F1 average: 0.4085, Model: best_f1_avg_epoch_28.pth
+
+Attempting to load last updated model...
+Loading model and optimizer checkpoint from '/users/40538519/sharedscratch/outputs/model_checkpoints/base_bs64_ld4_bce_adam_lr0.001_wd0_be0.1/best_f1_avg_epoch_28.pth'...
+Checkpoint loaded.
+
+Plotting latent space using PCA and UMAP with K=5...
+Plot saved to 'best_performing_base_bs64_ld4_bce_adam_lr0.001_wd0_be0.1_epoch_28_pca.png'
+Plot saved to 'best_performing_base_bs64_ld4_bce_adam_lr0.001_wd0_be0.1_epoch_28_umap.png'
+
+Latent analysis metrics:
+Silhouette score (PCA): 0.2996
+Silhouette score (UMAP): 0.3550
+
+Unique distances:
+tensor([0.0000e+00, 6.1035e-05, 8.6317e-05,  ..., 8.1619e+00, 8.2166e+00,
+        8.2965e+00])
+
+Max distance: 8.296510696411133
+Mean pairwise distance: 2.6594, Standard deviation: 0.9639
+
+Alternative history filename updated: 'best_performing_base_bs64_ld4_bce_adam_lr0.001_wd0_be0.1_epoch_28'
+Saving to alternative history filename: 'best_performing_base_bs64_ld4_bce_adam_lr0.001_wd0_be0.1_epoch_28.pth'...
+History saved to 'metric_history/best_performing_base_bs64_ld4_bce_adam_lr0.001_wd0_be0.1_epoch_28.pth'
+
+Getting samples for comparison visualisations...
+Robot comparison visualisation plot saved to 'comparison_best_performing_base_bs64_ld4_bce_adam_lr0.001_wd0_be0.1_epoch_28_45757.png'
+Robot comparison visualisation plot saved to 'comparison_best_performing_base_bs64_ld4_bce_adam_lr0.001_wd0_be0.1_epoch_28_102299.png'
+Robot comparison visualisation plot saved to 'comparison_best_performing_base_bs64_ld4_bce_adam_lr0.001_wd0_be0.1_epoch_28_166302.png'
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+Searching grid...
+
+Best Configuration tradeoff score: 0.0001 at epoch: 21
+Training History Summary for Model: 'base_bs64_ld4_mse_adam_lr0.001_wd0_be0.1'
+Model Directory: '/users/40538519/sharedscratch/outputs/model_checkpoints/base_bs64_ld4_mse_adam_lr0.001_wd0_be0.1'
+--------------------------------------------------
+Epochs Run: 26
+Last Updated Model: 'terminated_model_epoch_26.pth'
+
+Epochs Without Improvement: 5
+Last Improved Model: 'best_loss_epoch_21.pth'
+
+Batch Size: 64
+Optimizer: Adam
+Weight Decay: 0
+Loss Function: VAE Loss: MSELoss, KL Divergence
+Scheduler: None
+
+Best Validation Loss: 0.0138
+Best Validation Loss Model: 'best_loss_epoch_21.pth'
+Best Validation Weighted F1: 0.4061
+Best Validation Weighted F1 Model: 'best_f1_avg_epoch_19.pth'
+--------------------------------------------------
+Training Metrics (Last Epoch):
+	- Reconstruction Loss, Weighted by Class Imbalance, Averaged Across Batches: 0.0138
+	- KL Divergence, Averaged Across Batches: 0.0000
+	- Beta: 0.1
+	- Accuracy: 0.2539
+	- Weighted F1: 0.4030
+	- Learning Rate: 0.001
+	- Average Training Time: 00:24:08
+--------------------------------------------------
+Validation Metrics (Last Epoch):
+	- Reconstruction Loss, Weighted by Class Imbalance, Averaged Across Batches: 0.0139
+	- KL Divergence, Averaged Across Batches: 0.0000
+	- Beta: 0.1
+	- Accuracy: 0.2524
+	- Weighted F1: 0.4012
+	- Average Validation Time: 00:03:27
+--------------------------------------------------
+Model Architecture Used:
+Latent Dim: 4
+
+- '':
+VAE(
+  (encoder): Encoder(
+    (flatten): Flatten(start_dim=1, end_dim=-1)
+    (fc1): Linear(in_features=1331, out_features=512, bias=True)
+    (fc2): Linear(in_features=512, out_features=256, bias=True)
+    (z_mean): Linear(in_features=256, out_features=4, bias=True)
+    (z_log_var): Linear(in_features=256, out_features=4, bias=True)
+  )
+  (sampling): Sample()
+  (decoder): Decoder(
+    (fc1): Linear(in_features=4, out_features=256, bias=True)
+    (fc2): Linear(in_features=256, out_features=512, bias=True)
+    (fc3): Linear(in_features=512, out_features=1331, bias=True)
+  )
+)
+
+- 'encoder':
+Encoder(
+  (flatten): Flatten(start_dim=1, end_dim=-1)
+  (fc1): Linear(in_features=1331, out_features=512, bias=True)
+  (fc2): Linear(in_features=512, out_features=256, bias=True)
+  (z_mean): Linear(in_features=256, out_features=4, bias=True)
+  (z_log_var): Linear(in_features=256, out_features=4, bias=True)
+)
+
+- 'encoder.flatten':
+Flatten(start_dim=1, end_dim=-1)
+
+- 'encoder.fc1':
+Linear(in_features=1331, out_features=512, bias=True)
+
+- 'encoder.fc2':
+Linear(in_features=512, out_features=256, bias=True)
+
+- 'encoder.z_mean':
+Linear(in_features=256, out_features=4, bias=True)
+
+- 'encoder.z_log_var':
+Linear(in_features=256, out_features=4, bias=True)
+
+- 'sampling':
+Sample()
+
+- 'decoder':
+Decoder(
+  (fc1): Linear(in_features=4, out_features=256, bias=True)
+  (fc2): Linear(in_features=256, out_features=512, bias=True)
+  (fc3): Linear(in_features=512, out_features=1331, bias=True)
+)
+
+- 'decoder.fc1':
+Linear(in_features=4, out_features=256, bias=True)
+
+- 'decoder.fc2':
+Linear(in_features=256, out_features=512, bias=True)
+
+- 'decoder.fc3':
+Linear(in_features=512, out_features=1331, bias=True)
+--------------------------------------------------
+Search complete!
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+Alternative history filename updated: 'best_loss_base_bs64_ld4_mse_adam_lr0.001_wd0_be0.1_epoch_21'
+Saving to alternative history filename: 'best_loss_base_bs64_ld4_mse_adam_lr0.001_wd0_be0.1_epoch_21.pth'...
+History saved to 'metric_history/best_loss_base_bs64_ld4_mse_adam_lr0.001_wd0_be0.1_epoch_21.pth'
+
+Plot saved to 'best_loss_base_bs64_ld4_mse_adam_lr0.001_wd0_be0.1_epoch_21_recon-beta_kl_vs_epochs.png'
+Plot saved to 'best_loss_base_bs64_ld4_mse_adam_lr0.001_wd0_be0.1_epoch_21_f1_vs_epochs.png'
+Plot saved to 'best_loss_base_bs64_ld4_mse_adam_lr0.001_wd0_be0.1_epoch_21_total_loss_vs_epochs.png'
+Plot saved to 'best_loss_base_bs64_ld4_mse_adam_lr0.001_wd0_be0.1_epoch_21_acc_vs_epochs.png'
+Plot saved to 'best_loss_base_bs64_ld4_mse_adam_lr0.001_wd0_be0.1_epoch_21_kl_vs_recon.png'
+Plot saved to 'best_loss_base_bs64_ld4_mse_adam_lr0.001_wd0_be0.1_epoch_21_beta_kl_vs_recon.png'
+Plot saved to 'best_loss_base_bs64_ld4_mse_adam_lr0.001_wd0_be0.1_epoch_21_total_loss_vs_f1.png'
+
+Resetting history to epoch 21...
+
+TrainingHistory rolled back to epoch 21. Updated attributes:
+	- Last updated model: best_loss_epoch_21.pth
+	- Last improved model: best_loss_epoch_21.pth
+	- Best loss: 0.0001, Model: best_loss_epoch_21.pth
+	- Best F1 average: 0.4061, Model: best_f1_avg_epoch_19.pth
+
+Attempting to load last updated model...
+Loading model and optimizer checkpoint from '/users/40538519/sharedscratch/outputs/model_checkpoints/base_bs64_ld4_mse_adam_lr0.001_wd0_be0.1/best_loss_epoch_21.pth'...
+Checkpoint loaded.
+
+Plotting latent space using PCA and UMAP with K=5...
+Plot saved to 'best_loss_base_bs64_ld4_mse_adam_lr0.001_wd0_be0.1_epoch_21_pca.png'
+Plot saved to 'best_loss_base_bs64_ld4_mse_adam_lr0.001_wd0_be0.1_epoch_21_umap.png'
+
+Latent analysis metrics:
+Silhouette score (PCA): 0.2966
+Silhouette score (UMAP): 0.3536
+
+Unique distances:
+tensor([0.0000e+00, 1.7263e-04, 2.4414e-04,  ..., 8.2490e+00, 8.2987e+00,
+        8.2987e+00])
+
+Max distance: 8.298701286315918
+Mean pairwise distance: 2.6691, Standard deviation: 0.9662
+
+Alternative history filename updated: 'best_loss_base_bs64_ld4_mse_adam_lr0.001_wd0_be0.1_epoch_21'
+Saving to alternative history filename: 'best_loss_base_bs64_ld4_mse_adam_lr0.001_wd0_be0.1_epoch_21.pth'...
+History saved to 'metric_history/best_loss_base_bs64_ld4_mse_adam_lr0.001_wd0_be0.1_epoch_21.pth'
+
+Getting samples for comparison visualisations...
+Robot comparison visualisation plot saved to 'comparison_best_loss_base_bs64_ld4_mse_adam_lr0.001_wd0_be0.1_epoch_21_45757.png'
+Robot comparison visualisation plot saved to 'comparison_best_loss_base_bs64_ld4_mse_adam_lr0.001_wd0_be0.1_epoch_21_102299.png'
+Robot comparison visualisation plot saved to 'comparison_best_loss_base_bs64_ld4_mse_adam_lr0.001_wd0_be0.1_epoch_21_166302.png'
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+Searching grid...
+
+Best Configuration tradeoff score: 0.5915 at epoch: 28
+Training History Summary for Model: 'base_bs64_ld4_bce_adam_lr0.001_wd0_be0.1'
+Model Directory: '/users/40538519/sharedscratch/outputs/model_checkpoints/base_bs64_ld4_bce_adam_lr0.001_wd0_be0.1'
+--------------------------------------------------
+Epochs Run: 30
+Last Updated Model: 'final_model_epoch_30.pth'
+
+Epochs Without Improvement: 2
+Last Improved Model: 'best_f1_avg_epoch_28.pth'
+
+Batch Size: 64
+Optimizer: Adam
+Weight Decay: 0
+Loss Function: VAE Loss: BCELoss, KL Divergence
+Scheduler: None
+
+Best Validation Loss: 0.0858
+Best Validation Loss Model: 'best_loss_epoch_25.pth'
+Best Validation Weighted F1: 0.4085
+Best Validation Weighted F1 Model: 'best_f1_avg_epoch_28.pth'
+--------------------------------------------------
+Training Metrics (Last Epoch):
+	- Reconstruction Loss, Weighted by Class Imbalance, Averaged Across Batches: 0.0865
+	- KL Divergence, Averaged Across Batches: 0.0000
+	- Beta: 0.1
+	- Accuracy: 0.2549
+	- Weighted F1: 0.4043
+	- Learning Rate: 0.001
+	- Average Training Time: 00:24:60
+--------------------------------------------------
+Validation Metrics (Last Epoch):
+	- Reconstruction Loss, Weighted by Class Imbalance, Averaged Across Batches: 0.0858
+	- KL Divergence, Averaged Across Batches: 0.0000
+	- Beta: 0.1
+	- Accuracy: 0.2551
+	- Weighted F1: 0.4046
+	- Average Validation Time: 00:03:25
+--------------------------------------------------
+Model Architecture Used:
+Latent Dim: 4
+
+- '':
+VAE(
+  (encoder): Encoder(
+    (flatten): Flatten(start_dim=1, end_dim=-1)
+    (fc1): Linear(in_features=1331, out_features=512, bias=True)
+    (fc2): Linear(in_features=512, out_features=256, bias=True)
+    (z_mean): Linear(in_features=256, out_features=4, bias=True)
+    (z_log_var): Linear(in_features=256, out_features=4, bias=True)
+  )
+  (sampling): Sample()
+  (decoder): Decoder(
+    (fc1): Linear(in_features=4, out_features=256, bias=True)
+    (fc2): Linear(in_features=256, out_features=512, bias=True)
+    (fc3): Linear(in_features=512, out_features=1331, bias=True)
+  )
+)
+
+- 'encoder':
+Encoder(
+  (flatten): Flatten(start_dim=1, end_dim=-1)
+  (fc1): Linear(in_features=1331, out_features=512, bias=True)
+  (fc2): Linear(in_features=512, out_features=256, bias=True)
+  (z_mean): Linear(in_features=256, out_features=4, bias=True)
+  (z_log_var): Linear(in_features=256, out_features=4, bias=True)
+)
+
+- 'encoder.flatten':
+Flatten(start_dim=1, end_dim=-1)
+
+- 'encoder.fc1':
+Linear(in_features=1331, out_features=512, bias=True)
+
+- 'encoder.fc2':
+Linear(in_features=512, out_features=256, bias=True)
+
+- 'encoder.z_mean':
+Linear(in_features=256, out_features=4, bias=True)
+
+- 'encoder.z_log_var':
+Linear(in_features=256, out_features=4, bias=True)
+
+- 'sampling':
+Sample()
+
+- 'decoder':
+Decoder(
+  (fc1): Linear(in_features=4, out_features=256, bias=True)
+  (fc2): Linear(in_features=256, out_features=512, bias=True)
+  (fc3): Linear(in_features=512, out_features=1331, bias=True)
+)
+
+- 'decoder.fc1':
+Linear(in_features=4, out_features=256, bias=True)
+
+- 'decoder.fc2':
+Linear(in_features=256, out_features=512, bias=True)
+
+- 'decoder.fc3':
+Linear(in_features=512, out_features=1331, bias=True)
+--------------------------------------------------
+Search complete!
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+Alternative history filename updated: 'best_f1_base_bs64_ld4_bce_adam_lr0.001_wd0_be0.1_epoch_28'
+Saving to alternative history filename: 'best_f1_base_bs64_ld4_bce_adam_lr0.001_wd0_be0.1_epoch_28.pth'...
+History saved to 'metric_history/best_f1_base_bs64_ld4_bce_adam_lr0.001_wd0_be0.1_epoch_28.pth'
+
+Plot saved to 'best_f1_base_bs64_ld4_bce_adam_lr0.001_wd0_be0.1_epoch_28_recon-beta_kl_vs_epochs.png'
+Plot saved to 'best_f1_base_bs64_ld4_bce_adam_lr0.001_wd0_be0.1_epoch_28_f1_vs_epochs.png'
+Plot saved to 'best_f1_base_bs64_ld4_bce_adam_lr0.001_wd0_be0.1_epoch_28_total_loss_vs_epochs.png'
+Plot saved to 'best_f1_base_bs64_ld4_bce_adam_lr0.001_wd0_be0.1_epoch_28_acc_vs_epochs.png'
+Plot saved to 'best_f1_base_bs64_ld4_bce_adam_lr0.001_wd0_be0.1_epoch_28_kl_vs_recon.png'
+Plot saved to 'best_f1_base_bs64_ld4_bce_adam_lr0.001_wd0_be0.1_epoch_28_beta_kl_vs_recon.png'
+Plot saved to 'best_f1_base_bs64_ld4_bce_adam_lr0.001_wd0_be0.1_epoch_28_total_loss_vs_f1.png'
+
+Resetting history to epoch 28...
+
+TrainingHistory rolled back to epoch 28. Updated attributes:
+	- Last updated model: best_f1_avg_epoch_28.pth
+	- Last improved model: best_f1_avg_epoch_28.pth
+	- Best loss: 0.0009, Model: best_loss_epoch_25.pth
+	- Best F1 average: 0.4085, Model: best_f1_avg_epoch_28.pth
+
+Attempting to load last updated model...
+Loading model and optimizer checkpoint from '/users/40538519/sharedscratch/outputs/model_checkpoints/base_bs64_ld4_bce_adam_lr0.001_wd0_be0.1/best_f1_avg_epoch_28.pth'...
+Checkpoint loaded.
+
+Plotting latent space using PCA and UMAP with K=5...
+Plot saved to 'best_f1_base_bs64_ld4_bce_adam_lr0.001_wd0_be0.1_epoch_28_pca.png'
+Plot saved to 'best_f1_base_bs64_ld4_bce_adam_lr0.001_wd0_be0.1_epoch_28_umap.png'
+
+Latent analysis metrics:
+Silhouette score (PCA): 0.3034
+Silhouette score (UMAP): 0.3604
+
+Unique distances:
+tensor([0.0000e+00, 1.7263e-04, 2.4414e-04,  ..., 8.0467e+00, 8.1023e+00,
+        8.3897e+00])
+
+Max distance: 8.389748573303223
+Mean pairwise distance: 2.6617, Standard deviation: 0.9666
+
+Alternative history filename updated: 'best_f1_base_bs64_ld4_bce_adam_lr0.001_wd0_be0.1_epoch_28'
+Saving to alternative history filename: 'best_f1_base_bs64_ld4_bce_adam_lr0.001_wd0_be0.1_epoch_28.pth'...
+History saved to 'metric_history/best_f1_base_bs64_ld4_bce_adam_lr0.001_wd0_be0.1_epoch_28.pth'
+
+Getting samples for comparison visualisations...
+Robot comparison visualisation plot saved to 'comparison_best_f1_base_bs64_ld4_bce_adam_lr0.001_wd0_be0.1_epoch_28_45757.png'
+Robot comparison visualisation plot saved to 'comparison_best_f1_base_bs64_ld4_bce_adam_lr0.001_wd0_be0.1_epoch_28_102299.png'
+Robot comparison visualisation plot saved to 'comparison_best_f1_base_bs64_ld4_bce_adam_lr0.001_wd0_be0.1_epoch_28_166302.png'
+
+Pipeline complete!
+Script execution completed.
+Deactivating environment...
+Job complete.
