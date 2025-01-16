@@ -15,11 +15,13 @@ import torch.optim as optim
 def run():
     print("Starting VAE pipeline...\n")
 
-    # Preprocess data and save
+    # Preprocess data and save (full datasets)
     # combined_data = combine_csv_files(config.DATA_DIR)
     # print("Combined full dataset")
     # summarise_dataset(combined_data)
     # cleaned_df = clean_data(combined_data)
+    # print("Cleaned dataset")
+    # summarise_dataset(cleaned_df)
     # train_data, val_data, test_data = split_data(cleaned_df)
     # save_split_datasets(config.PROCESSED_DIR, train_data, val_data, test_data)
     # print("Training dataset")
@@ -29,23 +31,36 @@ def run():
     # print("Test dataset")
     # summarise_dataset(test_data)
 
+    # Preprocess data and save (toy datasets)
+    combined_data = combine_csv_files(config.DATA_DIR)
+    print("Combined full dataset")
+    summarise_dataset(combined_data)
+    cleaned_df = clean_data(combined_data)
+    print("Cleaned dataset")
+    summarise_dataset(cleaned_df)
+    # Train and validation sets are 20% of what they normally would be, test set will contain the rest - not used
+    train_data, val_data, rest_of_data = split_data(cleaned_df, val_size=0.02, test_size=0.84)
+    save_split_datasets(config.PROCESSED_DIR / "toy_sets", train_data, val_data, rest_of_data)
+
     # Load processed data
-    processed_data_dir = Path(config.PROCESSED_DIR)
-    train_data = pd.read_csv(processed_data_dir / "train.csv", header=None)
-    val_data = pd.read_csv(processed_data_dir / "val.csv", header=None)
-    test_data = pd.read_csv(processed_data_dir / "test.csv", header=None)
+    test_data = None
+    # train_data, val_data, test_data = load_processed_datasets(config.PROCESSED_DIR)  # Full datasets
+    train_data, val_data, _ = load_processed_datasets(config.PROCESSED_DIR / "toy_sets")  # toy datasets - test set contains the majority of the data, should not be used
 
     # Create datasets and dataloaders
-    print("Training dataset")
+    print("\nTraining dataset")
     summarise_dataset(train_data)
     train_ds, train_loader = create_dataset_and_loader(train_data, batch_size=config.BATCH_SIZE, shuffle=True)
     print("Validation dataset")
     summarise_dataset(val_data)
     val_ds, val_loader = create_dataset_and_loader(val_data, batch_size=config.BATCH_SIZE)
-    print("Test dataset")
-    summarise_dataset(test_data)
-    test_ds, test_loader = create_dataset_and_loader(test_data, batch_size=config.BATCH_SIZE)
-    print(f"Preprocessed datasets loaded: train ({len(train_ds)}), val ({len(val_ds)}), and test ({len(test_ds)}) sets.\n")
+    if test_data is not None:
+        print("Test dataset")
+        summarise_dataset(test_data)  # type: ignore
+        test_ds, test_loader = create_dataset_and_loader(test_data, batch_size=config.BATCH_SIZE)  # type: ignore
+        print(f"Preprocessed datasets loaded: train ({len(train_ds)}), val ({len(val_ds)}), and test ({len(test_ds)}) sets.\n")
+    else:
+        print(f"Preprocessed datasets loaded: train ({len(train_ds)}) and val ({len(val_ds)}) sets.\n")
 
     # Sample
     robot_ids, grid_data = next(iter(train_loader))
@@ -70,7 +85,7 @@ def run():
     criterion = VaeLoss("mse")
     optimizer = optim.Adam(vae.parameters(), lr=config.LEARNING_RATE)
     """
-
+    """
     # For testing
     from torch.utils.data import DataLoader, Subset
     subset_indices = list(range(128))  # Indices for the first 128 samples
@@ -91,10 +106,10 @@ def run():
     # model, optimizer, scheduler, epoch = load_model_checkpoint(Path(config.MODEL_CHECKPOINT_DIR / "test" / "best_f1_avg_epoch_7.pth"))
     
     train_grid_search(subset_train_ds, subset_val_ds, "test")
-
+    """
 
     # Grid search training
-    # train_grid_search(train_ds, val_ds, "base", clear_history_list=False)
+    train_grid_search(train_ds, val_ds, "base", clear_history_list=False)
 
     # Grid search using balanced loss and F1 to score
     print("Starting gridsearch for best trade-off performance model...")

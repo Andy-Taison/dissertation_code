@@ -137,6 +137,24 @@ def save_split_datasets(processed_directory: str | Path, train_data: pd.DataFram
     print(f"Datasets saved as:\n\t{train_path}\n\t{val_path}\n\t{test_path}\n")
 
 
+def load_processed_datasets(processed_directory: str | Path) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+    """
+    Loads train, val and test datasets from CSV files named as such in the 'processed_directory'.
+
+    :param processed_directory: Directory to obtain 'train.csv', 'val.csv', and 'test.csv' files
+    :return: train_data, val_data, test_data
+    """
+    # Load processed data
+    processed_data_dir = Path(processed_directory)
+    print(f"Loading train, validation and test set from: '{processed_directory.name}'...")
+    train_data = pd.read_csv(processed_data_dir / "train.csv", header=None)
+    val_data = pd.read_csv(processed_data_dir / "val.csv", header=None)
+    test_data = pd.read_csv(processed_data_dir / "test.csv", header=None)
+    print("Datasets loaded.")
+
+    return train_data, val_data, test_data
+
+
 def summarise_dataset(dataset: pd.DataFrame):
     """
     Prints a summary of the dataset passed

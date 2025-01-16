@@ -26,3 +26,6 @@ Later on may want to interpolate the latent space and visualise (extra functiona
 * Noticed minority descriptor values (1-4) were being heavily predicted in the reconstruction.
 Decided to use logarithmic scaling for class weighting to help give the minority classes a boost so the model pays them more attention.
 Retrained base configuration with only this change. 
+
+
+* Reduced train and validation datasets to 20% to reduce training time.
