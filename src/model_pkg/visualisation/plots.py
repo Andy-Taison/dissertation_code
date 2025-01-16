@@ -38,18 +38,18 @@ def calculate_metric_data(history: TrainingHistory, metric: str, metrics_from: s
     data_val = history.val.get(metric, []) if metrics_from in ['train_and_val', 'val'] else []
 
     if metric == 'beta_kl':
-        data_train = [beta * kl for beta, kl in zip(history.train.get('beta', []), history.train.get('kl', []))]
-        data_val = [beta * kl for beta, kl in zip(history.val.get('beta', []), history.val.get('kl', []))]
+        data_train = [beta * kl for beta, kl in zip(history.train.get('beta', []), history.train.get('kl', []))] if metrics_from in ['train_and_val', 'train'] else []
+        data_val = [beta * kl for beta, kl in zip(history.val.get('beta', []), history.val.get('kl', []))] if metrics_from in ['train_and_val', 'val'] else []
 
     if metric == 'total_loss':
         data_train = [recon + beta * kl for recon, kl, beta in
-                      zip(history.train.get('recon', []), history.train.get('kl', []), history.train.get('beta', []))]
+                      zip(history.train.get('recon', []), history.train.get('kl', []), history.train.get('beta', []))] if metrics_from in ['train_and_val', 'train'] else []
         data_val = [recon + beta * kl for recon, kl, beta in
-                    zip(history.val.get('recon', []), history.val.get('kl', []), history.val.get('beta', []))]
+                    zip(history.val.get('recon', []), history.val.get('kl', []), history.val.get('beta', []))] if metrics_from in ['train_and_val', 'val'] else []
 
     if metric == 'accuracy':
-        data_train = [acc * 100 for acc in data_train]
-        data_val = [acc * 100 for acc in data_val]
+        data_train = [acc * 100 for acc in data_train] if metrics_from in ['train_and_val', 'train'] else []
+        data_val = [acc * 100 for acc in data_val] if metrics_from in ['train_and_val', 'val'] else []
 
     return data_train, data_val
 

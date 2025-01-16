@@ -70,7 +70,7 @@ def run():
     criterion = VaeLoss("mse")
     optimizer = optim.Adam(vae.parameters(), lr=config.LEARNING_RATE)
     """
-    """
+
     # For testing
     from torch.utils.data import DataLoader, Subset
     subset_indices = list(range(128))  # Indices for the first 128 samples
@@ -91,12 +91,13 @@ def run():
     # model, optimizer, scheduler, epoch = load_model_checkpoint(Path(config.MODEL_CHECKPOINT_DIR / "test" / "best_f1_avg_epoch_7.pth"))
     
     train_grid_search(subset_train_ds, subset_val_ds, "test")
-    """
+
 
     # Grid search training
     # train_grid_search(train_ds, val_ds, "base", clear_history_list=False)
 
     # Grid search using balanced loss and F1 to score
+    print("Starting gridsearch for best trade-off performance model...")
     best_history, best_score, best_epoch = search_grid_history(loss_f1_tradeoff=0.7)
     alt_name = f"best_performing_{best_history.model_name}_epoch_{best_epoch}"
     print()
@@ -125,6 +126,7 @@ def run():
         print(f"Checkpoint for '{alt_name}' has been pruned, so cannot perform latent analysis.")
 
     # Grid search using only loss to score
+    print("Starting gridsearch for best loss model...")
     best_loss_history, best_loss_score, best_loss_epoch = search_grid_history(loss_f1_tradeoff=1)
     alt_loss_name = f"best_loss_{best_loss_history.model_name}_epoch_{best_loss_epoch}"
     print()
@@ -153,6 +155,7 @@ def run():
         print(f"Checkpoint for '{alt_loss_name}' has been pruned, so cannot perform latent analysis.")
 
     # Grid search using only weighted F1 to score
+    print("Starting gridsearch for best weighted F1 model...")
     best_f1_history, best_f1_score, best_f1_epoch = search_grid_history(loss_f1_tradeoff=0)
     alt_f1_name = f"best_f1_{best_f1_history.model_name}_epoch_{best_f1_epoch}"
     print()
