@@ -83,18 +83,18 @@ def transform_latent_space(reducer, latent_vectors: torch.Tensor) -> np.ndarray:
     return reducer.transform(latent_vectors.numpy())
 
 
-def kmeans_cluster(latent_vectors: np.ndarray, n_clusters: int = 3) -> tuple[np.ndarray, KMeans]:
+def kmeans_cluster(latent_vectors: np.ndarray, n_clusters: int = 3) -> tuple[KMeans, np.ndarray]:
     """
     Perform KMeans clustering on latent vectors.
 
     :param latent_vectors: Latent space representations
     :param n_clusters: Number of clusters
-    :return: Cluster labels, trained KMeans model
+    :return: trained KMeans model, Cluster labels
     """
     kmeans = KMeans(n_clusters=n_clusters, random_state=RANDOM_STATE, n_init="auto")
     cluster_labels = kmeans.fit_predict(latent_vectors)
 
-    return cluster_labels, kmeans
+    return kmeans, cluster_labels
 
 
 def find_optimal_k(latent_vectors: torch.Tensor, max_k: int = 10, title: str = "Elbow Method for Optimal k", filename: str | Path = "optimal_k"):
@@ -111,7 +111,7 @@ def find_optimal_k(latent_vectors: torch.Tensor, max_k: int = 10, title: str = "
     k_range = range(1, max_k + 1)
 
     for k in k_range:
-        _, kmeans = kmeans_cluster(latent_vectors.numpy(), n_clusters=k)
+        kmeans, _ = kmeans_cluster(latent_vectors.numpy(), n_clusters=k)
         distortions.append(kmeans.inertia_)
 
     fig = plt.figure(figsize=(8, 6))
@@ -243,8 +243,8 @@ def analyse_latent_space(model, train_dataloader: DataLoader, val_dataloader: Da
         return None
     else:
         # KMeans clustering
-        pca_cluster_labels, pca_kmeans_model = kmeans_cluster(val_pca_data, n_clusters=k)
-        umap_cluster_labels, umap_kmeans_model = kmeans_cluster(val_umap_data, n_clusters=k)
+        pca_kmeans_model, pca_cluster_labels = kmeans_cluster(val_pca_data, n_clusters=k)
+        umap_kmeans_model, umap_cluster_labels = kmeans_cluster(val_umap_data, n_clusters=k)
 
         if filename:
             pca_filename = f"{filename}_pca"

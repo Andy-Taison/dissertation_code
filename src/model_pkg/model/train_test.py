@@ -81,7 +81,7 @@ def train(model: torch.nn.Module, dataloader: torch.utils.data.DataLoader, loss_
         stop_batch_timer = time.perf_counter()
         time_to_train.append(stop_batch_timer - start_batch_timer)
 
-        # print progress every 50 batches
+        # Print progress every 50 batches
         if batch_idx % 50 == 0:
             print(f"Processed [{processed:>5d}/{num_samples:>5d}]")
             if time_to_train:
@@ -193,7 +193,7 @@ def test(model: torch.nn.Module, dataloader: torch.utils.data.DataLoader, loss_f
             stop_batch_timer = time.perf_counter()
             time_to_train.append(stop_batch_timer - start_batch_timer)
 
-            # print progress every 50 batches
+            # Print progress every 50 batches
             if batch_idx % 50 == 0:
                 print(f"Processed [{processed:>5d}/{num_samples:>5d}]")
                 if time_to_train:
