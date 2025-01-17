@@ -15,47 +15,56 @@ import torch.optim as optim
 def run():
     print("Starting VAE pipeline...\n")
 
-    # Preprocess data and save (full datasets)
-    # combined_data = combine_csv_files(config.DATA_DIR)
-    # print("Combined full dataset")
-    # summarise_dataset(combined_data)
-    # cleaned_df = clean_data(combined_data)
-    # print("Cleaned dataset")
-    # summarise_dataset(cleaned_df)
-    # train_data, val_data, test_data = split_data(cleaned_df)
-    # save_split_datasets(config.PROCESSED_DIR, train_data, val_data, test_data)
-    # print("Training dataset")
-    # summarise_dataset(train_data)
-    # print("Validation dataset")
-    # summarise_dataset(val_data)
-    # print("Test dataset")
-    # summarise_dataset(test_data)
+    grid_search_model_name = "base_log_weights"
+    combine_and_save = True  # When false, will load processed files
+    use_toy_set = True  # Use 20% of full dataset or full dataset, does not use test set
+    testing = False  # 128 samples for train and val sets for quick run testing
 
-    # Preprocess data and save (toy datasets)
-    combined_data = combine_csv_files(config.DATA_DIR)
-    print("Combined full dataset")
-    summarise_dataset(combined_data)
-    cleaned_df = clean_data(combined_data)
-    print("Cleaned dataset")
-    summarise_dataset(cleaned_df)
-    # Train and validation sets are 20% of what they normally would be, test set will contain the rest - not used
-    train_data, val_data, rest_of_data = split_data(cleaned_df, val_size=0.02, test_size=0.84)
-    save_split_datasets(config.PROCESSED_DIR / "toy_sets", train_data, val_data, rest_of_data)
+    if combine_and_save:
+        # Combine all CSV files and clean
+        combined_data = combine_csv_files(config.DATA_DIR)
+        print("Combined full dataset:")
+        summarise_dataset(combined_data)
+        cleaned_df = clean_data(combined_data)
+        print("Cleaned dataset:")
+        summarise_dataset(cleaned_df)
+
+        if use_toy_set:
+            # Split data and save (toy datasets)
+            print("Preparing TOY datasets...")
+            # Train and validation sets are 20% of what they normally would be, test set will contain the rest - not used
+            train_data, val_data, rest_of_data = split_data(cleaned_df, val_size=0.02, test_size=0.84)
+            save_split_datasets(config.PROCESSED_DIR / "toy_sets", train_data, val_data, rest_of_data)
+        else:
+            # Split data and save (full datasets)
+            print("Preparing FULL datasets...")
+            train_data, val_data, test_data = split_data(cleaned_df)
+            save_split_datasets(config.PROCESSED_DIR, train_data, val_data, test_data)
+            print("Training dataset:")
+            summarise_dataset(train_data)
+            print("Validation dataset:")
+            summarise_dataset(val_data)
+            print("Test dataset:")
+            summarise_dataset(test_data)
 
     # Load processed data
-    test_data = None
-    # train_data, val_data, test_data = load_processed_datasets(config.PROCESSED_DIR)  # Full datasets
-    train_data, val_data, _ = load_processed_datasets(config.PROCESSED_DIR / "toy_sets")  # toy datasets - test set contains the majority of the data, should not be used
+    if use_toy_set:
+        # toy datasets - test set contains the majority of the data, should not be used
+        train_data, val_data, _ = load_processed_datasets(config.PROCESSED_DIR / "toy_sets")
+        test_data = None
+    else:
+        # Full datasets
+        train_data, val_data, test_data = load_processed_datasets(config.PROCESSED_DIR)
 
     # Create datasets and dataloaders
-    print("\nTraining dataset")
+    print("\nTraining dataset:")
     summarise_dataset(train_data)
     train_ds, train_loader = create_dataset_and_loader(train_data, batch_size=config.BATCH_SIZE, shuffle=True)
-    print("Validation dataset")
+    print("Validation dataset:")
     summarise_dataset(val_data)
     val_ds, val_loader = create_dataset_and_loader(val_data, batch_size=config.BATCH_SIZE)
     if test_data is not None:
-        print("Test dataset")
+        print("Test dataset:")
         summarise_dataset(test_data)  # type: ignore
         test_ds, test_loader = create_dataset_and_loader(test_data, batch_size=config.BATCH_SIZE)  # type: ignore
         print(f"Preprocessed datasets loaded: train ({len(train_ds)}), val ({len(val_ds)}), and test ({len(test_ds)}) sets.\n")
@@ -85,31 +94,32 @@ def run():
     criterion = VaeLoss("mse")
     optimizer = optim.Adam(vae.parameters(), lr=config.LEARNING_RATE)
     """
-    """
-    # For testing
-    from torch.utils.data import DataLoader, Subset
-    subset_indices = list(range(128))  # Indices for the first 128 samples
-    subset_train_ds = Subset(train_ds, subset_indices)
-    subset_val_ds = Subset(val_ds, subset_indices)
-    # subset_train_loader = DataLoader(subset_train_ds, batch_size=config.BATCH_SIZE, shuffle=True)
-    # subset_val_loader = DataLoader(subset_val_ds, batch_size=config.BATCH_SIZE)
 
-    # Train VAE
-    # history = train_val(vae, subset_train_loader, subset_val_loader, criterion, optimizer, config.EPOCHS)  # History will be to the latest model, which most likely will not be the best model
-    # print(history)
+    if testing:
+        # For testing
+        print("Using TESTING subsets (128 samples)...")
+        from torch.utils.data import DataLoader, Subset
+        subset_indices = list(range(128))  # Indices for the first 128 samples
+        subset_train_ds = Subset(train_ds, subset_indices)
+        subset_val_ds = Subset(val_ds, subset_indices)
+        # subset_train_loader = DataLoader(subset_train_ds, batch_size=config.BATCH_SIZE, shuffle=True)
+        # subset_val_loader = DataLoader(subset_val_ds, batch_size=config.BATCH_SIZE)
 
-    # history = TrainingHistory.load_history("test_history.pth")
-    # print(history)
-    # history.rollback("last_improved_model")  # Rollback does not save history
-    # history.save_history()  # Saving rolled back history will overwrite old history (models unaffected)
+        # Train VAE
+        # history = train_val(vae, subset_train_loader, subset_val_loader, criterion, optimizer, config.EPOCHS)  # History will be to the latest model, which most likely will not be the best model
+        # print(history)
 
-    # model, optimizer, scheduler, epoch = load_model_checkpoint(Path(config.MODEL_CHECKPOINT_DIR / "test" / "best_f1_avg_epoch_7.pth"))
-    
-    train_grid_search(subset_train_ds, subset_val_ds, "test")
-    """
+        # history = TrainingHistory.load_history("test_history.pth")
+        # print(history)
+        # history.rollback("last_improved_model")  # Rollback does not save history
+        # history.save_history()  # Saving rolled back history will overwrite old history (models unaffected)
 
-    # Grid search training
-    train_grid_search(train_ds, val_ds, "base", clear_history_list=False)
+        # model, optimizer, scheduler, epoch = load_model_checkpoint(history)
+
+        train_grid_search(subset_train_ds, subset_val_ds, "test", clear_history_list=False)  # type: ignore
+    else:
+        # Grid search training
+        train_grid_search(train_ds, val_ds, grid_search_model_name, clear_history_list=False)
 
     # Grid search using balanced loss and F1 to score
     print("Starting gridsearch for best trade-off performance model...")
