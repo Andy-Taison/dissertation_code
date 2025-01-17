@@ -33,7 +33,12 @@ def create_grid() -> list[dict]:
     - 'decay'
     - 'beta' - higher values lead to a more constrained latent space, lower values lead to a more flexible latent space representation (and focuses on reconstruction loss)
 
-    Other tunable parameters not included here include K value used for KMeans clustering model, and loss_f1_tradeoff value used in 'search_grid_history' (and 'get_best_tradeoff_score')
+    Other tunable parameters not included here include:
+    - K value used for KMeans clustering model
+    - n_components used in PCA
+    - n_components used in UMAP
+    - n_neighbors used in UMAP
+    - loss_f1_tradeoff value used in 'search_grid_history' (and 'get_best_tradeoff_score')
 
     :return: Grid of training configurations
     """
