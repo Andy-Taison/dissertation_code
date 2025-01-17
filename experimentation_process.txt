@@ -27,5 +27,6 @@ Later on may want to interpolate the latent space and visualise (extra functiona
 Decided to use logarithmic scaling for class weighting to help give the minority classes a boost so the model pays them more attention.
 Retrained base configuration with only this change. 
 
-
-* Reduced train and validation datasets to 20% to reduce training time.
+* Reconstructed outputs are much better than before with the log scaling for class weighting, however training time is still too long for the early training stages.
+Reduced train and validation datasets to 20% to reduce training time.
+Retrainged the base model using the toy dataset using the log scaling class weights to get a toy set baseline for comparison.

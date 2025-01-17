@@ -153,3 +153,4 @@ plots/
 
 # Stop tracking plots and outputs to avoid cluttering HPC (should still be available in earlier commits)
 tracked_outputs/base_outputs/
+tracked_outputs/base_log_weights/
