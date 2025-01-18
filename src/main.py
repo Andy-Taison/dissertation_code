@@ -15,7 +15,7 @@ import torch.optim as optim
 def run():
     print("Starting VAE pipeline...\n")
 
-    grid_search_model_name = "base_log_weights_toy"
+    grid_search_model_name = "conv_toy"
     combine_and_save = False  # When false, will load processed files
     use_toy_set = True  # Use 20% of full dataset or full dataset, does not use test set
     testing = False  # 128 samples for train and val sets for quick run testing
@@ -76,20 +76,19 @@ def run():
     print(f"robot_ids batch shape: {robot_ids.shape}, sample ID: {robot_ids[0]}")
     print(f"grid_data batch shape: {grid_data.shape}, grid data sample shape: {grid_data[0].shape}\n")
 
-    """
     # visualise_robot(grid_data[0], "Test title")
 
     # Define model
     vae = VAE(config.INPUT_DIM, config.LATENT_DIM, "test").to(config.DEVICE)
     
     # Inspect
-    # print("Model summary:")
-    # summary(vae, config.INPUT_DIM)
-    # print("\nModel parameters:")
-    # for name, param in vae.named_parameters():
-    #     print(f"Parameter: {name}, Requires Grad: {param.requires_grad}")
-    # print()
-
+    print("Model summary:")
+    summary(vae, input_size=(1, *config.INPUT_DIM))  # Add batch size of 1
+    print("\nModel parameters:")
+    for name, param in vae.named_parameters():
+        print(f"Parameter: {name}, Requires Grad: {param.requires_grad}")
+    print()
+    """
     # Initialise training components
     criterion = VaeLoss("mse")
     optimizer = optim.Adam(vae.parameters(), lr=config.LEARNING_RATE)

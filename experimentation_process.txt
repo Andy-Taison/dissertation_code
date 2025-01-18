@@ -30,3 +30,36 @@ Retrained base configuration with only this change.
 * Reconstructed outputs are much better than before with the log scaling for class weighting, however training time is still too long for the early training stages.
 Reduced train and validation datasets to 20% to reduce training time.
 Retrainged the base model using the toy dataset using the log scaling class weights to get a toy set baseline for comparison.
+Toy model showed similar performance to the base log scaling model (though slightly reduced as expected due to less data).
+
+* Modified model to convolutional model. 
+Original FC layers model (base model) had the following:
+Encoder: 4 layers (3 trainable) 
+	Flatten, 
+	FC,  681984 parameters
+	FC,  131328 parameters
+	Latent FC branching,  514 parameters for each branch assuming latent dim = 2, so 1028 parameters
+Sampling: 1 layer (0 trainable)
+	Reparameterization step
+Decoder: 3 layers (3 trainable)
+	FC,  768 parameters assuming latent dim = 2
+	FC,  131584 parameters
+	FC,  682803 parameters
+Total: 6 trainable layers,  1629495 parameters
+
+Convolutional model:
+Encoder: 4 layers (3 trainable)
+	Conv3d,  3584 parameters
+	Conv3d,  884992 parameters
+	Flatten,
+	Latent FC branching,  13826 parameters for each branch assuming latent dim = 2, so 27652 parameters
+Sampling: 1 layer (0 trainable)
+	Reparameterization step
+Decoder: 3 layers (3 trainable)
+	FC,  20736 parameters
+	ConvTranspose3d,  884864 parameters
+	ConvTranspose3d,  3457 parameters
+Total: 6 trainable layers, 1825285 parameters which is fairly close to the original FC model for good comparison
+
+Started training convolutional model.
+	

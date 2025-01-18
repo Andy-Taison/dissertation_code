@@ -37,7 +37,7 @@ class VaeLoss:
         Beta is applied in train/test loops.
 
         :param x: Input tensor with shape (batch_size, *input_dim)
-        :param x_decoder: Decoder output reshaped to (batch_size, *input_dim), (sigmoid) normalized in range [0, 1]
+        :param x_decoder: Decoder output with shape (batch_size, *input_dim), (sigmoid) normalized in range [0, 1]
         :param z_mean: Latent space mean with shape (batch_size, latent_dim)
         :param z_log_var: Log variance of latent space with shape (batch_size, latent_dim)
         :param class_weights: Class weight tensor to weight loss to account for class imbalance (descriptor values are sparse)

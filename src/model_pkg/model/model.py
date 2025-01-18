@@ -10,17 +10,19 @@ class Encoder(nn.Module):
     """
     Encoder module.
     """
-    def __init__(self, input_dim: tuple[int, int, int], latent_dim: int):
+    def __init__(self, latent_dim: int):
         """
-        :param input_dim: Dimensions of input tensor (and reconstructed), (e.g., (11, 11, 11))
         :param latent_dim: Dimensionality of latent space
         """
         super(Encoder, self).__init__()
+        # Convolutional layers
+        self.conv1 = nn.Conv3d(1, 128, kernel_size=3, stride=2, padding=1)  # (B, 128, 6, 6, 6)
+        self.conv2 = nn.Conv3d(128, 256, kernel_size=3, stride=2, padding=1)  # (B, 256, 3, 3, 3)
+
+        # Fully connected and flatten layers
         self.flatten = nn.Flatten()
-        self.fc1 = nn.Linear(input_dim[0] * input_dim[1] * input_dim[2], 512)
-        self.fc2 = nn.Linear(512, 256)
-        self.z_mean = nn.Linear(256, latent_dim)
-        self.z_log_var = nn.Linear(256, latent_dim)
+        self.z_mean_fc = nn.Linear(256 * 3 * 3 * 3, latent_dim)
+        self.z_log_var_fc = nn.Linear(256 * 3 * 3 * 3, latent_dim)
 
     def forward(self, x: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
         """
@@ -31,11 +33,12 @@ class Encoder(nn.Module):
             z_mean - Latent space mean with shape (batch_size, latent_dim),
             z_log_var - Log variance of latent space with shape (batch_size, latent_dim)
         """
+        x = x.unsqueeze(1)  # Add channel dimension for 3D convolution input: (B, 1, 11, 11, 11)
+        x = torch.relu(self.conv1(x))
+        x = torch.relu(self.conv2(x))
         x = self.flatten(x)
-        x = torch.relu(self.fc1(x))
-        x = torch.relu(self.fc2(x))
-        z_mean = self.z_mean(x)
-        z_log_var = self.z_log_var(x)
+        z_mean = self.z_mean_fc(x)
+        z_log_var = self.z_log_var_fc(x)
 
         return z_mean, z_log_var
 
@@ -44,16 +47,16 @@ class Decoder(nn.Module):
     """
     Decoder module.
     """
-    def __init__(self, latent_dim: int, output_dim: tuple[int, int, int]):
+    def __init__(self, latent_dim: int):
         """
         :param latent_dim: Dimensionality of latent space
-        :param output_dim: Dimensions of reconstructed output tensor, (e.g., (11, 11, 11))
         """
         super(Decoder, self).__init__()
-        self.output_dim = output_dim
-        self.fc1 = nn.Linear(latent_dim, 256)
-        self.fc2 = nn.Linear(256, 512)
-        self.fc3 = nn.Linear(512, output_dim[0] * output_dim[1] * output_dim[2])
+        self.fc = nn.Linear(latent_dim, 256 * 3 * 3 * 3)
+
+        # Transposed convolutional layers for reconstruction
+        self.deconv1 = nn.ConvTranspose3d(256, 128, kernel_size=3, stride=2, padding=1, output_padding=1)  # (B, 128, 6, 6, 6)
+        self.deconv2 = nn.ConvTranspose3d(128, 1, kernel_size=3, stride=2, padding=1, output_padding=0)  # (B, 1, 11, 11, 11)
 
     def forward(self, z: torch.Tensor) -> torch.Tensor:
         """
@@ -63,9 +66,12 @@ class Decoder(nn.Module):
         :param z: Sampled latent vector with shape (batch_size, latent_dim)
         :return: Reconstructed input with shape (batch_size, *input_dim)
         """
-        x = torch.relu(self.fc1(z))
-        x = torch.relu(self.fc2(x))
-        x = torch.sigmoid(self.fc3(x))  # Normalize output to [0, 1]
+        x = torch.relu(self.fc(z))
+        x = x.view(-1, 256, 3, 3, 3)  # Reshape for input to deconvolution layers
+        x = torch.relu(self.deconv1(x))
+        x = self.deconv2(x)
+        x = torch.sigmoid(x)
+        x = x.squeeze(1)  # Remove channel dimension (B, 11, 11, 11)
 
         return x
 
@@ -106,9 +112,10 @@ class VAE(nn.Module):
         self.name = model_name
         self.input_dim = input_dim
         self.latent_dim = latent_dim
-        self.encoder = Encoder(input_dim, latent_dim)
+
+        self.encoder = Encoder(latent_dim)
         self.sampling = Sample()
-        self.decoder = Decoder(latent_dim, input_dim)
+        self.decoder = Decoder(latent_dim)
 
     def forward(self, x: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
         """
@@ -127,8 +134,6 @@ class VAE(nn.Module):
         z_mean, z_log_var = self.encoder(x)
         z = self.sampling(z_mean, z_log_var)
         x_decoder = self.decoder(z)
-
-        x_decoder = x_decoder.view(-1, *self.input_dim)  # Reshape to match original dimensions
 
         # Adjust values to obtain original descriptor values
         x_reconstructed = x_decoder * (NUM_CLASSES - 1)  # Scale output to [0, 4]

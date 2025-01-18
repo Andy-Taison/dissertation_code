@@ -120,9 +120,10 @@ def determine_scale_limits(sorted_y_scales: list[float], threshold: int = 10) ->
     """
     Determine the upper limits for at most 2 scales based on sorted maximum y-scale values.
     When the ratio between the maximum and minimum values are not within the threshold,
-    function splits at the midpoint checking the ratio between the nearest split values.
-    Values are moved from one group to another and rechecked. Values in the lower half do
-    not have the potential to be split.
+    function splits at the midpoint (in the hope to create even groupings) checking the ratio
+    between the nearest split values. Values are moved from one group to another and rechecked.
+    Starts at the beginning of the list if starting at midpoint did not find the threshold split.
+    When no ideal split between two adjacent elements, returns 1 element (for a single scale).
 
     :param sorted_y_scales: List of sorted maximum y-scale data values
     :param threshold: Ratio threshold for splitting into different scales
@@ -132,17 +133,26 @@ def determine_scale_limits(sorted_y_scales: list[float], threshold: int = 10) ->
     overall_ratio = sorted_y_scales[-1] / sorted_y_scales[0]
 
     # If all values are within the threshold ratio, use one scale
-    if overall_ratio <= threshold:
+    if overall_ratio <= threshold or len(sorted_y_scales) == 1:
         return [sorted_y_scales[-1]]
 
-    # Otherwise, split into two scales
+    # Otherwise, split at the middle (hopefully to end up with equally split data if multiple potential ratio split points)
     midpoint = len(sorted_y_scales) // 2
     group1 = sorted_y_scales[:midpoint]
     group2 = sorted_y_scales[midpoint:]
 
+    no_ideal_split = False
     # Adjust groups
-    while group2 and (group2[0] / group1[-1]) <= threshold:
+    while (group2[0] / group1[-1]) <= threshold:
         group1.append(group2.pop(0))
+        if not group2:
+            if no_ideal_split:
+                # Use one scale
+                return [group1[-1]]
+            # If got to the end of the list, look for split in beginning of list, one more iteration only
+            group1 = [sorted_y_scales[0]]
+            group2 = sorted_y_scales[1:]
+            no_ideal_split = True
 
     # Return the max of each group
     return [group1[-1], group2[-1]]
