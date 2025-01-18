@@ -200,7 +200,7 @@ def test(model: torch.nn.Module, dataloader: torch.utils.data.DataLoader, loss_f
                     average_train_time = sum(time_to_train) / len(time_to_train)
                     estimated_completion = time.time() + average_train_time * math.ceil((num_samples - processed)/dataloader.batch_size)
                     formatted_estimate = time.strftime('%d-%b-%Y %H:%M:%S', time.localtime(estimated_completion))
-                    print(f"Estimated test/validation loop completion: {formatted_estimate}")
+                    print(f"Estimated test loop completion: {formatted_estimate}")
                 print(f"Batch metrics (test):")
                 print(f"\tLoss = {loss.item() * 100:>8.4f}")  # Scaled for easier interpretability due to weighted recon and averaged KL
                 print(f"\tAccuracy = {accuracy * 100:>6.2f}%")
@@ -306,7 +306,7 @@ def train_val(model: torch.nn.Module, train_dataloader: torch.utils.data.DataLoa
             average_train_time = sum(time_to_train) / len(time_to_train)
             estimated_completion = time.time() + average_train_time * (epochs - epoch_idx)
             formatted_estimate = time.strftime('%d-%b-%Y %H:%M:%S', time.localtime(estimated_completion))
-            print(f"Estimated training validation loop completion: {formatted_estimate}")
+            print(f"Estimated training/validation cycle completion: {formatted_estimate}")
         start_epoch_timer = time.perf_counter()
         print("-" * 50)
 
