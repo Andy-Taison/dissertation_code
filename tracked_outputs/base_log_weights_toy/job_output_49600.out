@@ -1,0 +1,5021 @@
+Job started...
+Loading Anaconda module...
+Module loaded.
+Initialising Conda...
+Conda initialised.
+Activating virtual environment...
+Environment activated.
+Running script...
+Using cuda device
+
+Starting VAE pipeline...
+
+Combining CSV files (no headers) into a single DataFrame...
+Loading file: /users/40538519/sharedscratch/data/raw/2_7_14-25-40-717-1725254852.csv
+Loading file: /users/40538519/sharedscratch/data/raw/29_7_17-8-9-9120-527391499.csv
+Loading file: /users/40538519/sharedscratch/data/raw/5_6_10-50-42-2727-1635008145.csv
+Loading file: /users/40538519/sharedscratch/data/raw/5_6_11-17-16-6981-221913695.csv
+Loading file: /users/40538519/sharedscratch/data/raw/30_7_9-39-38-8722-245742053.csv
+Loading file: /users/40538519/sharedscratch/data/raw/28_7_15-26-15-5188-3832479087.csv
+Loading file: /users/40538519/sharedscratch/data/raw/31_6_10-54-18-8548-1212541972.csv
+Loading file: /users/40538519/sharedscratch/data/raw/30_7_12-24-3-3001-3597601394.csv
+Loading file: /users/40538519/sharedscratch/data/raw/5_6_11-5-41-1708-1861126324.csv
+Loading file: /users/40538519/sharedscratch/data/raw/28_7_14-6-41-1184-3910060075.csv
+Loading file: /users/40538519/sharedscratch/data/raw/2_7_14-25-43-3606-2511048878.csv
+Loading file: /users/40538519/sharedscratch/data/raw/6_6_0-23-4-4901-3236490257.csv
+Loading file: /users/40538519/sharedscratch/data/raw/29_7_15-31-53-3720-2381391459.csv
+Loading file: /users/40538519/sharedscratch/data/raw/28_7_14-6-47-7189-1188958956.csv
+Loading file: /users/40538519/sharedscratch/data/raw/30_6_13-25-55-5252-295499761.csv
+Loading file: /users/40538519/sharedscratch/data/raw/25_6_16-24-32-2848-3749627413.csv
+Loading file: /users/40538519/sharedscratch/data/raw/29_7_23-0-55-5678-3522236714.csv
+Loading file: /users/40538519/sharedscratch/data/raw/28_7_14-6-44-4259-3823527096.csv
+Loading file: /users/40538519/sharedscratch/data/raw/28_7_14-6-44-4283-785858770.csv
+Loading file: /users/40538519/sharedscratch/data/raw/25_6_16-25-2-2578-2456666270.csv
+Loading file: /users/40538519/sharedscratch/data/raw/6_6_5-13-15-5219-3432938375.csv
+Loading file: /users/40538519/sharedscratch/data/raw/6_6_1-7-36-6550-3419932571.csv
+Loading file: /users/40538519/sharedscratch/data/raw/28_7_15-26-14-4991-3214767790.csv
+Loading file: /users/40538519/sharedscratch/data/raw/28_7_14-6-38-8144-2792427907.csv
+Loading file: /users/40538519/sharedscratch/data/raw/25_6_16-25-2-2768-2729908547.csv
+Loading file: /users/40538519/sharedscratch/data/raw/4_6_16-59-52-2124-2763705642.csv
+Loading file: /users/40538519/sharedscratch/data/raw/28_6_16-32-59-9325-1260595937.csv
+Loading file: /users/40538519/sharedscratch/data/raw/5_6_7-15-41-1686-20808547.csv
+
+Combined 28 files into a single DataFrame.
+Shape of combined DataFrame: (280375, 1335)
+
+Combined full dataset:
+Dataset Summary:
+--------------------------------------------------
+Dimensions: 280375 rows x 1331 columns
+
+Overall Class Counts:
+0    371407785
+1      1131552
+2       372746
+3       187756
+4        79286
+
+Proportion of Each Class (%):
+0    99.53
+1     0.30
+2     0.10
+3     0.05
+4     0.02
+
+Average Zeros Per Row: 1324.68
+Average Non-Zero Classes Per Row: 6.32
+Rows with Only Zero Values: 1958 (0.70%)
+Rows with Exactly 1 Non-Zero Value: 1061 (0.38%)
+Rows with Multiple Non-Zero Values: 277356 (98.92%)
+Unique Rows: 27018 (9.64)%
+
+Cleaning dataset...
+Dataset cleaned.
+
+Cleaned dataset:
+Dataset Summary:
+--------------------------------------------------
+Dimensions: 27017 rows x 1331 columns
+
+Overall Class Counts:
+0    35777374
+1       79677
+2       38218
+3       33740
+4       30618
+
+Proportion of Each Class (%):
+0    99.49
+1     0.22
+2     0.11
+3     0.09
+4     0.09
+
+Average Zeros Per Row: 1324.25
+Average Non-Zero Classes Per Row: 6.75
+Rows with Only Zero Values: 0 (0.00%)
+Rows with Exactly 1 Non-Zero Value: 309 (1.14%)
+Rows with Multiple Non-Zero Values: 26708 (98.86%)
+Unique Rows: 27017 (100.00)%
+
+Preparing TOY datasets...
+Splitting datasets...
+Data split into train (3781), val (541), and test (22695) sets.
+
+Saving split datasets...
+Datasets saved as:
+	/users/40538519/sharedscratch/data/processed/toy_sets/train.csv
+	/users/40538519/sharedscratch/data/processed/toy_sets/val.csv
+	/users/40538519/sharedscratch/data/processed/toy_sets/test.csv
+
+Loading train, validation and test set from: 'toy_sets'...
+Datasets loaded.
+
+Training dataset:
+Dataset Summary:
+--------------------------------------------------
+Dimensions: 3781 rows x 1331 columns
+
+Overall Class Counts:
+0    5006854
+1      11045
+2       5420
+3       4874
+4       4318
+
+Proportion of Each Class (%):
+0    99.49
+1     0.22
+2     0.11
+3     0.10
+4     0.09
+
+Average Zeros Per Row: 1324.21
+Average Non-Zero Classes Per Row: 6.79
+Rows with Only Zero Values: 0 (0.00%)
+Rows with Exactly 1 Non-Zero Value: 36 (0.95%)
+Rows with Multiple Non-Zero Values: 3745 (99.05%)
+Unique Rows: 3781 (100.00)%
+
+Creating DataLoader object...
+DataLoader created.
+
+Validation dataset:
+Dataset Summary:
+--------------------------------------------------
+Dimensions: 541 rows x 1331 columns
+
+Overall Class Counts:
+0    716445
+1      1550
+2       748
+3       702
+4       626
+
+Proportion of Each Class (%):
+0    99.50
+1     0.22
+2     0.10
+3     0.10
+4     0.09
+
+Average Zeros Per Row: 1324.30
+Average Non-Zero Classes Per Row: 6.70
+Rows with Only Zero Values: 0 (0.00%)
+Rows with Exactly 1 Non-Zero Value: 4 (0.74%)
+Rows with Multiple Non-Zero Values: 537 (99.26%)
+Unique Rows: 541 (100.00)%
+
+Creating DataLoader object...
+DataLoader created.
+
+Preprocessed datasets loaded: train (3781) and val (541) sets.
+
+robot_ids batch shape: torch.Size([64]), sample ID: 201854
+grid_data batch shape: torch.Size([64, 11, 11, 11]), grid data sample shape: torch.Size([11, 11, 11])
+
+**************************************************
+Starting grid search training...
+Creating grid...
+Grid created with 4 configuration(s).
+
+Configuration [   1/   4]:
+==================================================
+Train / Validation loop started...
+
+New training history object created 'base_log_weights_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1'
+
+Epoch   1/ 30: 'base_log_weights_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1'
+--------------------------------------------------
+Processed [   64/ 3781]
+Estimated train loop completion: 17-Jan-2025 18:14:17
+Batch metrics (train):
+	Loss =   2.3436
+	Accuracy =   0.10%
+	F1 score (unweighted average across all classes for batch) = 0.0004
+
+Processed [ 3264/ 3781]
+Estimated train loop completion: 17-Jan-2025 18:13:45
+Batch metrics (train):
+	Loss =   0.0396
+	Accuracy =  99.17%
+	F1 score (unweighted average across all classes for batch) = 0.2230
+
+Train metrics (averages):
+	Recon loss =   0.2582
+	KL div =   0.0279
+	Accuracy =  82.83%
+	F1 score (weighted average) = 0.8344
+
+Processed [   64/  541]
+Estimated test/validation loop completion: 17-Jan-2025 18:14:22
+Batch metrics (test):
+	Loss =   0.0380
+	Accuracy =  99.19%
+	F1 score (unweighted average across all classes for batch) = 0.2274
+
+Test metrics (averages):
+	Recon loss =   0.0384
+	KL div =   0.0023
+	Accuracy =  99.18%
+	F1 score (weighted average) = 0.9915
+
+Checkpointing model and optimizer...
+Creating directory '/users/40538519/sharedscratch/outputs/model_checkpoints/base_log_weights_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1'...
+Model saved to 'model_checkpoints/base_log_weights_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1/best_loss_epoch_1.pth'
+
+Checkpointing model and optimizer...
+Model saved to 'model_checkpoints/base_log_weights_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1/best_f1_avg_epoch_1.pth'
+
+Saving history to: 'base_log_weights_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1_history.pth'...
+History saved to 'metric_history/base_log_weights_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1_history.pth'
+
+Pruning old checkpoints...
+Old improvement files pruned.
+
+Epoch   2/ 30: 'base_log_weights_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1'
+Estimated training validation loop completion: 17-Jan-2025 20:40:56
+--------------------------------------------------
+Processed [   64/ 3781]
+Estimated train loop completion: 17-Jan-2025 18:18:42
+Batch metrics (train):
+	Loss =   0.0394
+	Accuracy =  99.17%
+	F1 score (unweighted average across all classes for batch) = 0.2257
+
+Processed [ 3264/ 3781]
+Estimated train loop completion: 17-Jan-2025 18:18:48
+Batch metrics (train):
+	Loss =   0.0383
+	Accuracy =  99.09%
+	F1 score (unweighted average across all classes for batch) = 0.2169
+
+Train metrics (averages):
+	Recon loss =   0.0389
+	KL div =   0.0025
+	Accuracy =  99.11%
+	F1 score (weighted average) = 0.9911
+
+Processed [   64/  541]
+Estimated test/validation loop completion: 17-Jan-2025 18:19:24
+Batch metrics (test):
+	Loss =   0.0379
+	Accuracy =  99.19%
+	F1 score (unweighted average across all classes for batch) = 0.2259
+
+Test metrics (averages):
+	Recon loss =   0.0384
+	KL div =   0.0010
+	Accuracy =  99.15%
+	F1 score (weighted average) = 0.9913
+
+Checkpointing model and optimizer...
+Model saved to 'model_checkpoints/base_log_weights_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1/best_loss_epoch_2.pth'
+
+Saving history to: 'base_log_weights_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1_history.pth'...
+History saved to 'metric_history/base_log_weights_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1_history.pth'
+
+Pruning old checkpoints...
+Old improvement files pruned.
+
+Epoch   3/ 30: 'base_log_weights_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1'
+Estimated training validation loop completion: 17-Jan-2025 20:40:46
+--------------------------------------------------
+Processed [   64/ 3781]
+Estimated train loop completion: 17-Jan-2025 18:23:54
+Batch metrics (train):
+	Loss =   0.0409
+	Accuracy =  99.13%
+	F1 score (unweighted average across all classes for batch) = 0.2212
+
+Processed [ 3264/ 3781]
+Estimated train loop completion: 17-Jan-2025 18:23:50
+Batch metrics (train):
+	Loss =   0.0344
+	Accuracy =  99.17%
+	F1 score (unweighted average across all classes for batch) = 0.2318
+
+Train metrics (averages):
+	Recon loss =   0.0389
+	KL div =   0.0007
+	Accuracy =  99.11%
+	F1 score (weighted average) = 0.9910
+
+Processed [   64/  541]
+Estimated test/validation loop completion: 17-Jan-2025 18:24:25
+Batch metrics (test):
+	Loss =   0.0377
+	Accuracy =  99.22%
+	F1 score (unweighted average across all classes for batch) = 0.2263
+
+Test metrics (averages):
+	Recon loss =   0.0385
+	KL div =   0.0007
+	Accuracy =  99.19%
+	F1 score (weighted average) = 0.9915
+
+Saving history to: 'base_log_weights_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1_history.pth'...
+History saved to 'metric_history/base_log_weights_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1_history.pth'
+
+Epoch   4/ 30: 'base_log_weights_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1'
+Estimated training validation loop completion: 17-Jan-2025 20:40:36
+--------------------------------------------------
+Processed [   64/ 3781]
+Estimated train loop completion: 17-Jan-2025 18:28:47
+Batch metrics (train):
+	Loss =   0.0399
+	Accuracy =  99.11%
+	F1 score (unweighted average across all classes for batch) = 0.2217
+
+Processed [ 3264/ 3781]
+Estimated train loop completion: 17-Jan-2025 18:28:52
+Batch metrics (train):
+	Loss =   0.0350
+	Accuracy =  99.12%
+	F1 score (unweighted average across all classes for batch) = 0.2257
+
+Train metrics (averages):
+	Recon loss =   0.0390
+	KL div =   0.0003
+	Accuracy =  99.08%
+	F1 score (weighted average) = 0.9909
+
+Processed [   64/  541]
+Estimated test/validation loop completion: 17-Jan-2025 18:29:28
+Batch metrics (test):
+	Loss =   0.0370
+	Accuracy =  99.08%
+	F1 score (unweighted average across all classes for batch) = 0.2244
+
+Test metrics (averages):
+	Recon loss =   0.0379
+	KL div =   0.0006
+	Accuracy =  99.06%
+	F1 score (weighted average) = 0.9909
+
+Checkpointing model and optimizer...
+Model saved to 'model_checkpoints/base_log_weights_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1/best_loss_epoch_4.pth'
+
+Saving history to: 'base_log_weights_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1_history.pth'...
+History saved to 'metric_history/base_log_weights_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1_history.pth'
+
+Pruning old checkpoints...
+Old improvement files pruned.
+
+Epoch   5/ 30: 'base_log_weights_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1'
+Estimated training validation loop completion: 17-Jan-2025 20:40:27
+--------------------------------------------------
+Processed [   64/ 3781]
+Estimated train loop completion: 17-Jan-2025 18:33:55
+Batch metrics (train):
+	Loss =   0.0387
+	Accuracy =  99.02%
+	F1 score (unweighted average across all classes for batch) = 0.2219
+
+Processed [ 3264/ 3781]
+Estimated train loop completion: 17-Jan-2025 18:33:53
+Batch metrics (train):
+	Loss =   0.0365
+	Accuracy =  99.13%
+	F1 score (unweighted average across all classes for batch) = 0.2210
+
+Train metrics (averages):
+	Recon loss =   0.0390
+	KL div =   0.0002
+	Accuracy =  99.05%
+	F1 score (weighted average) = 0.9908
+
+Processed [   64/  541]
+Estimated test/validation loop completion: 17-Jan-2025 18:34:30
+Batch metrics (test):
+	Loss =   0.0375
+	Accuracy =  99.07%
+	F1 score (unweighted average across all classes for batch) = 0.2274
+
+Test metrics (averages):
+	Recon loss =   0.0383
+	KL div =   0.0006
+	Accuracy =  99.01%
+	F1 score (weighted average) = 0.9906
+
+Saving history to: 'base_log_weights_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1_history.pth'...
+History saved to 'metric_history/base_log_weights_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1_history.pth'
+
+Epoch   6/ 30: 'base_log_weights_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1'
+Estimated training validation loop completion: 17-Jan-2025 20:40:23
+--------------------------------------------------
+Processed [   64/ 3781]
+Estimated train loop completion: 17-Jan-2025 18:38:50
+Batch metrics (train):
+	Loss =   0.0345
+	Accuracy =  99.02%
+	F1 score (unweighted average across all classes for batch) = 0.2211
+
+Processed [ 3264/ 3781]
+Estimated train loop completion: 17-Jan-2025 18:38:55
+Batch metrics (train):
+	Loss =   0.0416
+	Accuracy =  99.01%
+	F1 score (unweighted average across all classes for batch) = 0.2207
+
+Train metrics (averages):
+	Recon loss =   0.0384
+	KL div =   0.0001
+	Accuracy =  99.06%
+	F1 score (weighted average) = 0.9908
+
+Processed [   64/  541]
+Estimated test/validation loop completion: 17-Jan-2025 18:39:31
+Batch metrics (test):
+	Loss =   0.0370
+	Accuracy =  99.16%
+	F1 score (unweighted average across all classes for batch) = 0.2269
+
+Test metrics (averages):
+	Recon loss =   0.0379
+	KL div =   0.0005
+	Accuracy =  99.13%
+	F1 score (weighted average) = 0.9913
+
+Saving history to: 'base_log_weights_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1_history.pth'...
+History saved to 'metric_history/base_log_weights_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1_history.pth'
+
+Epoch   7/ 30: 'base_log_weights_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1'
+Estimated training validation loop completion: 17-Jan-2025 20:40:22
+--------------------------------------------------
+Processed [   64/ 3781]
+Estimated train loop completion: 17-Jan-2025 18:43:53
+Batch metrics (train):
+	Loss =   0.0406
+	Accuracy =  99.12%
+	F1 score (unweighted average across all classes for batch) = 0.2209
+
+Processed [ 3264/ 3781]
+Estimated train loop completion: 17-Jan-2025 18:43:57
+Batch metrics (train):
+	Loss =   0.0426
+	Accuracy =  99.06%
+	F1 score (unweighted average across all classes for batch) = 0.2179
+
+Train metrics (averages):
+	Recon loss =   0.0388
+	KL div =   0.0001
+	Accuracy =  99.10%
+	F1 score (weighted average) = 0.9910
+
+Processed [   64/  541]
+Estimated test/validation loop completion: 17-Jan-2025 18:44:34
+Batch metrics (test):
+	Loss =   0.0369
+	Accuracy =  98.99%
+	F1 score (unweighted average across all classes for batch) = 0.2221
+
+Test metrics (averages):
+	Recon loss =   0.0379
+	KL div =   0.0005
+	Accuracy =  98.97%
+	F1 score (weighted average) = 0.9904
+
+Saving history to: 'base_log_weights_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1_history.pth'...
+History saved to 'metric_history/base_log_weights_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1_history.pth'
+
+Epoch   8/ 30: 'base_log_weights_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1'
+Estimated training validation loop completion: 17-Jan-2025 20:40:20
+--------------------------------------------------
+Processed [   64/ 3781]
+Estimated train loop completion: 17-Jan-2025 18:49:03
+Batch metrics (train):
+	Loss =   0.0412
+	Accuracy =  98.90%
+	F1 score (unweighted average across all classes for batch) = 0.2145
+
+Processed [ 3264/ 3781]
+Estimated train loop completion: 17-Jan-2025 18:48:59
+Batch metrics (train):
+	Loss =   0.0339
+	Accuracy =  99.11%
+	F1 score (unweighted average across all classes for batch) = 0.2185
+
+Train metrics (averages):
+	Recon loss =   0.0387
+	KL div =   0.0001
+	Accuracy =  99.08%
+	F1 score (weighted average) = 0.9909
+
+Processed [   64/  541]
+Estimated test/validation loop completion: 17-Jan-2025 18:49:36
+Batch metrics (test):
+	Loss =   0.0367
+	Accuracy =  99.11%
+	F1 score (unweighted average across all classes for batch) = 0.2261
+
+Test metrics (averages):
+	Recon loss =   0.0377
+	KL div =   0.0005
+	Accuracy =  99.08%
+	F1 score (weighted average) = 0.9910
+
+Checkpointing model and optimizer...
+Model saved to 'model_checkpoints/base_log_weights_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1/best_loss_epoch_8.pth'
+
+Saving history to: 'base_log_weights_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1_history.pth'...
+History saved to 'metric_history/base_log_weights_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1_history.pth'
+
+Pruning old checkpoints...
+Old improvement files pruned.
+
+Epoch   9/ 30: 'base_log_weights_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1'
+Estimated training validation loop completion: 17-Jan-2025 20:40:19
+--------------------------------------------------
+Processed [   64/ 3781]
+Estimated train loop completion: 17-Jan-2025 18:54:03
+Batch metrics (train):
+	Loss =   0.0394
+	Accuracy =  99.04%
+	F1 score (unweighted average across all classes for batch) = 0.2187
+
+Processed [ 3264/ 3781]
+Estimated train loop completion: 17-Jan-2025 18:54:00
+Batch metrics (train):
+	Loss =   0.0344
+	Accuracy =  99.15%
+	F1 score (unweighted average across all classes for batch) = 0.2387
+
+Train metrics (averages):
+	Recon loss =   0.0384
+	KL div =   0.0001
+	Accuracy =  99.09%
+	F1 score (weighted average) = 0.9910
+
+Processed [   64/  541]
+Estimated test/validation loop completion: 17-Jan-2025 18:54:37
+Batch metrics (test):
+	Loss =   0.0366
+	Accuracy =  99.09%
+	F1 score (unweighted average across all classes for batch) = 0.2253
+
+Test metrics (averages):
+	Recon loss =   0.0377
+	KL div =   0.0005
+	Accuracy =  99.05%
+	F1 score (weighted average) = 0.9909
+
+Saving history to: 'base_log_weights_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1_history.pth'...
+History saved to 'metric_history/base_log_weights_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1_history.pth'
+
+Epoch  10/ 30: 'base_log_weights_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1'
+Estimated training validation loop completion: 17-Jan-2025 20:40:16
+--------------------------------------------------
+Processed [   64/ 3781]
+Estimated train loop completion: 17-Jan-2025 18:59:05
+Batch metrics (train):
+	Loss =   0.0367
+	Accuracy =  99.01%
+	F1 score (unweighted average across all classes for batch) = 0.2172
+
+Processed [ 3264/ 3781]
+Estimated train loop completion: 17-Jan-2025 18:59:02
+Batch metrics (train):
+	Loss =   0.0360
+	Accuracy =  99.08%
+	F1 score (unweighted average across all classes for batch) = 0.2239
+
+Train metrics (averages):
+	Recon loss =   0.0387
+	KL div =   0.0001
+	Accuracy =  99.09%
+	F1 score (weighted average) = 0.9909
+
+Processed [   64/  541]
+Estimated test/validation loop completion: 17-Jan-2025 18:59:37
+Batch metrics (test):
+	Loss =   0.0370
+	Accuracy =  99.05%
+	F1 score (unweighted average across all classes for batch) = 0.2251
+
+Test metrics (averages):
+	Recon loss =   0.0378
+	KL div =   0.0005
+	Accuracy =  99.02%
+	F1 score (weighted average) = 0.9907
+
+Saving history to: 'base_log_weights_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1_history.pth'...
+History saved to 'metric_history/base_log_weights_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1_history.pth'
+
+Epoch  11/ 30: 'base_log_weights_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1'
+Estimated training validation loop completion: 17-Jan-2025 20:40:14
+--------------------------------------------------
+Processed [   64/ 3781]
+Estimated train loop completion: 17-Jan-2025 19:03:57
+Batch metrics (train):
+	Loss =   0.0350
+	Accuracy =  99.05%
+	F1 score (unweighted average across all classes for batch) = 0.2277
+
+Processed [ 3264/ 3781]
+Estimated train loop completion: 17-Jan-2025 19:04:03
+Batch metrics (train):
+	Loss =   0.0363
+	Accuracy =  99.09%
+	F1 score (unweighted average across all classes for batch) = 0.2228
+
+Train metrics (averages):
+	Recon loss =   0.0385
+	KL div =   0.0001
+	Accuracy =  99.07%
+	F1 score (weighted average) = 0.9909
+
+Processed [   64/  541]
+Estimated test/validation loop completion: 17-Jan-2025 19:04:39
+Batch metrics (test):
+	Loss =   0.0366
+	Accuracy =  99.12%
+	F1 score (unweighted average across all classes for batch) = 0.2260
+
+Test metrics (averages):
+	Recon loss =   0.0376
+	KL div =   0.0004
+	Accuracy =  99.10%
+	F1 score (weighted average) = 0.9911
+
+Checkpointing model and optimizer...
+Model saved to 'model_checkpoints/base_log_weights_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1/best_loss_epoch_11.pth'
+
+Saving history to: 'base_log_weights_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1_history.pth'...
+History saved to 'metric_history/base_log_weights_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1_history.pth'
+
+Pruning old checkpoints...
+Old improvement files pruned.
+
+Epoch  12/ 30: 'base_log_weights_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1'
+Estimated training validation loop completion: 17-Jan-2025 20:40:11
+--------------------------------------------------
+Processed [   64/ 3781]
+Estimated train loop completion: 17-Jan-2025 19:09:07
+Batch metrics (train):
+	Loss =   0.0420
+	Accuracy =  99.05%
+	F1 score (unweighted average across all classes for batch) = 0.2184
+
+Processed [ 3264/ 3781]
+Estimated train loop completion: 17-Jan-2025 19:09:03
+Batch metrics (train):
+	Loss =   0.0364
+	Accuracy =  99.14%
+	F1 score (unweighted average across all classes for batch) = 0.2193
+
+Train metrics (averages):
+	Recon loss =   0.0387
+	KL div =   0.0001
+	Accuracy =  99.08%
+	F1 score (weighted average) = 0.9909
+
+Processed [   64/  541]
+Estimated test/validation loop completion: 17-Jan-2025 19:09:40
+Batch metrics (test):
+	Loss =   0.0365
+	Accuracy =  99.11%
+	F1 score (unweighted average across all classes for batch) = 0.2252
+
+Test metrics (averages):
+	Recon loss =   0.0376
+	KL div =   0.0004
+	Accuracy =  99.09%
+	F1 score (weighted average) = 0.9910
+
+Checkpointing model and optimizer...
+Model saved to 'model_checkpoints/base_log_weights_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1/best_loss_epoch_12.pth'
+
+Saving history to: 'base_log_weights_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1_history.pth'...
+History saved to 'metric_history/base_log_weights_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1_history.pth'
+
+Pruning old checkpoints...
+Old improvement files pruned.
+
+Epoch  13/ 30: 'base_log_weights_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1'
+Estimated training validation loop completion: 17-Jan-2025 20:40:09
+--------------------------------------------------
+Processed [   64/ 3781]
+Estimated train loop completion: 17-Jan-2025 19:14:08
+Batch metrics (train):
+	Loss =   0.0400
+	Accuracy =  99.04%
+	F1 score (unweighted average across all classes for batch) = 0.2193
+
+Processed [ 3264/ 3781]
+Estimated train loop completion: 17-Jan-2025 19:14:05
+Batch metrics (train):
+	Loss =   0.0378
+	Accuracy =  99.12%
+	F1 score (unweighted average across all classes for batch) = 0.2214
+
+Train metrics (averages):
+	Recon loss =   0.0381
+	KL div =   0.0002
+	Accuracy =  99.07%
+	F1 score (weighted average) = 0.9909
+
+Processed [   64/  541]
+Estimated test/validation loop completion: 17-Jan-2025 19:14:41
+Batch metrics (test):
+	Loss =   0.0369
+	Accuracy =  99.14%
+	F1 score (unweighted average across all classes for batch) = 0.2276
+
+Test metrics (averages):
+	Recon loss =   0.0379
+	KL div =   0.0004
+	Accuracy =  99.11%
+	F1 score (weighted average) = 0.9911
+
+Saving history to: 'base_log_weights_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1_history.pth'...
+History saved to 'metric_history/base_log_weights_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1_history.pth'
+
+Epoch  14/ 30: 'base_log_weights_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1'
+Estimated training validation loop completion: 17-Jan-2025 20:40:07
+--------------------------------------------------
+Processed [   64/ 3781]
+Estimated train loop completion: 17-Jan-2025 19:19:00
+Batch metrics (train):
+	Loss =   0.0412
+	Accuracy =  99.08%
+	F1 score (unweighted average across all classes for batch) = 0.2144
+
+Processed [ 3264/ 3781]
+Estimated train loop completion: 17-Jan-2025 19:19:05
+Batch metrics (train):
+	Loss =   0.0384
+	Accuracy =  99.07%
+	F1 score (unweighted average across all classes for batch) = 0.2195
+
+Train metrics (averages):
+	Recon loss =   0.0382
+	KL div =   0.0001
+	Accuracy =  99.09%
+	F1 score (weighted average) = 0.9909
+
+Processed [   64/  541]
+Estimated test/validation loop completion: 17-Jan-2025 19:19:42
+Batch metrics (test):
+	Loss =   0.0366
+	Accuracy =  99.12%
+	F1 score (unweighted average across all classes for batch) = 0.2259
+
+Test metrics (averages):
+	Recon loss =   0.0375
+	KL div =   0.0004
+	Accuracy =  99.09%
+	F1 score (weighted average) = 0.9910
+
+Checkpointing model and optimizer...
+Model saved to 'model_checkpoints/base_log_weights_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1/best_loss_epoch_14.pth'
+
+Saving history to: 'base_log_weights_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1_history.pth'...
+History saved to 'metric_history/base_log_weights_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1_history.pth'
+
+Pruning old checkpoints...
+Old improvement files pruned.
+
+Epoch  15/ 30: 'base_log_weights_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1'
+Estimated training validation loop completion: 17-Jan-2025 20:40:05
+--------------------------------------------------
+Processed [   64/ 3781]
+Estimated train loop completion: 17-Jan-2025 19:24:10
+Batch metrics (train):
+	Loss =   0.0419
+	Accuracy =  99.02%
+	F1 score (unweighted average across all classes for batch) = 0.2145
+
+Processed [ 3264/ 3781]
+Estimated train loop completion: 17-Jan-2025 19:24:07
+Batch metrics (train):
+	Loss =   0.0354
+	Accuracy =  99.08%
+	F1 score (unweighted average across all classes for batch) = 0.2181
+
+Train metrics (averages):
+	Recon loss =   0.0382
+	KL div =   0.0001
+	Accuracy =  99.09%
+	F1 score (weighted average) = 0.9909
+
+Processed [   64/  541]
+Estimated test/validation loop completion: 17-Jan-2025 19:24:43
+Batch metrics (test):
+	Loss =   0.0369
+	Accuracy =  99.19%
+	F1 score (unweighted average across all classes for batch) = 0.2277
+
+Test metrics (averages):
+	Recon loss =   0.0378
+	KL div =   0.0004
+	Accuracy =  99.15%
+	F1 score (weighted average) = 0.9914
+
+Saving history to: 'base_log_weights_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1_history.pth'...
+History saved to 'metric_history/base_log_weights_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1_history.pth'
+
+Epoch  16/ 30: 'base_log_weights_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1'
+Estimated training validation loop completion: 17-Jan-2025 20:40:06
+--------------------------------------------------
+Processed [   64/ 3781]
+Estimated train loop completion: 17-Jan-2025 19:29:02
+Batch metrics (train):
+	Loss =   0.0387
+	Accuracy =  99.15%
+	F1 score (unweighted average across all classes for batch) = 0.2187
+
+Processed [ 3264/ 3781]
+Estimated train loop completion: 17-Jan-2025 19:29:08
+Batch metrics (train):
+	Loss =   0.0407
+	Accuracy =  99.05%
+	F1 score (unweighted average across all classes for batch) = 0.2170
+
+Train metrics (averages):
+	Recon loss =   0.0386
+	KL div =   0.0001
+	Accuracy =  99.08%
+	F1 score (weighted average) = 0.9909
+
+Processed [   64/  541]
+Estimated test/validation loop completion: 17-Jan-2025 19:29:43
+Batch metrics (test):
+	Loss =   0.0367
+	Accuracy =  99.18%
+	F1 score (unweighted average across all classes for batch) = 0.2271
+
+Test metrics (averages):
+	Recon loss =   0.0377
+	KL div =   0.0003
+	Accuracy =  99.15%
+	F1 score (weighted average) = 0.9913
+
+Saving history to: 'base_log_weights_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1_history.pth'...
+History saved to 'metric_history/base_log_weights_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1_history.pth'
+
+Epoch  17/ 30: 'base_log_weights_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1'
+Estimated training validation loop completion: 17-Jan-2025 20:40:04
+--------------------------------------------------
+Processed [   64/ 3781]
+Estimated train loop completion: 17-Jan-2025 19:34:03
+Batch metrics (train):
+	Loss =   0.0418
+	Accuracy =  99.12%
+	F1 score (unweighted average across all classes for batch) = 0.2206
+
+Processed [ 3264/ 3781]
+Estimated train loop completion: 17-Jan-2025 19:34:08
+Batch metrics (train):
+	Loss =   0.0385
+	Accuracy =  99.08%
+	F1 score (unweighted average across all classes for batch) = 0.2167
+
+Train metrics (averages):
+	Recon loss =   0.0383
+	KL div =   0.0001
+	Accuracy =  99.09%
+	F1 score (weighted average) = 0.9909
+
+Processed [   64/  541]
+Estimated test/validation loop completion: 17-Jan-2025 19:34:44
+Batch metrics (test):
+	Loss =   0.0364
+	Accuracy =  99.11%
+	F1 score (unweighted average across all classes for batch) = 0.2263
+
+Test metrics (averages):
+	Recon loss =   0.0375
+	KL div =   0.0003
+	Accuracy =  99.07%
+	F1 score (weighted average) = 0.9910
+
+Checkpointing model and optimizer...
+Model saved to 'model_checkpoints/base_log_weights_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1/best_loss_epoch_17.pth'
+
+Saving history to: 'base_log_weights_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1_history.pth'...
+History saved to 'metric_history/base_log_weights_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1_history.pth'
+
+Pruning old checkpoints...
+Old improvement files pruned.
+
+Epoch  18/ 30: 'base_log_weights_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1'
+Estimated training validation loop completion: 17-Jan-2025 20:40:02
+--------------------------------------------------
+Processed [   64/ 3781]
+Estimated train loop completion: 17-Jan-2025 19:39:10
+Batch metrics (train):
+	Loss =   0.0409
+	Accuracy =  99.07%
+	F1 score (unweighted average across all classes for batch) = 0.2224
+
+Processed [ 3264/ 3781]
+Estimated train loop completion: 17-Jan-2025 19:39:10
+Batch metrics (train):
+	Loss =   0.0316
+	Accuracy =  99.08%
+	F1 score (unweighted average across all classes for batch) = 0.2160
+
+Train metrics (averages):
+	Recon loss =   0.0384
+	KL div =   0.0000
+	Accuracy =  99.09%
+	F1 score (weighted average) = 0.9909
+
+Processed [   64/  541]
+Estimated test/validation loop completion: 17-Jan-2025 19:39:47
+Batch metrics (test):
+	Loss =   0.0367
+	Accuracy =  99.07%
+	F1 score (unweighted average across all classes for batch) = 0.2367
+
+Test metrics (averages):
+	Recon loss =   0.0377
+	KL div =   0.0003
+	Accuracy =  99.05%
+	F1 score (weighted average) = 0.9909
+
+Saving history to: 'base_log_weights_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1_history.pth'...
+History saved to 'metric_history/base_log_weights_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1_history.pth'
+
+Epoch  19/ 30: 'base_log_weights_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1'
+Estimated training validation loop completion: 17-Jan-2025 20:40:02
+--------------------------------------------------
+Processed [   64/ 3781]
+Estimated train loop completion: 17-Jan-2025 19:44:15
+Batch metrics (train):
+	Loss =   0.0374
+	Accuracy =  99.00%
+	F1 score (unweighted average across all classes for batch) = 0.2212
+
+Processed [ 3264/ 3781]
+Estimated train loop completion: 17-Jan-2025 19:44:13
+Batch metrics (train):
+	Loss =   0.0382
+	Accuracy =  99.16%
+	F1 score (unweighted average across all classes for batch) = 0.2237
+
+Train metrics (averages):
+	Recon loss =   0.0385
+	KL div =   0.0000
+	Accuracy =  99.09%
+	F1 score (weighted average) = 0.9909
+
+Processed [   64/  541]
+Estimated test/validation loop completion: 17-Jan-2025 19:44:49
+Batch metrics (test):
+	Loss =   0.0366
+	Accuracy =  99.13%
+	F1 score (unweighted average across all classes for batch) = 0.2274
+
+Test metrics (averages):
+	Recon loss =   0.0375
+	KL div =   0.0003
+	Accuracy =  99.09%
+	F1 score (weighted average) = 0.9911
+
+Saving history to: 'base_log_weights_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1_history.pth'...
+History saved to 'metric_history/base_log_weights_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1_history.pth'
+
+Epoch  20/ 30: 'base_log_weights_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1'
+Estimated training validation loop completion: 17-Jan-2025 20:40:04
+--------------------------------------------------
+Processed [   64/ 3781]
+Estimated train loop completion: 17-Jan-2025 19:49:11
+Batch metrics (train):
+	Loss =   0.0367
+	Accuracy =  99.10%
+	F1 score (unweighted average across all classes for batch) = 0.2214
+
+Processed [ 3264/ 3781]
+Estimated train loop completion: 17-Jan-2025 19:49:14
+Batch metrics (train):
+	Loss =   0.0378
+	Accuracy =  99.08%
+	F1 score (unweighted average across all classes for batch) = 0.2252
+
+Train metrics (averages):
+	Recon loss =   0.0381
+	KL div =   0.0000
+	Accuracy =  99.07%
+	F1 score (weighted average) = 0.9909
+
+Processed [   64/  541]
+Estimated test/validation loop completion: 17-Jan-2025 19:49:49
+Batch metrics (test):
+	Loss =   0.0366
+	Accuracy =  99.10%
+	F1 score (unweighted average across all classes for batch) = 0.2263
+
+Test metrics (averages):
+	Recon loss =   0.0375
+	KL div =   0.0003
+	Accuracy =  99.08%
+	F1 score (weighted average) = 0.9910
+
+Saving history to: 'base_log_weights_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1_history.pth'...
+History saved to 'metric_history/base_log_weights_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1_history.pth'
+
+Epoch  21/ 30: 'base_log_weights_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1'
+Estimated training validation loop completion: 17-Jan-2025 20:40:04
+--------------------------------------------------
+Processed [   64/ 3781]
+Estimated train loop completion: 17-Jan-2025 19:54:11
+Batch metrics (train):
+	Loss =   0.0429
+	Accuracy =  99.05%
+	F1 score (unweighted average across all classes for batch) = 0.2174
+
+Processed [ 3264/ 3781]
+Estimated train loop completion: 17-Jan-2025 19:54:15
+Batch metrics (train):
+	Loss =   0.0395
+	Accuracy =  99.08%
+	F1 score (unweighted average across all classes for batch) = 0.2187
+
+Train metrics (averages):
+	Recon loss =   0.0379
+	KL div =   0.0000
+	Accuracy =  99.07%
+	F1 score (weighted average) = 0.9908
+
+Processed [   64/  541]
+Estimated test/validation loop completion: 17-Jan-2025 19:54:52
+Batch metrics (test):
+	Loss =   0.0366
+	Accuracy =  99.17%
+	F1 score (unweighted average across all classes for batch) = 0.2310
+
+Test metrics (averages):
+	Recon loss =   0.0375
+	KL div =   0.0003
+	Accuracy =  99.13%
+	F1 score (weighted average) = 0.9913
+
+Saving history to: 'base_log_weights_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1_history.pth'...
+History saved to 'metric_history/base_log_weights_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1_history.pth'
+
+Epoch  22/ 30: 'base_log_weights_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1'
+Estimated training validation loop completion: 17-Jan-2025 20:40:03
+--------------------------------------------------
+Processed [   64/ 3781]
+Estimated train loop completion: 17-Jan-2025 19:59:12
+Batch metrics (train):
+	Loss =   0.0417
+	Accuracy =  99.13%
+	F1 score (unweighted average across all classes for batch) = 0.2232
+
+Processed [ 3264/ 3781]
+Estimated train loop completion: 17-Jan-2025 19:59:16
+Batch metrics (train):
+	Loss =   0.0395
+	Accuracy =  99.05%
+	F1 score (unweighted average across all classes for batch) = 0.2185
+
+Train metrics (averages):
+	Recon loss =   0.0382
+	KL div =   0.0000
+	Accuracy =  99.08%
+	F1 score (weighted average) = 0.9909
+
+Processed [   64/  541]
+Estimated test/validation loop completion: 17-Jan-2025 19:59:53
+Batch metrics (test):
+	Loss =   0.0364
+	Accuracy =  99.08%
+	F1 score (unweighted average across all classes for batch) = 0.2260
+
+Test metrics (averages):
+	Recon loss =   0.0375
+	KL div =   0.0003
+	Accuracy =  99.04%
+	F1 score (weighted average) = 0.9908
+
+Checkpointing model and optimizer...
+Model saved to 'model_checkpoints/base_log_weights_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1/best_loss_epoch_22.pth'
+
+Saving history to: 'base_log_weights_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1_history.pth'...
+History saved to 'metric_history/base_log_weights_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1_history.pth'
+
+Pruning old checkpoints...
+Old improvement files pruned.
+
+Epoch  23/ 30: 'base_log_weights_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1'
+Estimated training validation loop completion: 17-Jan-2025 20:40:02
+--------------------------------------------------
+Processed [   64/ 3781]
+Estimated train loop completion: 17-Jan-2025 20:04:21
+Batch metrics (train):
+	Loss =   0.0379
+	Accuracy =  99.03%
+	F1 score (unweighted average across all classes for batch) = 0.2187
+
+Processed [ 3264/ 3781]
+Estimated train loop completion: 17-Jan-2025 20:04:17
+Batch metrics (train):
+	Loss =   0.0416
+	Accuracy =  98.92%
+	F1 score (unweighted average across all classes for batch) = 0.2147
+
+Train metrics (averages):
+	Recon loss =   0.0382
+	KL div =   0.0000
+	Accuracy =  99.07%
+	F1 score (weighted average) = 0.9909
+
+Processed [   64/  541]
+Estimated test/validation loop completion: 17-Jan-2025 20:04:54
+Batch metrics (test):
+	Loss =   0.0365
+	Accuracy =  99.17%
+	F1 score (unweighted average across all classes for batch) = 0.2267
+
+Test metrics (averages):
+	Recon loss =   0.0375
+	KL div =   0.0003
+	Accuracy =  99.13%
+	F1 score (weighted average) = 0.9913
+
+Checkpointing model and optimizer...
+Model saved to 'model_checkpoints/base_log_weights_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1/best_loss_epoch_23.pth'
+
+Saving history to: 'base_log_weights_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1_history.pth'...
+History saved to 'metric_history/base_log_weights_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1_history.pth'
+
+Pruning old checkpoints...
+Old improvement files pruned.
+
+Epoch  24/ 30: 'base_log_weights_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1'
+Estimated training validation loop completion: 17-Jan-2025 20:40:02
+--------------------------------------------------
+Processed [   64/ 3781]
+Estimated train loop completion: 17-Jan-2025 20:09:22
+Batch metrics (train):
+	Loss =   0.0350
+	Accuracy =  99.09%
+	F1 score (unweighted average across all classes for batch) = 0.2141
+
+Processed [ 3264/ 3781]
+Estimated train loop completion: 17-Jan-2025 20:09:18
+Batch metrics (train):
+	Loss =   0.0390
+	Accuracy =  99.08%
+	F1 score (unweighted average across all classes for batch) = 0.2226
+
+Train metrics (averages):
+	Recon loss =   0.0381
+	KL div =   0.0000
+	Accuracy =  99.07%
+	F1 score (weighted average) = 0.9909
+
+Processed [   64/  541]
+Estimated test/validation loop completion: 17-Jan-2025 20:09:55
+Batch metrics (test):
+	Loss =   0.0366
+	Accuracy =  99.11%
+	F1 score (unweighted average across all classes for batch) = 0.2265
+
+Test metrics (averages):
+	Recon loss =   0.0374
+	KL div =   0.0003
+	Accuracy =  99.08%
+	F1 score (weighted average) = 0.9910
+
+Checkpointing model and optimizer...
+Model saved to 'model_checkpoints/base_log_weights_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1/best_loss_epoch_24.pth'
+
+Saving history to: 'base_log_weights_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1_history.pth'...
+History saved to 'metric_history/base_log_weights_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1_history.pth'
+
+Pruning old checkpoints...
+Old improvement files pruned.
+
+Epoch  25/ 30: 'base_log_weights_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1'
+Estimated training validation loop completion: 17-Jan-2025 20:40:01
+--------------------------------------------------
+Processed [   64/ 3781]
+Estimated train loop completion: 17-Jan-2025 20:14:14
+Batch metrics (train):
+	Loss =   0.0390
+	Accuracy =  99.06%
+	F1 score (unweighted average across all classes for batch) = 0.2196
+
+Processed [ 3264/ 3781]
+Estimated train loop completion: 17-Jan-2025 20:14:20
+Batch metrics (train):
+	Loss =   0.0341
+	Accuracy =  99.13%
+	F1 score (unweighted average across all classes for batch) = 0.2231
+
+Train metrics (averages):
+	Recon loss =   0.0383
+	KL div =   0.0000
+	Accuracy =  99.07%
+	F1 score (weighted average) = 0.9909
+
+Processed [   64/  541]
+Estimated test/validation loop completion: 17-Jan-2025 20:14:56
+Batch metrics (test):
+	Loss =   0.0364
+	Accuracy =  99.09%
+	F1 score (unweighted average across all classes for batch) = 0.2261
+
+Test metrics (averages):
+	Recon loss =   0.0375
+	KL div =   0.0003
+	Accuracy =  99.07%
+	F1 score (weighted average) = 0.9910
+
+Saving history to: 'base_log_weights_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1_history.pth'...
+History saved to 'metric_history/base_log_weights_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1_history.pth'
+
+Epoch  26/ 30: 'base_log_weights_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1'
+Estimated training validation loop completion: 17-Jan-2025 20:40:01
+--------------------------------------------------
+Processed [   64/ 3781]
+Estimated train loop completion: 17-Jan-2025 20:19:15
+Batch metrics (train):
+	Loss =   0.0346
+	Accuracy =  99.04%
+	F1 score (unweighted average across all classes for batch) = 0.2208
+
+Processed [ 3264/ 3781]
+Estimated train loop completion: 17-Jan-2025 20:19:21
+Batch metrics (train):
+	Loss =   0.0374
+	Accuracy =  99.07%
+	F1 score (unweighted average across all classes for batch) = 0.2244
+
+Train metrics (averages):
+	Recon loss =   0.0384
+	KL div =   0.0000
+	Accuracy =  99.07%
+	F1 score (weighted average) = 0.9909
+
+Processed [   64/  541]
+Estimated test/validation loop completion: 17-Jan-2025 20:19:56
+Batch metrics (test):
+	Loss =   0.0365
+	Accuracy =  99.12%
+	F1 score (unweighted average across all classes for batch) = 0.2269
+
+Test metrics (averages):
+	Recon loss =   0.0375
+	KL div =   0.0003
+	Accuracy =  99.08%
+	F1 score (weighted average) = 0.9910
+
+Saving history to: 'base_log_weights_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1_history.pth'...
+History saved to 'metric_history/base_log_weights_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1_history.pth'
+
+Epoch  27/ 30: 'base_log_weights_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1'
+Estimated training validation loop completion: 17-Jan-2025 20:40:01
+--------------------------------------------------
+Processed [   64/ 3781]
+Estimated train loop completion: 17-Jan-2025 20:24:26
+Batch metrics (train):
+	Loss =   0.0393
+	Accuracy =  99.06%
+	F1 score (unweighted average across all classes for batch) = 0.2194
+
+Processed [ 3264/ 3781]
+Estimated train loop completion: 17-Jan-2025 20:24:23
+Batch metrics (train):
+	Loss =   0.0346
+	Accuracy =  99.09%
+	F1 score (unweighted average across all classes for batch) = 0.2240
+
+Train metrics (averages):
+	Recon loss =   0.0381
+	KL div =   0.0000
+	Accuracy =  99.08%
+	F1 score (weighted average) = 0.9909
+
+Processed [   64/  541]
+Estimated test/validation loop completion: 17-Jan-2025 20:24:59
+Batch metrics (test):
+	Loss =   0.0365
+	Accuracy =  99.08%
+	F1 score (unweighted average across all classes for batch) = 0.2255
+
+Test metrics (averages):
+	Recon loss =   0.0374
+	KL div =   0.0002
+	Accuracy =  99.04%
+	F1 score (weighted average) = 0.9908
+
+Checkpointing model and optimizer...
+Model saved to 'model_checkpoints/base_log_weights_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1/best_loss_epoch_27.pth'
+
+Saving history to: 'base_log_weights_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1_history.pth'...
+History saved to 'metric_history/base_log_weights_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1_history.pth'
+
+Pruning old checkpoints...
+Old improvement files pruned.
+
+Epoch  28/ 30: 'base_log_weights_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1'
+Estimated training validation loop completion: 17-Jan-2025 20:40:01
+--------------------------------------------------
+Processed [   64/ 3781]
+Estimated train loop completion: 17-Jan-2025 20:29:28
+Batch metrics (train):
+	Loss =   0.0332
+	Accuracy =  99.01%
+	F1 score (unweighted average across all classes for batch) = 0.2205
+
+Processed [ 3264/ 3781]
+Estimated train loop completion: 17-Jan-2025 20:29:25
+Batch metrics (train):
+	Loss =   0.0328
+	Accuracy =  99.10%
+	F1 score (unweighted average across all classes for batch) = 0.2233
+
+Train metrics (averages):
+	Recon loss =   0.0382
+	KL div =   0.0000
+	Accuracy =  99.07%
+	F1 score (weighted average) = 0.9909
+
+Processed [   64/  541]
+Estimated test/validation loop completion: 17-Jan-2025 20:30:02
+Batch metrics (test):
+	Loss =   0.0366
+	Accuracy =  99.10%
+	F1 score (unweighted average across all classes for batch) = 0.2260
+
+Test metrics (averages):
+	Recon loss =   0.0374
+	KL div =   0.0002
+	Accuracy =  99.07%
+	F1 score (weighted average) = 0.9910
+
+Checkpointing model and optimizer...
+Model saved to 'model_checkpoints/base_log_weights_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1/best_loss_epoch_28.pth'
+
+Saving history to: 'base_log_weights_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1_history.pth'...
+History saved to 'metric_history/base_log_weights_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1_history.pth'
+
+Pruning old checkpoints...
+Old improvement files pruned.
+
+Epoch  29/ 30: 'base_log_weights_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1'
+Estimated training validation loop completion: 17-Jan-2025 20:40:02
+--------------------------------------------------
+Processed [   64/ 3781]
+Estimated train loop completion: 17-Jan-2025 20:34:30
+Batch metrics (train):
+	Loss =   0.0387
+	Accuracy =  99.04%
+	F1 score (unweighted average across all classes for batch) = 0.2239
+
+Processed [ 3264/ 3781]
+Estimated train loop completion: 17-Jan-2025 20:34:27
+Batch metrics (train):
+	Loss =   0.0356
+	Accuracy =  99.09%
+	F1 score (unweighted average across all classes for batch) = 0.2211
+
+Train metrics (averages):
+	Recon loss =   0.0382
+	KL div =   0.0000
+	Accuracy =  99.09%
+	F1 score (weighted average) = 0.9909
+
+Processed [   64/  541]
+Estimated test/validation loop completion: 17-Jan-2025 20:35:04
+Batch metrics (test):
+	Loss =   0.0365
+	Accuracy =  99.12%
+	F1 score (unweighted average across all classes for batch) = 0.2263
+
+Test metrics (averages):
+	Recon loss =   0.0374
+	KL div =   0.0002
+	Accuracy =  99.08%
+	F1 score (weighted average) = 0.9910
+
+Checkpointing model and optimizer...
+Model saved to 'model_checkpoints/base_log_weights_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1/best_loss_epoch_29.pth'
+
+Saving history to: 'base_log_weights_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1_history.pth'...
+History saved to 'metric_history/base_log_weights_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1_history.pth'
+
+Pruning old checkpoints...
+Old improvement files pruned.
+
+Epoch  30/ 30: 'base_log_weights_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1'
+Estimated training validation loop completion: 17-Jan-2025 20:40:02
+--------------------------------------------------
+Processed [   64/ 3781]
+Estimated train loop completion: 17-Jan-2025 20:39:33
+Batch metrics (train):
+	Loss =   0.0361
+	Accuracy =  99.02%
+	F1 score (unweighted average across all classes for batch) = 0.2208
+
+Processed [ 3264/ 3781]
+Estimated train loop completion: 17-Jan-2025 20:39:30
+Batch metrics (train):
+	Loss =   0.0405
+	Accuracy =  99.11%
+	F1 score (unweighted average across all classes for batch) = 0.2200
+
+Train metrics (averages):
+	Recon loss =   0.0380
+	KL div =   0.0000
+	Accuracy =  99.07%
+	F1 score (weighted average) = 0.9909
+
+Processed [   64/  541]
+Estimated test/validation loop completion: 17-Jan-2025 20:40:06
+Batch metrics (test):
+	Loss =   0.0364
+	Accuracy =  99.12%
+	F1 score (unweighted average across all classes for batch) = 0.2264
+
+Test metrics (averages):
+	Recon loss =   0.0375
+	KL div =   0.0002
+	Accuracy =  99.08%
+	F1 score (weighted average) = 0.9910
+
+Checkpointing model and optimizer...
+Model saved to 'model_checkpoints/base_log_weights_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1/final_model_epoch_30.pth'
+
+Saving history to: 'base_log_weights_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1_history.pth'...
+History saved to 'metric_history/base_log_weights_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1_history.pth'
+
+Train / Validation loop complete!
+==================================================
+
+Added 'base_log_weights_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1_history.pth' to 'metric_history/grid_search_list.txt'
+
+Configuration [   2/   4]:
+Estimated grid search training completion: 18-Jan-2025 04:12:30
+==================================================
+Train / Validation loop started...
+
+New training history object created 'base_log_weights_toy_bs64_ld2_bce_adam_lr0.001_wd0_be0.1'
+
+Epoch   1/ 30: 'base_log_weights_toy_bs64_ld2_bce_adam_lr0.001_wd0_be0.1'
+--------------------------------------------------
+Processed [   64/ 3781]
+Estimated train loop completion: 17-Jan-2025 20:44:27
+Batch metrics (train):
+	Loss =   6.4738
+	Accuracy =   0.11%
+	F1 score (unweighted average across all classes for batch) = 0.0005
+
+Processed [ 3264/ 3781]
+Estimated train loop completion: 17-Jan-2025 20:44:33
+Batch metrics (train):
+	Loss =   0.3558
+	Accuracy =  99.00%
+	F1 score (unweighted average across all classes for batch) = 0.2168
+
+Train metrics (averages):
+	Recon loss =   1.0457
+	KL div =   0.0458
+	Accuracy =  83.40%
+	F1 score (weighted average) = 0.8406
+
+Processed [   64/  541]
+Estimated test/validation loop completion: 17-Jan-2025 20:45:10
+Batch metrics (test):
+	Loss =   0.3062
+	Accuracy =  98.96%
+	F1 score (unweighted average across all classes for batch) = 0.2266
+
+Test metrics (averages):
+	Recon loss =   0.3260
+	KL div =   0.0058
+	Accuracy =  98.90%
+	F1 score (weighted average) = 0.9901
+
+Checkpointing model and optimizer...
+Creating directory '/users/40538519/sharedscratch/outputs/model_checkpoints/base_log_weights_toy_bs64_ld2_bce_adam_lr0.001_wd0_be0.1'...
+Model saved to 'model_checkpoints/base_log_weights_toy_bs64_ld2_bce_adam_lr0.001_wd0_be0.1/best_loss_epoch_1.pth'
+
+Checkpointing model and optimizer...
+Model saved to 'model_checkpoints/base_log_weights_toy_bs64_ld2_bce_adam_lr0.001_wd0_be0.1/best_f1_avg_epoch_1.pth'
+
+Saving history to: 'base_log_weights_toy_bs64_ld2_bce_adam_lr0.001_wd0_be0.1_history.pth'...
+History saved to 'metric_history/base_log_weights_toy_bs64_ld2_bce_adam_lr0.001_wd0_be0.1_history.pth'
+
+Pruning old checkpoints...
+Old improvement files pruned.
+
+Epoch   2/ 30: 'base_log_weights_toy_bs64_ld2_bce_adam_lr0.001_wd0_be0.1'
+Estimated training validation loop completion: 17-Jan-2025 23:11:43
+--------------------------------------------------
+Processed [   64/ 3781]
+Estimated train loop completion: 17-Jan-2025 20:49:32
+Batch metrics (train):
+	Loss =   0.3571
+	Accuracy =  98.73%
+	F1 score (unweighted average across all classes for batch) = 0.2209
+
+Processed [ 3264/ 3781]
+Estimated train loop completion: 17-Jan-2025 20:49:37
+Batch metrics (train):
+	Loss =   0.3026
+	Accuracy =  99.03%
+	F1 score (unweighted average across all classes for batch) = 0.2256
+
+Train metrics (averages):
+	Recon loss =   0.3198
+	KL div =   0.0042
+	Accuracy =  98.94%
+	F1 score (weighted average) = 0.9902
+
+Processed [   64/  541]
+Estimated test/validation loop completion: 17-Jan-2025 20:50:12
+Batch metrics (test):
+	Loss =   0.2849
+	Accuracy =  99.13%
+	F1 score (unweighted average across all classes for batch) = 0.2253
+
+Test metrics (averages):
+	Recon loss =   0.2996
+	KL div =   0.0014
+	Accuracy =  99.11%
+	F1 score (weighted average) = 0.9911
+
+Checkpointing model and optimizer...
+Model saved to 'model_checkpoints/base_log_weights_toy_bs64_ld2_bce_adam_lr0.001_wd0_be0.1/best_loss_epoch_2.pth'
+
+Checkpointing model and optimizer...
+Model saved to 'model_checkpoints/base_log_weights_toy_bs64_ld2_bce_adam_lr0.001_wd0_be0.1/best_f1_avg_epoch_2.pth'
+
+Saving history to: 'base_log_weights_toy_bs64_ld2_bce_adam_lr0.001_wd0_be0.1_history.pth'...
+History saved to 'metric_history/base_log_weights_toy_bs64_ld2_bce_adam_lr0.001_wd0_be0.1_history.pth'
+
+Pruning old checkpoints...
+Old improvement files pruned.
+
+Epoch   3/ 30: 'base_log_weights_toy_bs64_ld2_bce_adam_lr0.001_wd0_be0.1'
+Estimated training validation loop completion: 17-Jan-2025 23:11:47
+--------------------------------------------------
+Processed [   64/ 3781]
+Estimated train loop completion: 17-Jan-2025 20:54:34
+Batch metrics (train):
+	Loss =   0.2964
+	Accuracy =  99.11%
+	F1 score (unweighted average across all classes for batch) = 0.2248
+
+Processed [ 3264/ 3781]
+Estimated train loop completion: 17-Jan-2025 20:54:39
+Batch metrics (train):
+	Loss =   0.2908
+	Accuracy =  99.04%
+	F1 score (unweighted average across all classes for batch) = 0.2235
+
+Train metrics (averages):
+	Recon loss =   0.3034
+	KL div =   0.0014
+	Accuracy =  99.03%
+	F1 score (weighted average) = 0.9907
+
+Processed [   64/  541]
+Estimated test/validation loop completion: 17-Jan-2025 20:55:16
+Batch metrics (test):
+	Loss =   0.2784
+	Accuracy =  99.15%
+	F1 score (unweighted average across all classes for batch) = 0.2266
+
+Test metrics (averages):
+	Recon loss =   0.2901
+	KL div =   0.0008
+	Accuracy =  99.12%
+	F1 score (weighted average) = 0.9912
+
+Checkpointing model and optimizer...
+Model saved to 'model_checkpoints/base_log_weights_toy_bs64_ld2_bce_adam_lr0.001_wd0_be0.1/best_loss_epoch_3.pth'
+
+Checkpointing model and optimizer...
+Model saved to 'model_checkpoints/base_log_weights_toy_bs64_ld2_bce_adam_lr0.001_wd0_be0.1/best_f1_avg_epoch_3.pth'
+
+Saving history to: 'base_log_weights_toy_bs64_ld2_bce_adam_lr0.001_wd0_be0.1_history.pth'...
+History saved to 'metric_history/base_log_weights_toy_bs64_ld2_bce_adam_lr0.001_wd0_be0.1_history.pth'
+
+Pruning old checkpoints...
+Old improvement files pruned.
+
+Epoch   4/ 30: 'base_log_weights_toy_bs64_ld2_bce_adam_lr0.001_wd0_be0.1'
+Estimated training validation loop completion: 17-Jan-2025 23:11:36
+--------------------------------------------------
+Processed [   64/ 3781]
+Estimated train loop completion: 17-Jan-2025 20:59:45
+Batch metrics (train):
+	Loss =   0.2989
+	Accuracy =  99.10%
+	F1 score (unweighted average across all classes for batch) = 0.2197
+
+Processed [ 3264/ 3781]
+Estimated train loop completion: 17-Jan-2025 20:59:42
+Batch metrics (train):
+	Loss =   0.3169
+	Accuracy =  99.12%
+	F1 score (unweighted average across all classes for batch) = 0.2232
+
+Train metrics (averages):
+	Recon loss =   0.2931
+	KL div =   0.0006
+	Accuracy =  99.07%
+	F1 score (weighted average) = 0.9909
+
+Processed [   64/  541]
+Estimated test/validation loop completion: 17-Jan-2025 21:00:18
+Batch metrics (test):
+	Loss =   0.2761
+	Accuracy =  99.11%
+	F1 score (unweighted average across all classes for batch) = 0.2266
+
+Test metrics (averages):
+	Recon loss =   0.2870
+	KL div =   0.0005
+	Accuracy =  99.08%
+	F1 score (weighted average) = 0.9910
+
+Checkpointing model and optimizer...
+Model saved to 'model_checkpoints/base_log_weights_toy_bs64_ld2_bce_adam_lr0.001_wd0_be0.1/best_loss_epoch_4.pth'
+
+Saving history to: 'base_log_weights_toy_bs64_ld2_bce_adam_lr0.001_wd0_be0.1_history.pth'...
+History saved to 'metric_history/base_log_weights_toy_bs64_ld2_bce_adam_lr0.001_wd0_be0.1_history.pth'
+
+Pruning old checkpoints...
+Old improvement files pruned.
+
+Epoch   5/ 30: 'base_log_weights_toy_bs64_ld2_bce_adam_lr0.001_wd0_be0.1'
+Estimated training validation loop completion: 17-Jan-2025 23:11:33
+--------------------------------------------------
+Processed [   64/ 3781]
+Estimated train loop completion: 17-Jan-2025 21:04:39
+Batch metrics (train):
+	Loss =   0.2984
+	Accuracy =  99.07%
+	F1 score (unweighted average across all classes for batch) = 0.2188
+
+Processed [ 3264/ 3781]
+Estimated train loop completion: 17-Jan-2025 21:04:45
+Batch metrics (train):
+	Loss =   0.2964
+	Accuracy =  99.06%
+	F1 score (unweighted average across all classes for batch) = 0.2126
+
+Train metrics (averages):
+	Recon loss =   0.2937
+	KL div =   0.0003
+	Accuracy =  99.07%
+	F1 score (weighted average) = 0.9909
+
+Processed [   64/  541]
+Estimated test/validation loop completion: 17-Jan-2025 21:05:21
+Batch metrics (test):
+	Loss =   0.2744
+	Accuracy =  99.11%
+	F1 score (unweighted average across all classes for batch) = 0.2264
+
+Test metrics (averages):
+	Recon loss =   0.2864
+	KL div =   0.0004
+	Accuracy =  99.07%
+	F1 score (weighted average) = 0.9910
+
+Checkpointing model and optimizer...
+Model saved to 'model_checkpoints/base_log_weights_toy_bs64_ld2_bce_adam_lr0.001_wd0_be0.1/best_loss_epoch_5.pth'
+
+Saving history to: 'base_log_weights_toy_bs64_ld2_bce_adam_lr0.001_wd0_be0.1_history.pth'...
+History saved to 'metric_history/base_log_weights_toy_bs64_ld2_bce_adam_lr0.001_wd0_be0.1_history.pth'
+
+Pruning old checkpoints...
+Old improvement files pruned.
+
+Epoch   6/ 30: 'base_log_weights_toy_bs64_ld2_bce_adam_lr0.001_wd0_be0.1'
+Estimated training validation loop completion: 17-Jan-2025 23:11:32
+--------------------------------------------------
+Processed [   64/ 3781]
+Estimated train loop completion: 17-Jan-2025 21:09:51
+Batch metrics (train):
+	Loss =   0.2841
+	Accuracy =  99.02%
+	F1 score (unweighted average across all classes for batch) = 0.2148
+
+Processed [ 3264/ 3781]
+Estimated train loop completion: 17-Jan-2025 21:09:47
+Batch metrics (train):
+	Loss =   0.2686
+	Accuracy =  99.09%
+	F1 score (unweighted average across all classes for batch) = 0.2192
+
+Train metrics (averages):
+	Recon loss =   0.2934
+	KL div =   0.0001
+	Accuracy =  99.05%
+	F1 score (weighted average) = 0.9908
+
+Processed [   64/  541]
+Estimated test/validation loop completion: 17-Jan-2025 21:10:24
+Batch metrics (test):
+	Loss =   0.2746
+	Accuracy =  99.11%
+	F1 score (unweighted average across all classes for batch) = 0.2265
+
+Test metrics (averages):
+	Recon loss =   0.2851
+	KL div =   0.0003
+	Accuracy =  99.07%
+	F1 score (weighted average) = 0.9910
+
+Checkpointing model and optimizer...
+Model saved to 'model_checkpoints/base_log_weights_toy_bs64_ld2_bce_adam_lr0.001_wd0_be0.1/best_loss_epoch_6.pth'
+
+Saving history to: 'base_log_weights_toy_bs64_ld2_bce_adam_lr0.001_wd0_be0.1_history.pth'...
+History saved to 'metric_history/base_log_weights_toy_bs64_ld2_bce_adam_lr0.001_wd0_be0.1_history.pth'
+
+Pruning old checkpoints...
+Old improvement files pruned.
+
+Epoch   7/ 30: 'base_log_weights_toy_bs64_ld2_bce_adam_lr0.001_wd0_be0.1'
+Estimated training validation loop completion: 17-Jan-2025 23:11:31
+--------------------------------------------------
+Processed [   64/ 3781]
+Estimated train loop completion: 17-Jan-2025 21:14:54
+Batch metrics (train):
+	Loss =   0.2602
+	Accuracy =  99.06%
+	F1 score (unweighted average across all classes for batch) = 0.2222
+
+Processed [ 3264/ 3781]
+Estimated train loop completion: 17-Jan-2025 21:14:50
+Batch metrics (train):
+	Loss =   0.2905
+	Accuracy =  99.08%
+	F1 score (unweighted average across all classes for batch) = 0.2266
+
+Train metrics (averages):
+	Recon loss =   0.2907
+	KL div =   0.0001
+	Accuracy =  99.06%
+	F1 score (weighted average) = 0.9908
+
+Processed [   64/  541]
+Estimated test/validation loop completion: 17-Jan-2025 21:15:26
+Batch metrics (test):
+	Loss =   0.2729
+	Accuracy =  99.17%
+	F1 score (unweighted average across all classes for batch) = 0.2266
+
+Test metrics (averages):
+	Recon loss =   0.2851
+	KL div =   0.0003
+	Accuracy =  99.14%
+	F1 score (weighted average) = 0.9913
+
+Checkpointing model and optimizer...
+Model saved to 'model_checkpoints/base_log_weights_toy_bs64_ld2_bce_adam_lr0.001_wd0_be0.1/best_f1_avg_epoch_7.pth'
+
+Saving history to: 'base_log_weights_toy_bs64_ld2_bce_adam_lr0.001_wd0_be0.1_history.pth'...
+History saved to 'metric_history/base_log_weights_toy_bs64_ld2_bce_adam_lr0.001_wd0_be0.1_history.pth'
+
+Pruning old checkpoints...
+Old improvement files pruned.
+
+Epoch   8/ 30: 'base_log_weights_toy_bs64_ld2_bce_adam_lr0.001_wd0_be0.1'
+Estimated training validation loop completion: 17-Jan-2025 23:11:29
+--------------------------------------------------
+Processed [   64/ 3781]
+Estimated train loop completion: 17-Jan-2025 21:19:47
+Batch metrics (train):
+	Loss =   0.2882
+	Accuracy =  99.07%
+	F1 score (unweighted average across all classes for batch) = 0.2185
+
+Processed [ 3264/ 3781]
+Estimated train loop completion: 17-Jan-2025 21:19:52
+Batch metrics (train):
+	Loss =   0.2922
+	Accuracy =  99.07%
+	F1 score (unweighted average across all classes for batch) = 0.2197
+
+Train metrics (averages):
+	Recon loss =   0.2927
+	KL div =   0.0001
+	Accuracy =  99.08%
+	F1 score (weighted average) = 0.9909
+
+Processed [   64/  541]
+Estimated test/validation loop completion: 17-Jan-2025 21:20:27
+Batch metrics (test):
+	Loss =   0.2750
+	Accuracy =  99.11%
+	F1 score (unweighted average across all classes for batch) = 0.2265
+
+Test metrics (averages):
+	Recon loss =   0.2860
+	KL div =   0.0003
+	Accuracy =  99.08%
+	F1 score (weighted average) = 0.9910
+
+Saving history to: 'base_log_weights_toy_bs64_ld2_bce_adam_lr0.001_wd0_be0.1_history.pth'...
+History saved to 'metric_history/base_log_weights_toy_bs64_ld2_bce_adam_lr0.001_wd0_be0.1_history.pth'
+
+Epoch   9/ 30: 'base_log_weights_toy_bs64_ld2_bce_adam_lr0.001_wd0_be0.1'
+Estimated training validation loop completion: 17-Jan-2025 23:11:25
+--------------------------------------------------
+Processed [   64/ 3781]
+Estimated train loop completion: 17-Jan-2025 21:24:50
+Batch metrics (train):
+	Loss =   0.3038
+	Accuracy =  99.02%
+	F1 score (unweighted average across all classes for batch) = 0.2194
+
+Processed [ 3264/ 3781]
+Estimated train loop completion: 17-Jan-2025 21:24:53
+Batch metrics (train):
+	Loss =   0.2876
+	Accuracy =  99.11%
+	F1 score (unweighted average across all classes for batch) = 0.2191
+
+Train metrics (averages):
+	Recon loss =   0.2929
+	KL div =   0.0001
+	Accuracy =  99.05%
+	F1 score (weighted average) = 0.9908
+
+Processed [   64/  541]
+Estimated test/validation loop completion: 17-Jan-2025 21:25:30
+Batch metrics (test):
+	Loss =   0.2767
+	Accuracy =  99.10%
+	F1 score (unweighted average across all classes for batch) = 0.2260
+
+Test metrics (averages):
+	Recon loss =   0.2866
+	KL div =   0.0003
+	Accuracy =  99.06%
+	F1 score (weighted average) = 0.9909
+
+Saving history to: 'base_log_weights_toy_bs64_ld2_bce_adam_lr0.001_wd0_be0.1_history.pth'...
+History saved to 'metric_history/base_log_weights_toy_bs64_ld2_bce_adam_lr0.001_wd0_be0.1_history.pth'
+
+Epoch  10/ 30: 'base_log_weights_toy_bs64_ld2_bce_adam_lr0.001_wd0_be0.1'
+Estimated training validation loop completion: 17-Jan-2025 23:11:22
+--------------------------------------------------
+Processed [   64/ 3781]
+Estimated train loop completion: 17-Jan-2025 21:30:01
+Batch metrics (train):
+	Loss =   0.2713
+	Accuracy =  99.00%
+	F1 score (unweighted average across all classes for batch) = 0.2154
+
+Processed [ 3264/ 3781]
+Estimated train loop completion: 17-Jan-2025 21:29:57
+Batch metrics (train):
+	Loss =   0.2718
+	Accuracy =  99.12%
+	F1 score (unweighted average across all classes for batch) = 0.2155
+
+Train metrics (averages):
+	Recon loss =   0.2916
+	KL div =   0.0001
+	Accuracy =  99.07%
+	F1 score (weighted average) = 0.9909
+
+Processed [   64/  541]
+Estimated test/validation loop completion: 17-Jan-2025 21:30:34
+Batch metrics (test):
+	Loss =   0.2747
+	Accuracy =  99.10%
+	F1 score (unweighted average across all classes for batch) = 0.2252
+
+Test metrics (averages):
+	Recon loss =   0.2859
+	KL div =   0.0003
+	Accuracy =  99.06%
+	F1 score (weighted average) = 0.9909
+
+Saving history to: 'base_log_weights_toy_bs64_ld2_bce_adam_lr0.001_wd0_be0.1_history.pth'...
+History saved to 'metric_history/base_log_weights_toy_bs64_ld2_bce_adam_lr0.001_wd0_be0.1_history.pth'
+
+Epoch  11/ 30: 'base_log_weights_toy_bs64_ld2_bce_adam_lr0.001_wd0_be0.1'
+Estimated training validation loop completion: 17-Jan-2025 23:11:25
+--------------------------------------------------
+Processed [   64/ 3781]
+Estimated train loop completion: 17-Jan-2025 21:34:56
+Batch metrics (train):
+	Loss =   0.2826
+	Accuracy =  99.04%
+	F1 score (unweighted average across all classes for batch) = 0.2173
+
+Processed [ 3264/ 3781]
+Estimated train loop completion: 17-Jan-2025 21:35:00
+Batch metrics (train):
+	Loss =   0.3120
+	Accuracy =  98.97%
+	F1 score (unweighted average across all classes for batch) = 0.2113
+
+Train metrics (averages):
+	Recon loss =   0.2898
+	KL div =   0.0000
+	Accuracy =  99.06%
+	F1 score (weighted average) = 0.9908
+
+Processed [   64/  541]
+Estimated test/validation loop completion: 17-Jan-2025 21:35:35
+Batch metrics (test):
+	Loss =   0.2767
+	Accuracy =  99.11%
+	F1 score (unweighted average across all classes for batch) = 0.2265
+
+Test metrics (averages):
+	Recon loss =   0.2866
+	KL div =   0.0003
+	Accuracy =  99.08%
+	F1 score (weighted average) = 0.9910
+
+Saving history to: 'base_log_weights_toy_bs64_ld2_bce_adam_lr0.001_wd0_be0.1_history.pth'...
+History saved to 'metric_history/base_log_weights_toy_bs64_ld2_bce_adam_lr0.001_wd0_be0.1_history.pth'
+
+Epoch  12/ 30: 'base_log_weights_toy_bs64_ld2_bce_adam_lr0.001_wd0_be0.1'
+Estimated training validation loop completion: 17-Jan-2025 23:11:24
+--------------------------------------------------
+Processed [   64/ 3781]
+Estimated train loop completion: 17-Jan-2025 21:39:57
+Batch metrics (train):
+	Loss =   0.2842
+	Accuracy =  99.12%
+	F1 score (unweighted average across all classes for batch) = 0.2296
+
+Processed [ 3264/ 3781]
+Estimated train loop completion: 17-Jan-2025 21:40:01
+Batch metrics (train):
+	Loss =   0.3227
+	Accuracy =  99.04%
+	F1 score (unweighted average across all classes for batch) = 0.2163
+
+Train metrics (averages):
+	Recon loss =   0.2919
+	KL div =   0.0000
+	Accuracy =  99.07%
+	F1 score (weighted average) = 0.9909
+
+Processed [   64/  541]
+Estimated test/validation loop completion: 17-Jan-2025 21:40:38
+Batch metrics (test):
+	Loss =   0.2744
+	Accuracy =  99.04%
+	F1 score (unweighted average across all classes for batch) = 0.2245
+
+Test metrics (averages):
+	Recon loss =   0.2871
+	KL div =   0.0003
+	Accuracy =  99.00%
+	F1 score (weighted average) = 0.9906
+
+Checkpointing model and optimizer...
+Model saved to 'model_checkpoints/base_log_weights_toy_bs64_ld2_bce_adam_lr0.001_wd0_be0.1/terminated_model_epoch_12.pth'
+
+Saving history to: 'base_log_weights_toy_bs64_ld2_bce_adam_lr0.001_wd0_be0.1_history.pth'...
+History saved to 'metric_history/base_log_weights_toy_bs64_ld2_bce_adam_lr0.001_wd0_be0.1_history.pth'
+
+Early stop terminating...
+Train / Validation loop complete!
+==================================================
+
+Added 'base_log_weights_toy_bs64_ld2_bce_adam_lr0.001_wd0_be0.1_history.pth' to 'metric_history/grid_search_list.txt'
+
+Configuration [   3/   4]:
+Estimated grid search training completion: 18-Jan-2025 01:11:55
+==================================================
+Train / Validation loop started...
+
+New training history object created 'base_log_weights_toy_bs64_ld4_mse_adam_lr0.001_wd0_be0.1'
+
+Epoch   1/ 30: 'base_log_weights_toy_bs64_ld4_mse_adam_lr0.001_wd0_be0.1'
+--------------------------------------------------
+Processed [   64/ 3781]
+Estimated train loop completion: 17-Jan-2025 21:44:57
+Batch metrics (train):
+	Loss =   2.3289
+	Accuracy =   0.12%
+	F1 score (unweighted average across all classes for batch) = 0.0020
+
+Processed [ 3264/ 3781]
+Estimated train loop completion: 17-Jan-2025 21:45:02
+Batch metrics (train):
+	Loss =   0.0355
+	Accuracy =  99.13%
+	F1 score (unweighted average across all classes for batch) = 0.2174
+
+Train metrics (averages):
+	Recon loss =   0.2474
+	KL div =   0.0315
+	Accuracy =  83.61%
+	F1 score (weighted average) = 0.8413
+
+Processed [   64/  541]
+Estimated test/validation loop completion: 17-Jan-2025 21:45:39
+Batch metrics (test):
+	Loss =   0.0379
+	Accuracy =  99.20%
+	F1 score (unweighted average across all classes for batch) = 0.2278
+
+Test metrics (averages):
+	Recon loss =   0.0384
+	KL div =   0.0037
+	Accuracy =  99.17%
+	F1 score (weighted average) = 0.9914
+
+Checkpointing model and optimizer...
+Creating directory '/users/40538519/sharedscratch/outputs/model_checkpoints/base_log_weights_toy_bs64_ld4_mse_adam_lr0.001_wd0_be0.1'...
+Model saved to 'model_checkpoints/base_log_weights_toy_bs64_ld4_mse_adam_lr0.001_wd0_be0.1/best_loss_epoch_1.pth'
+
+Checkpointing model and optimizer...
+Model saved to 'model_checkpoints/base_log_weights_toy_bs64_ld4_mse_adam_lr0.001_wd0_be0.1/best_f1_avg_epoch_1.pth'
+
+Saving history to: 'base_log_weights_toy_bs64_ld4_mse_adam_lr0.001_wd0_be0.1_history.pth'...
+History saved to 'metric_history/base_log_weights_toy_bs64_ld4_mse_adam_lr0.001_wd0_be0.1_history.pth'
+
+Pruning old checkpoints...
+Old improvement files pruned.
+
+Epoch   2/ 30: 'base_log_weights_toy_bs64_ld4_mse_adam_lr0.001_wd0_be0.1'
+Estimated training validation loop completion: 18-Jan-2025 00:11:13
+--------------------------------------------------
+Processed [   64/ 3781]
+Estimated train loop completion: 17-Jan-2025 21:50:08
+Batch metrics (train):
+	Loss =   0.0429
+	Accuracy =  99.18%
+	F1 score (unweighted average across all classes for batch) = 0.2232
+
+Processed [ 3264/ 3781]
+Estimated train loop completion: 17-Jan-2025 21:50:04
+Batch metrics (train):
+	Loss =   0.0416
+	Accuracy =  99.17%
+	F1 score (unweighted average across all classes for batch) = 0.2144
+
+Train metrics (averages):
+	Recon loss =   0.0395
+	KL div =   0.0030
+	Accuracy =  99.15%
+	F1 score (weighted average) = 0.9912
+
+Processed [   64/  541]
+Estimated test/validation loop completion: 17-Jan-2025 21:50:41
+Batch metrics (test):
+	Loss =   0.0376
+	Accuracy =  99.18%
+	F1 score (unweighted average across all classes for batch) = 0.2316
+
+Test metrics (averages):
+	Recon loss =   0.0382
+	KL div =   0.0016
+	Accuracy =  99.14%
+	F1 score (weighted average) = 0.9913
+
+Checkpointing model and optimizer...
+Model saved to 'model_checkpoints/base_log_weights_toy_bs64_ld4_mse_adam_lr0.001_wd0_be0.1/best_loss_epoch_2.pth'
+
+Saving history to: 'base_log_weights_toy_bs64_ld4_mse_adam_lr0.001_wd0_be0.1_history.pth'...
+History saved to 'metric_history/base_log_weights_toy_bs64_ld4_mse_adam_lr0.001_wd0_be0.1_history.pth'
+
+Pruning old checkpoints...
+Old improvement files pruned.
+
+Epoch   3/ 30: 'base_log_weights_toy_bs64_ld4_mse_adam_lr0.001_wd0_be0.1'
+Estimated training validation loop completion: 18-Jan-2025 00:11:20
+--------------------------------------------------
+Processed [   64/ 3781]
+Estimated train loop completion: 17-Jan-2025 21:55:10
+Batch metrics (train):
+	Loss =   0.0418
+	Accuracy =  99.07%
+	F1 score (unweighted average across all classes for batch) = 0.2104
+
+Processed [ 3264/ 3781]
+Estimated train loop completion: 17-Jan-2025 21:55:06
+Batch metrics (train):
+	Loss =   0.0388
+	Accuracy =  99.07%
+	F1 score (unweighted average across all classes for batch) = 0.2189
+
+Train metrics (averages):
+	Recon loss =   0.0391
+	KL div =   0.0008
+	Accuracy =  99.12%
+	F1 score (weighted average) = 0.9911
+
+Processed [   64/  541]
+Estimated test/validation loop completion: 17-Jan-2025 21:55:42
+Batch metrics (test):
+	Loss =   0.0378
+	Accuracy =  99.17%
+	F1 score (unweighted average across all classes for batch) = 0.2258
+
+Test metrics (averages):
+	Recon loss =   0.0384
+	KL div =   0.0011
+	Accuracy =  99.12%
+	F1 score (weighted average) = 0.9912
+
+Saving history to: 'base_log_weights_toy_bs64_ld4_mse_adam_lr0.001_wd0_be0.1_history.pth'...
+History saved to 'metric_history/base_log_weights_toy_bs64_ld4_mse_adam_lr0.001_wd0_be0.1_history.pth'
+
+Epoch   4/ 30: 'base_log_weights_toy_bs64_ld4_mse_adam_lr0.001_wd0_be0.1'
+Estimated training validation loop completion: 18-Jan-2025 00:11:19
+--------------------------------------------------
+Processed [   64/ 3781]
+Estimated train loop completion: 17-Jan-2025 22:00:03
+Batch metrics (train):
+	Loss =   0.0445
+	Accuracy =  99.06%
+	F1 score (unweighted average across all classes for batch) = 0.2125
+
+Processed [ 3264/ 3781]
+Estimated train loop completion: 17-Jan-2025 22:00:08
+Batch metrics (train):
+	Loss =   0.0417
+	Accuracy =  99.10%
+	F1 score (unweighted average across all classes for batch) = 0.2133
+
+Train metrics (averages):
+	Recon loss =   0.0389
+	KL div =   0.0003
+	Accuracy =  99.10%
+	F1 score (weighted average) = 0.9910
+
+Processed [   64/  541]
+Estimated test/validation loop completion: 17-Jan-2025 22:00:44
+Batch metrics (test):
+	Loss =   0.0373
+	Accuracy =  99.14%
+	F1 score (unweighted average across all classes for batch) = 0.2385
+
+Test metrics (averages):
+	Recon loss =   0.0381
+	KL div =   0.0009
+	Accuracy =  99.11%
+	F1 score (weighted average) = 0.9912
+
+Checkpointing model and optimizer...
+Model saved to 'model_checkpoints/base_log_weights_toy_bs64_ld4_mse_adam_lr0.001_wd0_be0.1/best_loss_epoch_4.pth'
+
+Saving history to: 'base_log_weights_toy_bs64_ld4_mse_adam_lr0.001_wd0_be0.1_history.pth'...
+History saved to 'metric_history/base_log_weights_toy_bs64_ld4_mse_adam_lr0.001_wd0_be0.1_history.pth'
+
+Pruning old checkpoints...
+Old improvement files pruned.
+
+Epoch   5/ 30: 'base_log_weights_toy_bs64_ld4_mse_adam_lr0.001_wd0_be0.1'
+Estimated training validation loop completion: 18-Jan-2025 00:11:22
+--------------------------------------------------
+Processed [   64/ 3781]
+Estimated train loop completion: 17-Jan-2025 22:05:12
+Batch metrics (train):
+	Loss =   0.0386
+	Accuracy =  99.04%
+	F1 score (unweighted average across all classes for batch) = 0.2270
+
+Processed [ 3264/ 3781]
+Estimated train loop completion: 17-Jan-2025 22:05:09
+Batch metrics (train):
+	Loss =   0.0359
+	Accuracy =  99.02%
+	F1 score (unweighted average across all classes for batch) = 0.2123
+
+Train metrics (averages):
+	Recon loss =   0.0389
+	KL div =   0.0002
+	Accuracy =  99.10%
+	F1 score (weighted average) = 0.9910
+
+Processed [   64/  541]
+Estimated test/validation loop completion: 17-Jan-2025 22:05:45
+Batch metrics (test):
+	Loss =   0.0370
+	Accuracy =  99.14%
+	F1 score (unweighted average across all classes for batch) = 0.2310
+
+Test metrics (averages):
+	Recon loss =   0.0379
+	KL div =   0.0009
+	Accuracy =  99.11%
+	F1 score (weighted average) = 0.9912
+
+Checkpointing model and optimizer...
+Model saved to 'model_checkpoints/base_log_weights_toy_bs64_ld4_mse_adam_lr0.001_wd0_be0.1/best_loss_epoch_5.pth'
+
+Saving history to: 'base_log_weights_toy_bs64_ld4_mse_adam_lr0.001_wd0_be0.1_history.pth'...
+History saved to 'metric_history/base_log_weights_toy_bs64_ld4_mse_adam_lr0.001_wd0_be0.1_history.pth'
+
+Pruning old checkpoints...
+Old improvement files pruned.
+
+Epoch   6/ 30: 'base_log_weights_toy_bs64_ld4_mse_adam_lr0.001_wd0_be0.1'
+Estimated training validation loop completion: 18-Jan-2025 00:11:18
+--------------------------------------------------
+Processed [   64/ 3781]
+Estimated train loop completion: 17-Jan-2025 22:10:13
+Batch metrics (train):
+	Loss =   0.0361
+	Accuracy =  99.11%
+	F1 score (unweighted average across all classes for batch) = 0.2244
+
+Processed [ 3264/ 3781]
+Estimated train loop completion: 17-Jan-2025 22:10:09
+Batch metrics (train):
+	Loss =   0.0371
+	Accuracy =  99.02%
+	F1 score (unweighted average across all classes for batch) = 0.2191
+
+Train metrics (averages):
+	Recon loss =   0.0387
+	KL div =   0.0002
+	Accuracy =  99.10%
+	F1 score (weighted average) = 0.9910
+
+Processed [   64/  541]
+Estimated test/validation loop completion: 17-Jan-2025 22:10:45
+Batch metrics (test):
+	Loss =   0.0371
+	Accuracy =  99.14%
+	F1 score (unweighted average across all classes for batch) = 0.2249
+
+Test metrics (averages):
+	Recon loss =   0.0381
+	KL div =   0.0008
+	Accuracy =  99.10%
+	F1 score (weighted average) = 0.9911
+
+Saving history to: 'base_log_weights_toy_bs64_ld4_mse_adam_lr0.001_wd0_be0.1_history.pth'...
+History saved to 'metric_history/base_log_weights_toy_bs64_ld4_mse_adam_lr0.001_wd0_be0.1_history.pth'
+
+Epoch   7/ 30: 'base_log_weights_toy_bs64_ld4_mse_adam_lr0.001_wd0_be0.1'
+Estimated training validation loop completion: 18-Jan-2025 00:11:13
+--------------------------------------------------
+Processed [   64/ 3781]
+Estimated train loop completion: 17-Jan-2025 22:15:04
+Batch metrics (train):
+	Loss =   0.0437
+	Accuracy =  99.05%
+	F1 score (unweighted average across all classes for batch) = 0.2166
+
+Processed [ 3264/ 3781]
+Estimated train loop completion: 17-Jan-2025 22:15:10
+Batch metrics (train):
+	Loss =   0.0412
+	Accuracy =  99.05%
+	F1 score (unweighted average across all classes for batch) = 0.2170
+
+Train metrics (averages):
+	Recon loss =   0.0389
+	KL div =   0.0002
+	Accuracy =  99.07%
+	F1 score (weighted average) = 0.9908
+
+Processed [   64/  541]
+Estimated test/validation loop completion: 17-Jan-2025 22:15:46
+Batch metrics (test):
+	Loss =   0.0370
+	Accuracy =  99.03%
+	F1 score (unweighted average across all classes for batch) = 0.2248
+
+Test metrics (averages):
+	Recon loss =   0.0378
+	KL div =   0.0008
+	Accuracy =  99.01%
+	F1 score (weighted average) = 0.9907
+
+Checkpointing model and optimizer...
+Model saved to 'model_checkpoints/base_log_weights_toy_bs64_ld4_mse_adam_lr0.001_wd0_be0.1/best_loss_epoch_7.pth'
+
+Saving history to: 'base_log_weights_toy_bs64_ld4_mse_adam_lr0.001_wd0_be0.1_history.pth'...
+History saved to 'metric_history/base_log_weights_toy_bs64_ld4_mse_adam_lr0.001_wd0_be0.1_history.pth'
+
+Pruning old checkpoints...
+Old improvement files pruned.
+
+Epoch   8/ 30: 'base_log_weights_toy_bs64_ld4_mse_adam_lr0.001_wd0_be0.1'
+Estimated training validation loop completion: 18-Jan-2025 00:11:12
+--------------------------------------------------
+Processed [   64/ 3781]
+Estimated train loop completion: 17-Jan-2025 22:20:14
+Batch metrics (train):
+	Loss =   0.0321
+	Accuracy =  99.05%
+	F1 score (unweighted average across all classes for batch) = 0.2214
+
+Processed [ 3264/ 3781]
+Estimated train loop completion: 17-Jan-2025 22:20:11
+Batch metrics (train):
+	Loss =   0.0415
+	Accuracy =  99.06%
+	F1 score (unweighted average across all classes for batch) = 0.2178
+
+Train metrics (averages):
+	Recon loss =   0.0386
+	KL div =   0.0001
+	Accuracy =  99.06%
+	F1 score (weighted average) = 0.9908
+
+Processed [   64/  541]
+Estimated test/validation loop completion: 17-Jan-2025 22:20:48
+Batch metrics (test):
+	Loss =   0.0371
+	Accuracy =  99.08%
+	F1 score (unweighted average across all classes for batch) = 0.2345
+
+Test metrics (averages):
+	Recon loss =   0.0381
+	KL div =   0.0007
+	Accuracy =  99.05%
+	F1 score (weighted average) = 0.9909
+
+Saving history to: 'base_log_weights_toy_bs64_ld4_mse_adam_lr0.001_wd0_be0.1_history.pth'...
+History saved to 'metric_history/base_log_weights_toy_bs64_ld4_mse_adam_lr0.001_wd0_be0.1_history.pth'
+
+Epoch   9/ 30: 'base_log_weights_toy_bs64_ld4_mse_adam_lr0.001_wd0_be0.1'
+Estimated training validation loop completion: 18-Jan-2025 00:11:12
+--------------------------------------------------
+Processed [   64/ 3781]
+Estimated train loop completion: 17-Jan-2025 22:25:08
+Batch metrics (train):
+	Loss =   0.0408
+	Accuracy =  99.06%
+	F1 score (unweighted average across all classes for batch) = 0.2334
+
+Processed [ 3264/ 3781]
+Estimated train loop completion: 17-Jan-2025 22:25:12
+Batch metrics (train):
+	Loss =   0.0332
+	Accuracy =  99.19%
+	F1 score (unweighted average across all classes for batch) = 0.2176
+
+Train metrics (averages):
+	Recon loss =   0.0388
+	KL div =   0.0001
+	Accuracy =  99.14%
+	F1 score (weighted average) = 0.9911
+
+Processed [   64/  541]
+Estimated test/validation loop completion: 17-Jan-2025 22:25:47
+Batch metrics (test):
+	Loss =   0.0369
+	Accuracy =  99.13%
+	F1 score (unweighted average across all classes for batch) = 0.2372
+
+Test metrics (averages):
+	Recon loss =   0.0379
+	KL div =   0.0007
+	Accuracy =  99.10%
+	F1 score (weighted average) = 0.9911
+
+Saving history to: 'base_log_weights_toy_bs64_ld4_mse_adam_lr0.001_wd0_be0.1_history.pth'...
+History saved to 'metric_history/base_log_weights_toy_bs64_ld4_mse_adam_lr0.001_wd0_be0.1_history.pth'
+
+Epoch  10/ 30: 'base_log_weights_toy_bs64_ld4_mse_adam_lr0.001_wd0_be0.1'
+Estimated training validation loop completion: 18-Jan-2025 00:11:11
+--------------------------------------------------
+Processed [   64/ 3781]
+Estimated train loop completion: 17-Jan-2025 22:30:08
+Batch metrics (train):
+	Loss =   0.0341
+	Accuracy =  99.10%
+	F1 score (unweighted average across all classes for batch) = 0.2292
+
+Processed [ 3264/ 3781]
+Estimated train loop completion: 17-Jan-2025 22:30:14
+Batch metrics (train):
+	Loss =   0.0445
+	Accuracy =  99.07%
+	F1 score (unweighted average across all classes for batch) = 0.2186
+
+Train metrics (averages):
+	Recon loss =   0.0385
+	KL div =   0.0001
+	Accuracy =  99.08%
+	F1 score (weighted average) = 0.9909
+
+Processed [   64/  541]
+Estimated test/validation loop completion: 17-Jan-2025 22:30:50
+Batch metrics (test):
+	Loss =   0.0372
+	Accuracy =  99.09%
+	F1 score (unweighted average across all classes for batch) = 0.2264
+
+Test metrics (averages):
+	Recon loss =   0.0381
+	KL div =   0.0007
+	Accuracy =  99.06%
+	F1 score (weighted average) = 0.9909
+
+Saving history to: 'base_log_weights_toy_bs64_ld4_mse_adam_lr0.001_wd0_be0.1_history.pth'...
+History saved to 'metric_history/base_log_weights_toy_bs64_ld4_mse_adam_lr0.001_wd0_be0.1_history.pth'
+
+Epoch  11/ 30: 'base_log_weights_toy_bs64_ld4_mse_adam_lr0.001_wd0_be0.1'
+Estimated training validation loop completion: 18-Jan-2025 00:11:12
+--------------------------------------------------
+Processed [   64/ 3781]
+Estimated train loop completion: 17-Jan-2025 22:35:19
+Batch metrics (train):
+	Loss =   0.0421
+	Accuracy =  99.02%
+	F1 score (unweighted average across all classes for batch) = 0.2168
+
+Processed [ 3264/ 3781]
+Estimated train loop completion: 17-Jan-2025 22:35:16
+Batch metrics (train):
+	Loss =   0.0377
+	Accuracy =  99.14%
+	F1 score (unweighted average across all classes for batch) = 0.2254
+
+Train metrics (averages):
+	Recon loss =   0.0386
+	KL div =   0.0001
+	Accuracy =  99.07%
+	F1 score (weighted average) = 0.9909
+
+Processed [   64/  541]
+Estimated test/validation loop completion: 17-Jan-2025 22:35:52
+Batch metrics (test):
+	Loss =   0.0369
+	Accuracy =  99.13%
+	F1 score (unweighted average across all classes for batch) = 0.2308
+
+Test metrics (averages):
+	Recon loss =   0.0378
+	KL div =   0.0006
+	Accuracy =  99.10%
+	F1 score (weighted average) = 0.9911
+
+Checkpointing model and optimizer...
+Model saved to 'model_checkpoints/base_log_weights_toy_bs64_ld4_mse_adam_lr0.001_wd0_be0.1/best_loss_epoch_11.pth'
+
+Saving history to: 'base_log_weights_toy_bs64_ld4_mse_adam_lr0.001_wd0_be0.1_history.pth'...
+History saved to 'metric_history/base_log_weights_toy_bs64_ld4_mse_adam_lr0.001_wd0_be0.1_history.pth'
+
+Pruning old checkpoints...
+Old improvement files pruned.
+
+Epoch  12/ 30: 'base_log_weights_toy_bs64_ld4_mse_adam_lr0.001_wd0_be0.1'
+Estimated training validation loop completion: 18-Jan-2025 00:11:14
+--------------------------------------------------
+Processed [   64/ 3781]
+Estimated train loop completion: 17-Jan-2025 22:40:23
+Batch metrics (train):
+	Loss =   0.0403
+	Accuracy =  99.10%
+	F1 score (unweighted average across all classes for batch) = 0.2173
+
+Processed [ 3264/ 3781]
+Estimated train loop completion: 17-Jan-2025 22:40:18
+Batch metrics (train):
+	Loss =   0.0403
+	Accuracy =  99.05%
+	F1 score (unweighted average across all classes for batch) = 0.2184
+
+Train metrics (averages):
+	Recon loss =   0.0388
+	KL div =   0.0001
+	Accuracy =  99.09%
+	F1 score (weighted average) = 0.9910
+
+Processed [   64/  541]
+Estimated test/validation loop completion: 17-Jan-2025 22:40:55
+Batch metrics (test):
+	Loss =   0.0372
+	Accuracy =  99.15%
+	F1 score (unweighted average across all classes for batch) = 0.2266
+
+Test metrics (averages):
+	Recon loss =   0.0381
+	KL div =   0.0006
+	Accuracy =  99.11%
+	F1 score (weighted average) = 0.9911
+
+Saving history to: 'base_log_weights_toy_bs64_ld4_mse_adam_lr0.001_wd0_be0.1_history.pth'...
+History saved to 'metric_history/base_log_weights_toy_bs64_ld4_mse_adam_lr0.001_wd0_be0.1_history.pth'
+
+Epoch  13/ 30: 'base_log_weights_toy_bs64_ld4_mse_adam_lr0.001_wd0_be0.1'
+Estimated training validation loop completion: 18-Jan-2025 00:11:17
+--------------------------------------------------
+Processed [   64/ 3781]
+Estimated train loop completion: 17-Jan-2025 22:45:25
+Batch metrics (train):
+	Loss =   0.0368
+	Accuracy =  99.12%
+	F1 score (unweighted average across all classes for batch) = 0.2229
+
+Processed [ 3264/ 3781]
+Estimated train loop completion: 17-Jan-2025 22:45:21
+Batch metrics (train):
+	Loss =   0.0355
+	Accuracy =  99.05%
+	F1 score (unweighted average across all classes for batch) = 0.2193
+
+Train metrics (averages):
+	Recon loss =   0.0386
+	KL div =   0.0001
+	Accuracy =  99.08%
+	F1 score (weighted average) = 0.9909
+
+Processed [   64/  541]
+Estimated test/validation loop completion: 17-Jan-2025 22:45:57
+Batch metrics (test):
+	Loss =   0.0369
+	Accuracy =  99.17%
+	F1 score (unweighted average across all classes for batch) = 0.2258
+
+Test metrics (averages):
+	Recon loss =   0.0378
+	KL div =   0.0006
+	Accuracy =  99.14%
+	F1 score (weighted average) = 0.9913
+
+Checkpointing model and optimizer...
+Model saved to 'model_checkpoints/base_log_weights_toy_bs64_ld4_mse_adam_lr0.001_wd0_be0.1/best_loss_epoch_13.pth'
+
+Saving history to: 'base_log_weights_toy_bs64_ld4_mse_adam_lr0.001_wd0_be0.1_history.pth'...
+History saved to 'metric_history/base_log_weights_toy_bs64_ld4_mse_adam_lr0.001_wd0_be0.1_history.pth'
+
+Pruning old checkpoints...
+Old improvement files pruned.
+
+Epoch  14/ 30: 'base_log_weights_toy_bs64_ld4_mse_adam_lr0.001_wd0_be0.1'
+Estimated training validation loop completion: 18-Jan-2025 00:11:21
+--------------------------------------------------
+Processed [   64/ 3781]
+Estimated train loop completion: 17-Jan-2025 22:50:19
+Batch metrics (train):
+	Loss =   0.0333
+	Accuracy =  99.14%
+	F1 score (unweighted average across all classes for batch) = 0.2215
+
+Processed [ 3264/ 3781]
+Estimated train loop completion: 17-Jan-2025 22:50:24
+Batch metrics (train):
+	Loss =   0.0321
+	Accuracy =  99.09%
+	F1 score (unweighted average across all classes for batch) = 0.2233
+
+Train metrics (averages):
+	Recon loss =   0.0384
+	KL div =   0.0001
+	Accuracy =  99.09%
+	F1 score (weighted average) = 0.9909
+
+Processed [   64/  541]
+Estimated test/validation loop completion: 17-Jan-2025 22:51:00
+Batch metrics (test):
+	Loss =   0.0370
+	Accuracy =  99.01%
+	F1 score (unweighted average across all classes for batch) = 0.2232
+
+Test metrics (averages):
+	Recon loss =   0.0379
+	KL div =   0.0006
+	Accuracy =  98.98%
+	F1 score (weighted average) = 0.9905
+
+Saving history to: 'base_log_weights_toy_bs64_ld4_mse_adam_lr0.001_wd0_be0.1_history.pth'...
+History saved to 'metric_history/base_log_weights_toy_bs64_ld4_mse_adam_lr0.001_wd0_be0.1_history.pth'
+
+Epoch  15/ 30: 'base_log_weights_toy_bs64_ld4_mse_adam_lr0.001_wd0_be0.1'
+Estimated training validation loop completion: 18-Jan-2025 00:11:24
+--------------------------------------------------
+Processed [   64/ 3781]
+Estimated train loop completion: 17-Jan-2025 22:55:20
+Batch metrics (train):
+	Loss =   0.0396
+	Accuracy =  98.93%
+	F1 score (unweighted average across all classes for batch) = 0.2140
+
+Processed [ 3264/ 3781]
+Estimated train loop completion: 17-Jan-2025 22:55:25
+Batch metrics (train):
+	Loss =   0.0389
+	Accuracy =  99.10%
+	F1 score (unweighted average across all classes for batch) = 0.2178
+
+Train metrics (averages):
+	Recon loss =   0.0389
+	KL div =   0.0001
+	Accuracy =  99.08%
+	F1 score (weighted average) = 0.9909
+
+Processed [   64/  541]
+Estimated test/validation loop completion: 17-Jan-2025 22:56:01
+Batch metrics (test):
+	Loss =   0.0368
+	Accuracy =  99.11%
+	F1 score (unweighted average across all classes for batch) = 0.2270
+
+Test metrics (averages):
+	Recon loss =   0.0377
+	KL div =   0.0006
+	Accuracy =  99.08%
+	F1 score (weighted average) = 0.9910
+
+Checkpointing model and optimizer...
+Model saved to 'model_checkpoints/base_log_weights_toy_bs64_ld4_mse_adam_lr0.001_wd0_be0.1/best_loss_epoch_15.pth'
+
+Saving history to: 'base_log_weights_toy_bs64_ld4_mse_adam_lr0.001_wd0_be0.1_history.pth'...
+History saved to 'metric_history/base_log_weights_toy_bs64_ld4_mse_adam_lr0.001_wd0_be0.1_history.pth'
+
+Pruning old checkpoints...
+Old improvement files pruned.
+
+Epoch  16/ 30: 'base_log_weights_toy_bs64_ld4_mse_adam_lr0.001_wd0_be0.1'
+Estimated training validation loop completion: 18-Jan-2025 00:11:23
+--------------------------------------------------
+Processed [   64/ 3781]
+Estimated train loop completion: 17-Jan-2025 23:00:29
+Batch metrics (train):
+	Loss =   0.0390
+	Accuracy =  99.03%
+	F1 score (unweighted average across all classes for batch) = 0.2182
+
+Processed [ 3264/ 3781]
+Estimated train loop completion: 17-Jan-2025 23:00:26
+Batch metrics (train):
+	Loss =   0.0387
+	Accuracy =  99.11%
+	F1 score (unweighted average across all classes for batch) = 0.2230
+
+Train metrics (averages):
+	Recon loss =   0.0385
+	KL div =   0.0002
+	Accuracy =  99.09%
+	F1 score (weighted average) = 0.9909
+
+Processed [   64/  541]
+Estimated test/validation loop completion: 17-Jan-2025 23:01:02
+Batch metrics (test):
+	Loss =   0.0367
+	Accuracy =  99.14%
+	F1 score (unweighted average across all classes for batch) = 0.2264
+
+Test metrics (averages):
+	Recon loss =   0.0376
+	KL div =   0.0005
+	Accuracy =  99.10%
+	F1 score (weighted average) = 0.9911
+
+Checkpointing model and optimizer...
+Model saved to 'model_checkpoints/base_log_weights_toy_bs64_ld4_mse_adam_lr0.001_wd0_be0.1/best_loss_epoch_16.pth'
+
+Saving history to: 'base_log_weights_toy_bs64_ld4_mse_adam_lr0.001_wd0_be0.1_history.pth'...
+History saved to 'metric_history/base_log_weights_toy_bs64_ld4_mse_adam_lr0.001_wd0_be0.1_history.pth'
+
+Pruning old checkpoints...
+Old improvement files pruned.
+
+Epoch  17/ 30: 'base_log_weights_toy_bs64_ld4_mse_adam_lr0.001_wd0_be0.1'
+Estimated training validation loop completion: 18-Jan-2025 00:11:21
+--------------------------------------------------
+Processed [   64/ 3781]
+Estimated train loop completion: 17-Jan-2025 23:05:30
+Batch metrics (train):
+	Loss =   0.0394
+	Accuracy =  99.10%
+	F1 score (unweighted average across all classes for batch) = 0.2243
+
+Processed [ 3264/ 3781]
+Estimated train loop completion: 17-Jan-2025 23:05:26
+Batch metrics (train):
+	Loss =   0.0469
+	Accuracy =  99.05%
+	F1 score (unweighted average across all classes for batch) = 0.2129
+
+Train metrics (averages):
+	Recon loss =   0.0383
+	KL div =   0.0001
+	Accuracy =  99.07%
+	F1 score (weighted average) = 0.9909
+
+Processed [   64/  541]
+Estimated test/validation loop completion: 17-Jan-2025 23:06:02
+Batch metrics (test):
+	Loss =   0.0367
+	Accuracy =  99.09%
+	F1 score (unweighted average across all classes for batch) = 0.2251
+
+Test metrics (averages):
+	Recon loss =   0.0376
+	KL div =   0.0005
+	Accuracy =  99.06%
+	F1 score (weighted average) = 0.9909
+
+Checkpointing model and optimizer...
+Model saved to 'model_checkpoints/base_log_weights_toy_bs64_ld4_mse_adam_lr0.001_wd0_be0.1/best_loss_epoch_17.pth'
+
+Saving history to: 'base_log_weights_toy_bs64_ld4_mse_adam_lr0.001_wd0_be0.1_history.pth'...
+History saved to 'metric_history/base_log_weights_toy_bs64_ld4_mse_adam_lr0.001_wd0_be0.1_history.pth'
+
+Pruning old checkpoints...
+Old improvement files pruned.
+
+Epoch  18/ 30: 'base_log_weights_toy_bs64_ld4_mse_adam_lr0.001_wd0_be0.1'
+Estimated training validation loop completion: 18-Jan-2025 00:11:19
+--------------------------------------------------
+Processed [   64/ 3781]
+Estimated train loop completion: 17-Jan-2025 23:10:21
+Batch metrics (train):
+	Loss =   0.0348
+	Accuracy =  99.04%
+	F1 score (unweighted average across all classes for batch) = 0.2170
+
+Processed [ 3264/ 3781]
+Estimated train loop completion: 17-Jan-2025 23:10:27
+Batch metrics (train):
+	Loss =   0.0367
+	Accuracy =  99.15%
+	F1 score (unweighted average across all classes for batch) = 0.2238
+
+Train metrics (averages):
+	Recon loss =   0.0385
+	KL div =   0.0001
+	Accuracy =  99.08%
+	F1 score (weighted average) = 0.9909
+
+Processed [   64/  541]
+Estimated test/validation loop completion: 17-Jan-2025 23:11:04
+Batch metrics (test):
+	Loss =   0.0368
+	Accuracy =  99.14%
+	F1 score (unweighted average across all classes for batch) = 0.2271
+
+Test metrics (averages):
+	Recon loss =   0.0376
+	KL div =   0.0005
+	Accuracy =  99.11%
+	F1 score (weighted average) = 0.9911
+
+Saving history to: 'base_log_weights_toy_bs64_ld4_mse_adam_lr0.001_wd0_be0.1_history.pth'...
+History saved to 'metric_history/base_log_weights_toy_bs64_ld4_mse_adam_lr0.001_wd0_be0.1_history.pth'
+
+Epoch  19/ 30: 'base_log_weights_toy_bs64_ld4_mse_adam_lr0.001_wd0_be0.1'
+Estimated training validation loop completion: 18-Jan-2025 00:11:18
+--------------------------------------------------
+Processed [   64/ 3781]
+Estimated train loop completion: 17-Jan-2025 23:15:32
+Batch metrics (train):
+	Loss =   0.0446
+	Accuracy =  99.06%
+	F1 score (unweighted average across all classes for batch) = 0.2149
+
+Processed [ 3264/ 3781]
+Estimated train loop completion: 17-Jan-2025 23:15:28
+Batch metrics (train):
+	Loss =   0.0321
+	Accuracy =  99.16%
+	F1 score (unweighted average across all classes for batch) = 0.2157
+
+Train metrics (averages):
+	Recon loss =   0.0383
+	KL div =   0.0001
+	Accuracy =  99.08%
+	F1 score (weighted average) = 0.9909
+
+Processed [   64/  541]
+Estimated test/validation loop completion: 17-Jan-2025 23:16:04
+Batch metrics (test):
+	Loss =   0.0366
+	Accuracy =  99.11%
+	F1 score (unweighted average across all classes for batch) = 0.2255
+
+Test metrics (averages):
+	Recon loss =   0.0375
+	KL div =   0.0004
+	Accuracy =  99.08%
+	F1 score (weighted average) = 0.9910
+
+Checkpointing model and optimizer...
+Model saved to 'model_checkpoints/base_log_weights_toy_bs64_ld4_mse_adam_lr0.001_wd0_be0.1/best_loss_epoch_19.pth'
+
+Saving history to: 'base_log_weights_toy_bs64_ld4_mse_adam_lr0.001_wd0_be0.1_history.pth'...
+History saved to 'metric_history/base_log_weights_toy_bs64_ld4_mse_adam_lr0.001_wd0_be0.1_history.pth'
+
+Pruning old checkpoints...
+Old improvement files pruned.
+
+Epoch  20/ 30: 'base_log_weights_toy_bs64_ld4_mse_adam_lr0.001_wd0_be0.1'
+Estimated training validation loop completion: 18-Jan-2025 00:11:18
+--------------------------------------------------
+Processed [   64/ 3781]
+Estimated train loop completion: 17-Jan-2025 23:20:25
+Batch metrics (train):
+	Loss =   0.0442
+	Accuracy =  99.04%
+	F1 score (unweighted average across all classes for batch) = 0.2173
+
+Processed [ 3264/ 3781]
+Estimated train loop completion: 17-Jan-2025 23:20:29
+Batch metrics (train):
+	Loss =   0.0401
+	Accuracy =  99.11%
+	F1 score (unweighted average across all classes for batch) = 0.2214
+
+Train metrics (averages):
+	Recon loss =   0.0383
+	KL div =   0.0000
+	Accuracy =  99.07%
+	F1 score (weighted average) = 0.9909
+
+Processed [   64/  541]
+Estimated test/validation loop completion: 17-Jan-2025 23:21:05
+Batch metrics (test):
+	Loss =   0.0366
+	Accuracy =  99.16%
+	F1 score (unweighted average across all classes for batch) = 0.2370
+
+Test metrics (averages):
+	Recon loss =   0.0376
+	KL div =   0.0004
+	Accuracy =  99.13%
+	F1 score (weighted average) = 0.9913
+
+Saving history to: 'base_log_weights_toy_bs64_ld4_mse_adam_lr0.001_wd0_be0.1_history.pth'...
+History saved to 'metric_history/base_log_weights_toy_bs64_ld4_mse_adam_lr0.001_wd0_be0.1_history.pth'
+
+Epoch  21/ 30: 'base_log_weights_toy_bs64_ld4_mse_adam_lr0.001_wd0_be0.1'
+Estimated training validation loop completion: 18-Jan-2025 00:11:17
+--------------------------------------------------
+Processed [   64/ 3781]
+Estimated train loop completion: 17-Jan-2025 23:25:26
+Batch metrics (train):
+	Loss =   0.0417
+	Accuracy =  99.12%
+	F1 score (unweighted average across all classes for batch) = 0.2321
+
+Processed [ 3264/ 3781]
+Estimated train loop completion: 17-Jan-2025 23:25:31
+Batch metrics (train):
+	Loss =   0.0382
+	Accuracy =  99.13%
+	F1 score (unweighted average across all classes for batch) = 0.2182
+
+Train metrics (averages):
+	Recon loss =   0.0386
+	KL div =   0.0000
+	Accuracy =  99.09%
+	F1 score (weighted average) = 0.9910
+
+Processed [   64/  541]
+Estimated test/validation loop completion: 17-Jan-2025 23:26:07
+Batch metrics (test):
+	Loss =   0.0365
+	Accuracy =  99.10%
+	F1 score (unweighted average across all classes for batch) = 0.2271
+
+Test metrics (averages):
+	Recon loss =   0.0375
+	KL div =   0.0004
+	Accuracy =  99.05%
+	F1 score (weighted average) = 0.9909
+
+Checkpointing model and optimizer...
+Model saved to 'model_checkpoints/base_log_weights_toy_bs64_ld4_mse_adam_lr0.001_wd0_be0.1/best_loss_epoch_21.pth'
+
+Saving history to: 'base_log_weights_toy_bs64_ld4_mse_adam_lr0.001_wd0_be0.1_history.pth'...
+History saved to 'metric_history/base_log_weights_toy_bs64_ld4_mse_adam_lr0.001_wd0_be0.1_history.pth'
+
+Pruning old checkpoints...
+Old improvement files pruned.
+
+Epoch  22/ 30: 'base_log_weights_toy_bs64_ld4_mse_adam_lr0.001_wd0_be0.1'
+Estimated training validation loop completion: 18-Jan-2025 00:11:17
+--------------------------------------------------
+Processed [   64/ 3781]
+Estimated train loop completion: 17-Jan-2025 23:30:35
+Batch metrics (train):
+	Loss =   0.0389
+	Accuracy =  99.05%
+	F1 score (unweighted average across all classes for batch) = 0.2252
+
+Processed [ 3264/ 3781]
+Estimated train loop completion: 17-Jan-2025 23:30:32
+Batch metrics (train):
+	Loss =   0.0383
+	Accuracy =  99.09%
+	F1 score (unweighted average across all classes for batch) = 0.2191
+
+Train metrics (averages):
+	Recon loss =   0.0384
+	KL div =   0.0000
+	Accuracy =  99.07%
+	F1 score (weighted average) = 0.9909
+
+Processed [   64/  541]
+Estimated test/validation loop completion: 17-Jan-2025 23:31:08
+Batch metrics (test):
+	Loss =   0.0366
+	Accuracy =  99.08%
+	F1 score (unweighted average across all classes for batch) = 0.2249
+
+Test metrics (averages):
+	Recon loss =   0.0375
+	KL div =   0.0004
+	Accuracy =  99.04%
+	F1 score (weighted average) = 0.9908
+
+Saving history to: 'base_log_weights_toy_bs64_ld4_mse_adam_lr0.001_wd0_be0.1_history.pth'...
+History saved to 'metric_history/base_log_weights_toy_bs64_ld4_mse_adam_lr0.001_wd0_be0.1_history.pth'
+
+Epoch  23/ 30: 'base_log_weights_toy_bs64_ld4_mse_adam_lr0.001_wd0_be0.1'
+Estimated training validation loop completion: 18-Jan-2025 00:11:16
+--------------------------------------------------
+Processed [   64/ 3781]
+Estimated train loop completion: 17-Jan-2025 23:35:38
+Batch metrics (train):
+	Loss =   0.0373
+	Accuracy =  99.03%
+	F1 score (unweighted average across all classes for batch) = 0.2176
+
+Processed [ 3264/ 3781]
+Estimated train loop completion: 17-Jan-2025 23:35:32
+Batch metrics (train):
+	Loss =   0.0394
+	Accuracy =  99.08%
+	F1 score (unweighted average across all classes for batch) = 0.2241
+
+Train metrics (averages):
+	Recon loss =   0.0384
+	KL div =   0.0000
+	Accuracy =  99.08%
+	F1 score (weighted average) = 0.9909
+
+Processed [   64/  541]
+Estimated test/validation loop completion: 17-Jan-2025 23:36:09
+Batch metrics (test):
+	Loss =   0.0371
+	Accuracy =  99.18%
+	F1 score (unweighted average across all classes for batch) = 0.2228
+
+Test metrics (averages):
+	Recon loss =   0.0378
+	KL div =   0.0004
+	Accuracy =  99.16%
+	F1 score (weighted average) = 0.9914
+
+Saving history to: 'base_log_weights_toy_bs64_ld4_mse_adam_lr0.001_wd0_be0.1_history.pth'...
+History saved to 'metric_history/base_log_weights_toy_bs64_ld4_mse_adam_lr0.001_wd0_be0.1_history.pth'
+
+Epoch  24/ 30: 'base_log_weights_toy_bs64_ld4_mse_adam_lr0.001_wd0_be0.1'
+Estimated training validation loop completion: 18-Jan-2025 00:11:15
+--------------------------------------------------
+Processed [   64/ 3781]
+Estimated train loop completion: 17-Jan-2025 23:40:37
+Batch metrics (train):
+	Loss =   0.0380
+	Accuracy =  99.13%
+	F1 score (unweighted average across all classes for batch) = 0.2194
+
+Processed [ 3264/ 3781]
+Estimated train loop completion: 17-Jan-2025 23:40:34
+Batch metrics (train):
+	Loss =   0.0378
+	Accuracy =  99.05%
+	F1 score (unweighted average across all classes for batch) = 0.2190
+
+Train metrics (averages):
+	Recon loss =   0.0383
+	KL div =   0.0000
+	Accuracy =  99.09%
+	F1 score (weighted average) = 0.9910
+
+Processed [   64/  541]
+Estimated test/validation loop completion: 17-Jan-2025 23:41:10
+Batch metrics (test):
+	Loss =   0.0368
+	Accuracy =  99.11%
+	F1 score (unweighted average across all classes for batch) = 0.2272
+
+Test metrics (averages):
+	Recon loss =   0.0376
+	KL div =   0.0004
+	Accuracy =  99.08%
+	F1 score (weighted average) = 0.9910
+
+Saving history to: 'base_log_weights_toy_bs64_ld4_mse_adam_lr0.001_wd0_be0.1_history.pth'...
+History saved to 'metric_history/base_log_weights_toy_bs64_ld4_mse_adam_lr0.001_wd0_be0.1_history.pth'
+
+Epoch  25/ 30: 'base_log_weights_toy_bs64_ld4_mse_adam_lr0.001_wd0_be0.1'
+Estimated training validation loop completion: 18-Jan-2025 00:11:15
+--------------------------------------------------
+Processed [   64/ 3781]
+Estimated train loop completion: 17-Jan-2025 23:45:37
+Batch metrics (train):
+	Loss =   0.0401
+	Accuracy =  99.05%
+	F1 score (unweighted average across all classes for batch) = 0.2302
+
+Processed [ 3264/ 3781]
+Estimated train loop completion: 17-Jan-2025 23:45:35
+Batch metrics (train):
+	Loss =   0.0386
+	Accuracy =  99.14%
+	F1 score (unweighted average across all classes for batch) = 0.2274
+
+Train metrics (averages):
+	Recon loss =   0.0383
+	KL div =   0.0000
+	Accuracy =  99.08%
+	F1 score (weighted average) = 0.9909
+
+Processed [   64/  541]
+Estimated test/validation loop completion: 17-Jan-2025 23:46:10
+Batch metrics (test):
+	Loss =   0.0364
+	Accuracy =  99.14%
+	F1 score (unweighted average across all classes for batch) = 0.2266
+
+Test metrics (averages):
+	Recon loss =   0.0374
+	KL div =   0.0004
+	Accuracy =  99.11%
+	F1 score (weighted average) = 0.9912
+
+Checkpointing model and optimizer...
+Model saved to 'model_checkpoints/base_log_weights_toy_bs64_ld4_mse_adam_lr0.001_wd0_be0.1/best_loss_epoch_25.pth'
+
+Saving history to: 'base_log_weights_toy_bs64_ld4_mse_adam_lr0.001_wd0_be0.1_history.pth'...
+History saved to 'metric_history/base_log_weights_toy_bs64_ld4_mse_adam_lr0.001_wd0_be0.1_history.pth'
+
+Pruning old checkpoints...
+Old improvement files pruned.
+
+Epoch  26/ 30: 'base_log_weights_toy_bs64_ld4_mse_adam_lr0.001_wd0_be0.1'
+Estimated training validation loop completion: 18-Jan-2025 00:11:15
+--------------------------------------------------
+Processed [   64/ 3781]
+Estimated train loop completion: 17-Jan-2025 23:50:32
+Batch metrics (train):
+	Loss =   0.0422
+	Accuracy =  99.00%
+	F1 score (unweighted average across all classes for batch) = 0.2130
+
+Processed [ 3264/ 3781]
+Estimated train loop completion: 17-Jan-2025 23:50:36
+Batch metrics (train):
+	Loss =   0.0427
+	Accuracy =  99.07%
+	F1 score (unweighted average across all classes for batch) = 0.2188
+
+Train metrics (averages):
+	Recon loss =   0.0384
+	KL div =   0.0000
+	Accuracy =  99.08%
+	F1 score (weighted average) = 0.9909
+
+Processed [   64/  541]
+Estimated test/validation loop completion: 17-Jan-2025 23:51:11
+Batch metrics (test):
+	Loss =   0.0367
+	Accuracy =  99.12%
+	F1 score (unweighted average across all classes for batch) = 0.2267
+
+Test metrics (averages):
+	Recon loss =   0.0376
+	KL div =   0.0004
+	Accuracy =  99.08%
+	F1 score (weighted average) = 0.9910
+
+Saving history to: 'base_log_weights_toy_bs64_ld4_mse_adam_lr0.001_wd0_be0.1_history.pth'...
+History saved to 'metric_history/base_log_weights_toy_bs64_ld4_mse_adam_lr0.001_wd0_be0.1_history.pth'
+
+Epoch  27/ 30: 'base_log_weights_toy_bs64_ld4_mse_adam_lr0.001_wd0_be0.1'
+Estimated training validation loop completion: 18-Jan-2025 00:11:14
+--------------------------------------------------
+Processed [   64/ 3781]
+Estimated train loop completion: 17-Jan-2025 23:55:31
+Batch metrics (train):
+	Loss =   0.0362
+	Accuracy =  99.12%
+	F1 score (unweighted average across all classes for batch) = 0.2307
+
+Processed [ 3264/ 3781]
+Estimated train loop completion: 17-Jan-2025 23:55:36
+Batch metrics (train):
+	Loss =   0.0370
+	Accuracy =  99.07%
+	F1 score (unweighted average across all classes for batch) = 0.2193
+
+Train metrics (averages):
+	Recon loss =   0.0384
+	KL div =   0.0000
+	Accuracy =  99.08%
+	F1 score (weighted average) = 0.9909
+
+Processed [   64/  541]
+Estimated test/validation loop completion: 17-Jan-2025 23:56:12
+Batch metrics (test):
+	Loss =   0.0365
+	Accuracy =  99.11%
+	F1 score (unweighted average across all classes for batch) = 0.2266
+
+Test metrics (averages):
+	Recon loss =   0.0374
+	KL div =   0.0004
+	Accuracy =  99.08%
+	F1 score (weighted average) = 0.9910
+
+Saving history to: 'base_log_weights_toy_bs64_ld4_mse_adam_lr0.001_wd0_be0.1_history.pth'...
+History saved to 'metric_history/base_log_weights_toy_bs64_ld4_mse_adam_lr0.001_wd0_be0.1_history.pth'
+
+Epoch  28/ 30: 'base_log_weights_toy_bs64_ld4_mse_adam_lr0.001_wd0_be0.1'
+Estimated training validation loop completion: 18-Jan-2025 00:11:14
+--------------------------------------------------
+Processed [   64/ 3781]
+Estimated train loop completion: 18-Jan-2025 00:00:41
+Batch metrics (train):
+	Loss =   0.0339
+	Accuracy =  99.08%
+	F1 score (unweighted average across all classes for batch) = 0.2344
+
+Processed [ 3264/ 3781]
+Estimated train loop completion: 18-Jan-2025 00:00:38
+Batch metrics (train):
+	Loss =   0.0359
+	Accuracy =  99.05%
+	F1 score (unweighted average across all classes for batch) = 0.2176
+
+Train metrics (averages):
+	Recon loss =   0.0383
+	KL div =   0.0000
+	Accuracy =  99.07%
+	F1 score (weighted average) = 0.9909
+
+Processed [   64/  541]
+Estimated test/validation loop completion: 18-Jan-2025 00:01:14
+Batch metrics (test):
+	Loss =   0.0363
+	Accuracy =  99.11%
+	F1 score (unweighted average across all classes for batch) = 0.2271
+
+Test metrics (averages):
+	Recon loss =   0.0375
+	KL div =   0.0004
+	Accuracy =  99.07%
+	F1 score (weighted average) = 0.9910
+
+Saving history to: 'base_log_weights_toy_bs64_ld4_mse_adam_lr0.001_wd0_be0.1_history.pth'...
+History saved to 'metric_history/base_log_weights_toy_bs64_ld4_mse_adam_lr0.001_wd0_be0.1_history.pth'
+
+Epoch  29/ 30: 'base_log_weights_toy_bs64_ld4_mse_adam_lr0.001_wd0_be0.1'
+Estimated training validation loop completion: 18-Jan-2025 00:11:13
+--------------------------------------------------
+Processed [   64/ 3781]
+Estimated train loop completion: 18-Jan-2025 00:05:33
+Batch metrics (train):
+	Loss =   0.0389
+	Accuracy =  99.04%
+	F1 score (unweighted average across all classes for batch) = 0.2205
+
+Processed [ 3264/ 3781]
+Estimated train loop completion: 18-Jan-2025 00:05:38
+Batch metrics (train):
+	Loss =   0.0431
+	Accuracy =  99.00%
+	F1 score (unweighted average across all classes for batch) = 0.2136
+
+Train metrics (averages):
+	Recon loss =   0.0383
+	KL div =   0.0000
+	Accuracy =  99.08%
+	F1 score (weighted average) = 0.9909
+
+Processed [   64/  541]
+Estimated test/validation loop completion: 18-Jan-2025 00:06:15
+Batch metrics (test):
+	Loss =   0.0364
+	Accuracy =  99.17%
+	F1 score (unweighted average across all classes for batch) = 0.2311
+
+Test metrics (averages):
+	Recon loss =   0.0374
+	KL div =   0.0004
+	Accuracy =  99.13%
+	F1 score (weighted average) = 0.9913
+
+Saving history to: 'base_log_weights_toy_bs64_ld4_mse_adam_lr0.001_wd0_be0.1_history.pth'...
+History saved to 'metric_history/base_log_weights_toy_bs64_ld4_mse_adam_lr0.001_wd0_be0.1_history.pth'
+
+Epoch  30/ 30: 'base_log_weights_toy_bs64_ld4_mse_adam_lr0.001_wd0_be0.1'
+Estimated training validation loop completion: 18-Jan-2025 00:11:13
+--------------------------------------------------
+Processed [   64/ 3781]
+Estimated train loop completion: 18-Jan-2025 00:10:43
+Batch metrics (train):
+	Loss =   0.0365
+	Accuracy =  99.17%
+	F1 score (unweighted average across all classes for batch) = 0.2232
+
+Processed [ 3264/ 3781]
+Estimated train loop completion: 18-Jan-2025 00:10:39
+Batch metrics (train):
+	Loss =   0.0389
+	Accuracy =  98.99%
+	F1 score (unweighted average across all classes for batch) = 0.2166
+
+Train metrics (averages):
+	Recon loss =   0.0383
+	KL div =   0.0000
+	Accuracy =  99.07%
+	F1 score (weighted average) = 0.9909
+
+Processed [   64/  541]
+Estimated test/validation loop completion: 18-Jan-2025 00:11:16
+Batch metrics (test):
+	Loss =   0.0365
+	Accuracy =  99.17%
+	F1 score (unweighted average across all classes for batch) = 0.2267
+
+Test metrics (averages):
+	Recon loss =   0.0374
+	KL div =   0.0004
+	Accuracy =  99.13%
+	F1 score (weighted average) = 0.9913
+
+Checkpointing model and optimizer...
+Model saved to 'model_checkpoints/base_log_weights_toy_bs64_ld4_mse_adam_lr0.001_wd0_be0.1/best_loss_epoch_30.pth'
+
+Checkpointing model and optimizer...
+Model saved to 'model_checkpoints/base_log_weights_toy_bs64_ld4_mse_adam_lr0.001_wd0_be0.1/final_model_epoch_30.pth'
+
+Saving history to: 'base_log_weights_toy_bs64_ld4_mse_adam_lr0.001_wd0_be0.1_history.pth'...
+History saved to 'metric_history/base_log_weights_toy_bs64_ld4_mse_adam_lr0.001_wd0_be0.1_history.pth'
+
+Pruning old checkpoints...
+Old improvement files pruned.
+
+Train / Validation loop complete!
+==================================================
+
+Added 'base_log_weights_toy_bs64_ld4_mse_adam_lr0.001_wd0_be0.1_history.pth' to 'metric_history/grid_search_list.txt'
+
+Configuration [   4/   4]:
+Estimated grid search training completion: 18-Jan-2025 02:11:52
+==================================================
+Train / Validation loop started...
+
+New training history object created 'base_log_weights_toy_bs64_ld4_bce_adam_lr0.001_wd0_be0.1'
+
+Epoch   1/ 30: 'base_log_weights_toy_bs64_ld4_bce_adam_lr0.001_wd0_be0.1'
+--------------------------------------------------
+Processed [   64/ 3781]
+Estimated train loop completion: 18-Jan-2025 00:15:39
+Batch metrics (train):
+	Loss =   6.4524
+	Accuracy =   0.08%
+	F1 score (unweighted average across all classes for batch) = 0.0003
+
+Processed [ 3264/ 3781]
+Estimated train loop completion: 18-Jan-2025 00:15:41
+Batch metrics (train):
+	Loss =   0.3976
+	Accuracy =  98.98%
+	F1 score (unweighted average across all classes for batch) = 0.2245
+
+Train metrics (averages):
+	Recon loss =   1.0486
+	KL div =   0.0665
+	Accuracy =  83.31%
+	F1 score (weighted average) = 0.8394
+
+Processed [   64/  541]
+Estimated test/validation loop completion: 18-Jan-2025 00:16:16
+Batch metrics (test):
+	Loss =   0.3217
+	Accuracy =  99.02%
+	F1 score (unweighted average across all classes for batch) = 0.2229
+
+Test metrics (averages):
+	Recon loss =   0.3294
+	KL div =   0.0088
+	Accuracy =  98.91%
+	F1 score (weighted average) = 0.9901
+
+Checkpointing model and optimizer...
+Creating directory '/users/40538519/sharedscratch/outputs/model_checkpoints/base_log_weights_toy_bs64_ld4_bce_adam_lr0.001_wd0_be0.1'...
+Model saved to 'model_checkpoints/base_log_weights_toy_bs64_ld4_bce_adam_lr0.001_wd0_be0.1/best_loss_epoch_1.pth'
+
+Checkpointing model and optimizer...
+Model saved to 'model_checkpoints/base_log_weights_toy_bs64_ld4_bce_adam_lr0.001_wd0_be0.1/best_f1_avg_epoch_1.pth'
+
+Saving history to: 'base_log_weights_toy_bs64_ld4_bce_adam_lr0.001_wd0_be0.1_history.pth'...
+History saved to 'metric_history/base_log_weights_toy_bs64_ld4_bce_adam_lr0.001_wd0_be0.1_history.pth'
+
+Pruning old checkpoints...
+Old improvement files pruned.
+
+Epoch   2/ 30: 'base_log_weights_toy_bs64_ld4_bce_adam_lr0.001_wd0_be0.1'
+Estimated training validation loop completion: 18-Jan-2025 02:42:07
+--------------------------------------------------
+Processed [   64/ 3781]
+Estimated train loop completion: 18-Jan-2025 00:20:37
+Batch metrics (train):
+	Loss =   0.3655
+	Accuracy =  98.93%
+	F1 score (unweighted average across all classes for batch) = 0.2243
+
+Processed [ 3264/ 3781]
+Estimated train loop completion: 18-Jan-2025 00:20:43
+Batch metrics (train):
+	Loss =   0.3157
+	Accuracy =  98.95%
+	F1 score (unweighted average across all classes for batch) = 0.2223
+
+Train metrics (averages):
+	Recon loss =   0.3182
+	KL div =   0.0063
+	Accuracy =  98.94%
+	F1 score (weighted average) = 0.9902
+
+Processed [   64/  541]
+Estimated test/validation loop completion: 18-Jan-2025 00:21:19
+Batch metrics (test):
+	Loss =   0.3092
+	Accuracy =  98.95%
+	F1 score (unweighted average across all classes for batch) = 0.2264
+
+Test metrics (averages):
+	Recon loss =   0.3086
+	KL div =   0.0026
+	Accuracy =  98.94%
+	F1 score (weighted average) = 0.9903
+
+Checkpointing model and optimizer...
+Model saved to 'model_checkpoints/base_log_weights_toy_bs64_ld4_bce_adam_lr0.001_wd0_be0.1/best_loss_epoch_2.pth'
+
+Checkpointing model and optimizer...
+Model saved to 'model_checkpoints/base_log_weights_toy_bs64_ld4_bce_adam_lr0.001_wd0_be0.1/best_f1_avg_epoch_2.pth'
+
+Saving history to: 'base_log_weights_toy_bs64_ld4_bce_adam_lr0.001_wd0_be0.1_history.pth'...
+History saved to 'metric_history/base_log_weights_toy_bs64_ld4_bce_adam_lr0.001_wd0_be0.1_history.pth'
+
+Pruning old checkpoints...
+Old improvement files pruned.
+
+Epoch   3/ 30: 'base_log_weights_toy_bs64_ld4_bce_adam_lr0.001_wd0_be0.1'
+Estimated training validation loop completion: 18-Jan-2025 02:42:03
+--------------------------------------------------
+Processed [   64/ 3781]
+Estimated train loop completion: 18-Jan-2025 00:25:42
+Batch metrics (train):
+	Loss =   0.3277
+	Accuracy =  98.92%
+	F1 score (unweighted average across all classes for batch) = 0.2198
+
+Processed [ 3264/ 3781]
+Estimated train loop completion: 18-Jan-2025 00:25:44
+Batch metrics (train):
+	Loss =   0.3394
+	Accuracy =  98.92%
+	F1 score (unweighted average across all classes for batch) = 0.2170
+
+Train metrics (averages):
+	Recon loss =   0.3095
+	KL div =   0.0023
+	Accuracy =  98.97%
+	F1 score (weighted average) = 0.9903
+
+Processed [   64/  541]
+Estimated test/validation loop completion: 18-Jan-2025 00:26:20
+Batch metrics (test):
+	Loss =   0.2835
+	Accuracy =  99.02%
+	F1 score (unweighted average across all classes for batch) = 0.2242
+
+Test metrics (averages):
+	Recon loss =   0.2983
+	KL div =   0.0018
+	Accuracy =  99.01%
+	F1 score (weighted average) = 0.9907
+
+Checkpointing model and optimizer...
+Model saved to 'model_checkpoints/base_log_weights_toy_bs64_ld4_bce_adam_lr0.001_wd0_be0.1/best_loss_epoch_3.pth'
+
+Checkpointing model and optimizer...
+Model saved to 'model_checkpoints/base_log_weights_toy_bs64_ld4_bce_adam_lr0.001_wd0_be0.1/best_f1_avg_epoch_3.pth'
+
+Saving history to: 'base_log_weights_toy_bs64_ld4_bce_adam_lr0.001_wd0_be0.1_history.pth'...
+History saved to 'metric_history/base_log_weights_toy_bs64_ld4_bce_adam_lr0.001_wd0_be0.1_history.pth'
+
+Pruning old checkpoints...
+Old improvement files pruned.
+
+Epoch   4/ 30: 'base_log_weights_toy_bs64_ld4_bce_adam_lr0.001_wd0_be0.1'
+Estimated training validation loop completion: 18-Jan-2025 02:41:58
+--------------------------------------------------
+Processed [   64/ 3781]
+Estimated train loop completion: 18-Jan-2025 00:30:47
+Batch metrics (train):
+	Loss =   0.3238
+	Accuracy =  98.98%
+	F1 score (unweighted average across all classes for batch) = 0.2156
+
+Processed [ 3264/ 3781]
+Estimated train loop completion: 18-Jan-2025 00:30:45
+Batch metrics (train):
+	Loss =   0.2754
+	Accuracy =  99.11%
+	F1 score (unweighted average across all classes for batch) = 0.2186
+
+Train metrics (averages):
+	Recon loss =   0.2990
+	KL div =   0.0013
+	Accuracy =  99.05%
+	F1 score (weighted average) = 0.9907
+
+Processed [   64/  541]
+Estimated test/validation loop completion: 18-Jan-2025 00:31:20
+Batch metrics (test):
+	Loss =   0.2823
+	Accuracy =  99.11%
+	F1 score (unweighted average across all classes for batch) = 0.2262
+
+Test metrics (averages):
+	Recon loss =   0.2912
+	KL div =   0.0012
+	Accuracy =  99.08%
+	F1 score (weighted average) = 0.9910
+
+Checkpointing model and optimizer...
+Model saved to 'model_checkpoints/base_log_weights_toy_bs64_ld4_bce_adam_lr0.001_wd0_be0.1/best_loss_epoch_4.pth'
+
+Checkpointing model and optimizer...
+Model saved to 'model_checkpoints/base_log_weights_toy_bs64_ld4_bce_adam_lr0.001_wd0_be0.1/best_f1_avg_epoch_4.pth'
+
+Saving history to: 'base_log_weights_toy_bs64_ld4_bce_adam_lr0.001_wd0_be0.1_history.pth'...
+History saved to 'metric_history/base_log_weights_toy_bs64_ld4_bce_adam_lr0.001_wd0_be0.1_history.pth'
+
+Pruning old checkpoints...
+Old improvement files pruned.
+
+Epoch   5/ 30: 'base_log_weights_toy_bs64_ld4_bce_adam_lr0.001_wd0_be0.1'
+Estimated training validation loop completion: 18-Jan-2025 02:41:56
+--------------------------------------------------
+Processed [   64/ 3781]
+Estimated train loop completion: 18-Jan-2025 00:35:50
+Batch metrics (train):
+	Loss =   0.3222
+	Accuracy =  99.01%
+	F1 score (unweighted average across all classes for batch) = 0.2172
+
+Processed [ 3264/ 3781]
+Estimated train loop completion: 18-Jan-2025 00:35:46
+Batch metrics (train):
+	Loss =   0.3150
+	Accuracy =  99.10%
+	F1 score (unweighted average across all classes for batch) = 0.2216
+
+Train metrics (averages):
+	Recon loss =   0.2961
+	KL div =   0.0007
+	Accuracy =  99.07%
+	F1 score (weighted average) = 0.9909
+
+Processed [   64/  541]
+Estimated test/validation loop completion: 18-Jan-2025 00:36:21
+Batch metrics (test):
+	Loss =   0.2759
+	Accuracy =  99.09%
+	F1 score (unweighted average across all classes for batch) = 0.2264
+
+Test metrics (averages):
+	Recon loss =   0.2887
+	KL div =   0.0010
+	Accuracy =  99.06%
+	F1 score (weighted average) = 0.9909
+
+Checkpointing model and optimizer...
+Model saved to 'model_checkpoints/base_log_weights_toy_bs64_ld4_bce_adam_lr0.001_wd0_be0.1/best_loss_epoch_5.pth'
+
+Saving history to: 'base_log_weights_toy_bs64_ld4_bce_adam_lr0.001_wd0_be0.1_history.pth'...
+History saved to 'metric_history/base_log_weights_toy_bs64_ld4_bce_adam_lr0.001_wd0_be0.1_history.pth'
+
+Pruning old checkpoints...
+Old improvement files pruned.
+
+Epoch   6/ 30: 'base_log_weights_toy_bs64_ld4_bce_adam_lr0.001_wd0_be0.1'
+Estimated training validation loop completion: 18-Jan-2025 02:41:53
+--------------------------------------------------
+Processed [   64/ 3781]
+Estimated train loop completion: 18-Jan-2025 00:40:42
+Batch metrics (train):
+	Loss =   0.2912
+	Accuracy =  99.01%
+	F1 score (unweighted average across all classes for batch) = 0.2167
+
+Processed [ 3264/ 3781]
+Estimated train loop completion: 18-Jan-2025 00:40:47
+Batch metrics (train):
+	Loss =   0.3141
+	Accuracy =  99.05%
+	F1 score (unweighted average across all classes for batch) = 0.2147
+
+Train metrics (averages):
+	Recon loss =   0.2925
+	KL div =   0.0004
+	Accuracy =  99.06%
+	F1 score (weighted average) = 0.9908
+
+Processed [   64/  541]
+Estimated test/validation loop completion: 18-Jan-2025 00:41:23
+Batch metrics (test):
+	Loss =   0.2753
+	Accuracy =  99.10%
+	F1 score (unweighted average across all classes for batch) = 0.2258
+
+Test metrics (averages):
+	Recon loss =   0.2865
+	KL div =   0.0008
+	Accuracy =  99.08%
+	F1 score (weighted average) = 0.9910
+
+Checkpointing model and optimizer...
+Model saved to 'model_checkpoints/base_log_weights_toy_bs64_ld4_bce_adam_lr0.001_wd0_be0.1/best_loss_epoch_6.pth'
+
+Saving history to: 'base_log_weights_toy_bs64_ld4_bce_adam_lr0.001_wd0_be0.1_history.pth'...
+History saved to 'metric_history/base_log_weights_toy_bs64_ld4_bce_adam_lr0.001_wd0_be0.1_history.pth'
+
+Pruning old checkpoints...
+Old improvement files pruned.
+
+Epoch   7/ 30: 'base_log_weights_toy_bs64_ld4_bce_adam_lr0.001_wd0_be0.1'
+Estimated training validation loop completion: 18-Jan-2025 02:41:53
+--------------------------------------------------
+Processed [   64/ 3781]
+Estimated train loop completion: 18-Jan-2025 00:45:43
+Batch metrics (train):
+	Loss =   0.2905
+	Accuracy =  99.05%
+	F1 score (unweighted average across all classes for batch) = 0.2206
+
+Processed [ 3264/ 3781]
+Estimated train loop completion: 18-Jan-2025 00:45:48
+Batch metrics (train):
+	Loss =   0.2867
+	Accuracy =  99.14%
+	F1 score (unweighted average across all classes for batch) = 0.2285
+
+Train metrics (averages):
+	Recon loss =   0.2937
+	KL div =   0.0003
+	Accuracy =  99.05%
+	F1 score (weighted average) = 0.9907
+
+Processed [   64/  541]
+Estimated test/validation loop completion: 18-Jan-2025 00:46:25
+Batch metrics (test):
+	Loss =   0.2742
+	Accuracy =  99.11%
+	F1 score (unweighted average across all classes for batch) = 0.2265
+
+Test metrics (averages):
+	Recon loss =   0.2858
+	KL div =   0.0007
+	Accuracy =  99.08%
+	F1 score (weighted average) = 0.9910
+
+Checkpointing model and optimizer...
+Model saved to 'model_checkpoints/base_log_weights_toy_bs64_ld4_bce_adam_lr0.001_wd0_be0.1/best_loss_epoch_7.pth'
+
+Saving history to: 'base_log_weights_toy_bs64_ld4_bce_adam_lr0.001_wd0_be0.1_history.pth'...
+History saved to 'metric_history/base_log_weights_toy_bs64_ld4_bce_adam_lr0.001_wd0_be0.1_history.pth'
+
+Pruning old checkpoints...
+Old improvement files pruned.
+
+Epoch   8/ 30: 'base_log_weights_toy_bs64_ld4_bce_adam_lr0.001_wd0_be0.1'
+Estimated training validation loop completion: 18-Jan-2025 02:41:51
+--------------------------------------------------
+Processed [   64/ 3781]
+Estimated train loop completion: 18-Jan-2025 00:50:52
+Batch metrics (train):
+	Loss =   0.3023
+	Accuracy =  99.04%
+	F1 score (unweighted average across all classes for batch) = 0.2192
+
+Processed [ 3264/ 3781]
+Estimated train loop completion: 18-Jan-2025 00:50:49
+Batch metrics (train):
+	Loss =   0.2761
+	Accuracy =  99.08%
+	F1 score (unweighted average across all classes for batch) = 0.2207
+
+Train metrics (averages):
+	Recon loss =   0.2942
+	KL div =   0.0002
+	Accuracy =  99.07%
+	F1 score (weighted average) = 0.9908
+
+Processed [   64/  541]
+Estimated test/validation loop completion: 18-Jan-2025 00:51:26
+Batch metrics (test):
+	Loss =   0.2762
+	Accuracy =  99.17%
+	F1 score (unweighted average across all classes for batch) = 0.2272
+
+Test metrics (averages):
+	Recon loss =   0.2860
+	KL div =   0.0007
+	Accuracy =  99.13%
+	F1 score (weighted average) = 0.9912
+
+Checkpointing model and optimizer...
+Model saved to 'model_checkpoints/base_log_weights_toy_bs64_ld4_bce_adam_lr0.001_wd0_be0.1/best_f1_avg_epoch_8.pth'
+
+Saving history to: 'base_log_weights_toy_bs64_ld4_bce_adam_lr0.001_wd0_be0.1_history.pth'...
+History saved to 'metric_history/base_log_weights_toy_bs64_ld4_bce_adam_lr0.001_wd0_be0.1_history.pth'
+
+Pruning old checkpoints...
+Old improvement files pruned.
+
+Epoch   9/ 30: 'base_log_weights_toy_bs64_ld4_bce_adam_lr0.001_wd0_be0.1'
+Estimated training validation loop completion: 18-Jan-2025 02:41:50
+--------------------------------------------------
+Processed [   64/ 3781]
+Estimated train loop completion: 18-Jan-2025 00:55:46
+Batch metrics (train):
+	Loss =   0.2858
+	Accuracy =  99.12%
+	F1 score (unweighted average across all classes for batch) = 0.2207
+
+Processed [ 3264/ 3781]
+Estimated train loop completion: 18-Jan-2025 00:55:50
+Batch metrics (train):
+	Loss =   0.3099
+	Accuracy =  99.07%
+	F1 score (unweighted average across all classes for batch) = 0.2203
+
+Train metrics (averages):
+	Recon loss =   0.2911
+	KL div =   0.0001
+	Accuracy =  99.07%
+	F1 score (weighted average) = 0.9908
+
+Processed [   64/  541]
+Estimated test/validation loop completion: 18-Jan-2025 00:56:27
+Batch metrics (test):
+	Loss =   0.2754
+	Accuracy =  99.11%
+	F1 score (unweighted average across all classes for batch) = 0.2265
+
+Test metrics (averages):
+	Recon loss =   0.2865
+	KL div =   0.0006
+	Accuracy =  99.08%
+	F1 score (weighted average) = 0.9910
+
+Saving history to: 'base_log_weights_toy_bs64_ld4_bce_adam_lr0.001_wd0_be0.1_history.pth'...
+History saved to 'metric_history/base_log_weights_toy_bs64_ld4_bce_adam_lr0.001_wd0_be0.1_history.pth'
+
+Epoch  10/ 30: 'base_log_weights_toy_bs64_ld4_bce_adam_lr0.001_wd0_be0.1'
+Estimated training validation loop completion: 18-Jan-2025 02:41:49
+--------------------------------------------------
+Processed [   64/ 3781]
+Estimated train loop completion: 18-Jan-2025 01:00:54
+Batch metrics (train):
+	Loss =   0.2804
+	Accuracy =  99.03%
+	F1 score (unweighted average across all classes for batch) = 0.2189
+
+Processed [ 3264/ 3781]
+Estimated train loop completion: 18-Jan-2025 01:00:51
+Batch metrics (train):
+	Loss =   0.2798
+	Accuracy =  99.11%
+	F1 score (unweighted average across all classes for batch) = 0.2194
+
+Train metrics (averages):
+	Recon loss =   0.2904
+	KL div =   0.0001
+	Accuracy =  99.06%
+	F1 score (weighted average) = 0.9908
+
+Processed [   64/  541]
+Estimated test/validation loop completion: 18-Jan-2025 01:01:27
+Batch metrics (test):
+	Loss =   0.2743
+	Accuracy =  99.14%
+	F1 score (unweighted average across all classes for batch) = 0.2264
+
+Test metrics (averages):
+	Recon loss =   0.2859
+	KL div =   0.0006
+	Accuracy =  99.11%
+	F1 score (weighted average) = 0.9911
+
+Saving history to: 'base_log_weights_toy_bs64_ld4_bce_adam_lr0.001_wd0_be0.1_history.pth'...
+History saved to 'metric_history/base_log_weights_toy_bs64_ld4_bce_adam_lr0.001_wd0_be0.1_history.pth'
+
+Epoch  11/ 30: 'base_log_weights_toy_bs64_ld4_bce_adam_lr0.001_wd0_be0.1'
+Estimated training validation loop completion: 18-Jan-2025 02:41:48
+--------------------------------------------------
+Processed [   64/ 3781]
+Estimated train loop completion: 18-Jan-2025 01:05:48
+Batch metrics (train):
+	Loss =   0.2941
+	Accuracy =  99.05%
+	F1 score (unweighted average across all classes for batch) = 0.2157
+
+Processed [ 3264/ 3781]
+Estimated train loop completion: 18-Jan-2025 01:05:52
+Batch metrics (train):
+	Loss =   0.3025
+	Accuracy =  99.06%
+	F1 score (unweighted average across all classes for batch) = 0.2205
+
+Train metrics (averages):
+	Recon loss =   0.2933
+	KL div =   0.0001
+	Accuracy =  99.07%
+	F1 score (weighted average) = 0.9909
+
+Processed [   64/  541]
+Estimated test/validation loop completion: 18-Jan-2025 01:06:28
+Batch metrics (test):
+	Loss =   0.2740
+	Accuracy =  99.17%
+	F1 score (unweighted average across all classes for batch) = 0.2268
+
+Test metrics (averages):
+	Recon loss =   0.2858
+	KL div =   0.0006
+	Accuracy =  99.14%
+	F1 score (weighted average) = 0.9913
+
+Checkpointing model and optimizer...
+Model saved to 'model_checkpoints/base_log_weights_toy_bs64_ld4_bce_adam_lr0.001_wd0_be0.1/best_loss_epoch_11.pth'
+
+Checkpointing model and optimizer...
+Model saved to 'model_checkpoints/base_log_weights_toy_bs64_ld4_bce_adam_lr0.001_wd0_be0.1/best_f1_avg_epoch_11.pth'
+
+Saving history to: 'base_log_weights_toy_bs64_ld4_bce_adam_lr0.001_wd0_be0.1_history.pth'...
+History saved to 'metric_history/base_log_weights_toy_bs64_ld4_bce_adam_lr0.001_wd0_be0.1_history.pth'
+
+Pruning old checkpoints...
+Old improvement files pruned.
+
+Epoch  12/ 30: 'base_log_weights_toy_bs64_ld4_bce_adam_lr0.001_wd0_be0.1'
+Estimated training validation loop completion: 18-Jan-2025 02:41:46
+--------------------------------------------------
+Processed [   64/ 3781]
+Estimated train loop completion: 18-Jan-2025 01:10:56
+Batch metrics (train):
+	Loss =   0.3048
+	Accuracy =  99.10%
+	F1 score (unweighted average across all classes for batch) = 0.2214
+
+Processed [ 3264/ 3781]
+Estimated train loop completion: 18-Jan-2025 01:10:52
+Batch metrics (train):
+	Loss =   0.2958
+	Accuracy =  99.03%
+	F1 score (unweighted average across all classes for batch) = 0.2186
+
+Train metrics (averages):
+	Recon loss =   0.2903
+	KL div =   0.0001
+	Accuracy =  99.06%
+	F1 score (weighted average) = 0.9908
+
+Processed [   64/  541]
+Estimated test/validation loop completion: 18-Jan-2025 01:11:28
+Batch metrics (test):
+	Loss =   0.2735
+	Accuracy =  99.12%
+	F1 score (unweighted average across all classes for batch) = 0.2270
+
+Test metrics (averages):
+	Recon loss =   0.2853
+	KL div =   0.0005
+	Accuracy =  99.09%
+	F1 score (weighted average) = 0.9910
+
+Checkpointing model and optimizer...
+Model saved to 'model_checkpoints/base_log_weights_toy_bs64_ld4_bce_adam_lr0.001_wd0_be0.1/best_loss_epoch_12.pth'
+
+Saving history to: 'base_log_weights_toy_bs64_ld4_bce_adam_lr0.001_wd0_be0.1_history.pth'...
+History saved to 'metric_history/base_log_weights_toy_bs64_ld4_bce_adam_lr0.001_wd0_be0.1_history.pth'
+
+Pruning old checkpoints...
+Old improvement files pruned.
+
+Epoch  13/ 30: 'base_log_weights_toy_bs64_ld4_bce_adam_lr0.001_wd0_be0.1'
+Estimated training validation loop completion: 18-Jan-2025 02:41:44
+--------------------------------------------------
+Processed [   64/ 3781]
+Estimated train loop completion: 18-Jan-2025 01:15:55
+Batch metrics (train):
+	Loss =   0.2604
+	Accuracy =  99.07%
+	F1 score (unweighted average across all classes for batch) = 0.2170
+
+Processed [ 3264/ 3781]
+Estimated train loop completion: 18-Jan-2025 01:15:53
+Batch metrics (train):
+	Loss =   0.3033
+	Accuracy =  99.03%
+	F1 score (unweighted average across all classes for batch) = 0.2156
+
+Train metrics (averages):
+	Recon loss =   0.2920
+	KL div =   0.0001
+	Accuracy =  99.07%
+	F1 score (weighted average) = 0.9909
+
+Processed [   64/  541]
+Estimated test/validation loop completion: 18-Jan-2025 01:16:30
+Batch metrics (test):
+	Loss =   0.2747
+	Accuracy =  99.11%
+	F1 score (unweighted average across all classes for batch) = 0.2264
+
+Test metrics (averages):
+	Recon loss =   0.2855
+	KL div =   0.0005
+	Accuracy =  99.07%
+	F1 score (weighted average) = 0.9910
+
+Saving history to: 'base_log_weights_toy_bs64_ld4_bce_adam_lr0.001_wd0_be0.1_history.pth'...
+History saved to 'metric_history/base_log_weights_toy_bs64_ld4_bce_adam_lr0.001_wd0_be0.1_history.pth'
+
+Epoch  14/ 30: 'base_log_weights_toy_bs64_ld4_bce_adam_lr0.001_wd0_be0.1'
+Estimated training validation loop completion: 18-Jan-2025 02:41:45
+--------------------------------------------------
+Processed [   64/ 3781]
+Estimated train loop completion: 18-Jan-2025 01:20:50
+Batch metrics (train):
+	Loss =   0.2868
+	Accuracy =  99.08%
+	F1 score (unweighted average across all classes for batch) = 0.2245
+
+Processed [ 3264/ 3781]
+Estimated train loop completion: 18-Jan-2025 01:20:55
+Batch metrics (train):
+	Loss =   0.2469
+	Accuracy =  99.11%
+	F1 score (unweighted average across all classes for batch) = 0.2200
+
+Train metrics (averages):
+	Recon loss =   0.2907
+	KL div =   0.0001
+	Accuracy =  99.07%
+	F1 score (weighted average) = 0.9909
+
+Processed [   64/  541]
+Estimated test/validation loop completion: 18-Jan-2025 01:21:31
+Batch metrics (test):
+	Loss =   0.2744
+	Accuracy =  99.14%
+	F1 score (unweighted average across all classes for batch) = 0.2267
+
+Test metrics (averages):
+	Recon loss =   0.2849
+	KL div =   0.0005
+	Accuracy =  99.11%
+	F1 score (weighted average) = 0.9912
+
+Checkpointing model and optimizer...
+Model saved to 'model_checkpoints/base_log_weights_toy_bs64_ld4_bce_adam_lr0.001_wd0_be0.1/best_loss_epoch_14.pth'
+
+Saving history to: 'base_log_weights_toy_bs64_ld4_bce_adam_lr0.001_wd0_be0.1_history.pth'...
+History saved to 'metric_history/base_log_weights_toy_bs64_ld4_bce_adam_lr0.001_wd0_be0.1_history.pth'
+
+Pruning old checkpoints...
+Old improvement files pruned.
+
+Epoch  15/ 30: 'base_log_weights_toy_bs64_ld4_bce_adam_lr0.001_wd0_be0.1'
+Estimated training validation loop completion: 18-Jan-2025 02:41:46
+--------------------------------------------------
+Processed [   64/ 3781]
+Estimated train loop completion: 18-Jan-2025 01:26:00
+Batch metrics (train):
+	Loss =   0.2674
+	Accuracy =  99.08%
+	F1 score (unweighted average across all classes for batch) = 0.2165
+
+Processed [ 3264/ 3781]
+Estimated train loop completion: 18-Jan-2025 01:25:57
+Batch metrics (train):
+	Loss =   0.3026
+	Accuracy =  99.07%
+	F1 score (unweighted average across all classes for batch) = 0.2204
+
+Train metrics (averages):
+	Recon loss =   0.2907
+	KL div =   0.0001
+	Accuracy =  99.08%
+	F1 score (weighted average) = 0.9909
+
+Processed [   64/  541]
+Estimated test/validation loop completion: 18-Jan-2025 01:26:33
+Batch metrics (test):
+	Loss =   0.2729
+	Accuracy =  99.11%
+	F1 score (unweighted average across all classes for batch) = 0.2265
+
+Test metrics (averages):
+	Recon loss =   0.2846
+	KL div =   0.0005
+	Accuracy =  99.08%
+	F1 score (weighted average) = 0.9910
+
+Checkpointing model and optimizer...
+Model saved to 'model_checkpoints/base_log_weights_toy_bs64_ld4_bce_adam_lr0.001_wd0_be0.1/best_loss_epoch_15.pth'
+
+Saving history to: 'base_log_weights_toy_bs64_ld4_bce_adam_lr0.001_wd0_be0.1_history.pth'...
+History saved to 'metric_history/base_log_weights_toy_bs64_ld4_bce_adam_lr0.001_wd0_be0.1_history.pth'
+
+Pruning old checkpoints...
+Old improvement files pruned.
+
+Epoch  16/ 30: 'base_log_weights_toy_bs64_ld4_bce_adam_lr0.001_wd0_be0.1'
+Estimated training validation loop completion: 18-Jan-2025 02:41:47
+--------------------------------------------------
+Processed [   64/ 3781]
+Estimated train loop completion: 18-Jan-2025 01:31:00
+Batch metrics (train):
+	Loss =   0.3079
+	Accuracy =  99.06%
+	F1 score (unweighted average across all classes for batch) = 0.2233
+
+Processed [ 3264/ 3781]
+Estimated train loop completion: 18-Jan-2025 01:30:58
+Batch metrics (train):
+	Loss =   0.2801
+	Accuracy =  99.05%
+	F1 score (unweighted average across all classes for batch) = 0.2176
+
+Train metrics (averages):
+	Recon loss =   0.2920
+	KL div =   0.0001
+	Accuracy =  99.07%
+	F1 score (weighted average) = 0.9909
+
+Processed [   64/  541]
+Estimated test/validation loop completion: 18-Jan-2025 01:31:34
+Batch metrics (test):
+	Loss =   0.2746
+	Accuracy =  99.11%
+	F1 score (unweighted average across all classes for batch) = 0.2266
+
+Test metrics (averages):
+	Recon loss =   0.2854
+	KL div =   0.0005
+	Accuracy =  99.08%
+	F1 score (weighted average) = 0.9910
+
+Saving history to: 'base_log_weights_toy_bs64_ld4_bce_adam_lr0.001_wd0_be0.1_history.pth'...
+History saved to 'metric_history/base_log_weights_toy_bs64_ld4_bce_adam_lr0.001_wd0_be0.1_history.pth'
+
+Epoch  17/ 30: 'base_log_weights_toy_bs64_ld4_bce_adam_lr0.001_wd0_be0.1'
+Estimated training validation loop completion: 18-Jan-2025 02:41:47
+--------------------------------------------------
+Processed [   64/ 3781]
+Estimated train loop completion: 18-Jan-2025 01:35:54
+Batch metrics (train):
+	Loss =   0.2829
+	Accuracy =  99.06%
+	F1 score (unweighted average across all classes for batch) = 0.2190
+
+Processed [ 3264/ 3781]
+Estimated train loop completion: 18-Jan-2025 01:35:59
+Batch metrics (train):
+	Loss =   0.2926
+	Accuracy =  99.03%
+	F1 score (unweighted average across all classes for batch) = 0.2215
+
+Train metrics (averages):
+	Recon loss =   0.2922
+	KL div =   0.0001
+	Accuracy =  99.08%
+	F1 score (weighted average) = 0.9909
+
+Processed [   64/  541]
+Estimated test/validation loop completion: 18-Jan-2025 01:36:35
+Batch metrics (test):
+	Loss =   0.2753
+	Accuracy =  99.10%
+	F1 score (unweighted average across all classes for batch) = 0.2262
+
+Test metrics (averages):
+	Recon loss =   0.2854
+	KL div =   0.0005
+	Accuracy =  99.06%
+	F1 score (weighted average) = 0.9909
+
+Saving history to: 'base_log_weights_toy_bs64_ld4_bce_adam_lr0.001_wd0_be0.1_history.pth'...
+History saved to 'metric_history/base_log_weights_toy_bs64_ld4_bce_adam_lr0.001_wd0_be0.1_history.pth'
+
+Epoch  18/ 30: 'base_log_weights_toy_bs64_ld4_bce_adam_lr0.001_wd0_be0.1'
+Estimated training validation loop completion: 18-Jan-2025 02:41:47
+--------------------------------------------------
+Processed [   64/ 3781]
+Estimated train loop completion: 18-Jan-2025 01:41:03
+Batch metrics (train):
+	Loss =   0.2963
+	Accuracy =  99.07%
+	F1 score (unweighted average across all classes for batch) = 0.2222
+
+Processed [ 3264/ 3781]
+Estimated train loop completion: 18-Jan-2025 01:41:01
+Batch metrics (train):
+	Loss =   0.2817
+	Accuracy =  99.09%
+	F1 score (unweighted average across all classes for batch) = 0.2165
+
+Train metrics (averages):
+	Recon loss =   0.2898
+	KL div =   0.0001
+	Accuracy =  99.07%
+	F1 score (weighted average) = 0.9908
+
+Processed [   64/  541]
+Estimated test/validation loop completion: 18-Jan-2025 01:41:38
+Batch metrics (test):
+	Loss =   0.2739
+	Accuracy =  99.13%
+	F1 score (unweighted average across all classes for batch) = 0.2260
+
+Test metrics (averages):
+	Recon loss =   0.2850
+	KL div =   0.0005
+	Accuracy =  99.09%
+	F1 score (weighted average) = 0.9911
+
+Saving history to: 'base_log_weights_toy_bs64_ld4_bce_adam_lr0.001_wd0_be0.1_history.pth'...
+History saved to 'metric_history/base_log_weights_toy_bs64_ld4_bce_adam_lr0.001_wd0_be0.1_history.pth'
+
+Epoch  19/ 30: 'base_log_weights_toy_bs64_ld4_bce_adam_lr0.001_wd0_be0.1'
+Estimated training validation loop completion: 18-Jan-2025 02:41:49
+--------------------------------------------------
+Processed [   64/ 3781]
+Estimated train loop completion: 18-Jan-2025 01:46:07
+Batch metrics (train):
+	Loss =   0.3151
+	Accuracy =  99.04%
+	F1 score (unweighted average across all classes for batch) = 0.2202
+
+Processed [ 3264/ 3781]
+Estimated train loop completion: 18-Jan-2025 01:46:02
+Batch metrics (train):
+	Loss =   0.2795
+	Accuracy =  99.05%
+	F1 score (unweighted average across all classes for batch) = 0.2176
+
+Train metrics (averages):
+	Recon loss =   0.2906
+	KL div =   0.0001
+	Accuracy =  99.06%
+	F1 score (weighted average) = 0.9908
+
+Processed [   64/  541]
+Estimated test/validation loop completion: 18-Jan-2025 01:46:37
+Batch metrics (test):
+	Loss =   0.2749
+	Accuracy =  99.13%
+	F1 score (unweighted average across all classes for batch) = 0.2268
+
+Test metrics (averages):
+	Recon loss =   0.2853
+	KL div =   0.0004
+	Accuracy =  99.10%
+	F1 score (weighted average) = 0.9911
+
+Saving history to: 'base_log_weights_toy_bs64_ld4_bce_adam_lr0.001_wd0_be0.1_history.pth'...
+History saved to 'metric_history/base_log_weights_toy_bs64_ld4_bce_adam_lr0.001_wd0_be0.1_history.pth'
+
+Epoch  20/ 30: 'base_log_weights_toy_bs64_ld4_bce_adam_lr0.001_wd0_be0.1'
+Estimated training validation loop completion: 18-Jan-2025 02:41:49
+--------------------------------------------------
+Processed [   64/ 3781]
+Estimated train loop completion: 18-Jan-2025 01:50:58
+Batch metrics (train):
+	Loss =   0.3027
+	Accuracy =  99.01%
+	F1 score (unweighted average across all classes for batch) = 0.2124
+
+Processed [ 3264/ 3781]
+Estimated train loop completion: 18-Jan-2025 01:51:04
+Batch metrics (train):
+	Loss =   0.2782
+	Accuracy =  99.12%
+	F1 score (unweighted average across all classes for batch) = 0.2167
+
+Train metrics (averages):
+	Recon loss =   0.2886
+	KL div =   0.0001
+	Accuracy =  99.07%
+	F1 score (weighted average) = 0.9908
+
+Processed [   64/  541]
+Estimated test/validation loop completion: 18-Jan-2025 01:51:40
+Batch metrics (test):
+	Loss =   0.2724
+	Accuracy =  99.15%
+	F1 score (unweighted average across all classes for batch) = 0.2265
+
+Test metrics (averages):
+	Recon loss =   0.2844
+	KL div =   0.0004
+	Accuracy =  99.12%
+	F1 score (weighted average) = 0.9912
+
+Checkpointing model and optimizer...
+Model saved to 'model_checkpoints/base_log_weights_toy_bs64_ld4_bce_adam_lr0.001_wd0_be0.1/best_loss_epoch_20.pth'
+
+Saving history to: 'base_log_weights_toy_bs64_ld4_bce_adam_lr0.001_wd0_be0.1_history.pth'...
+History saved to 'metric_history/base_log_weights_toy_bs64_ld4_bce_adam_lr0.001_wd0_be0.1_history.pth'
+
+Pruning old checkpoints...
+Old improvement files pruned.
+
+Epoch  21/ 30: 'base_log_weights_toy_bs64_ld4_bce_adam_lr0.001_wd0_be0.1'
+Estimated training validation loop completion: 18-Jan-2025 02:41:49
+--------------------------------------------------
+Processed [   64/ 3781]
+Estimated train loop completion: 18-Jan-2025 01:56:09
+Batch metrics (train):
+	Loss =   0.2772
+	Accuracy =  99.18%
+	F1 score (unweighted average across all classes for batch) = 0.2291
+
+Processed [ 3264/ 3781]
+Estimated train loop completion: 18-Jan-2025 01:56:05
+Batch metrics (train):
+	Loss =   0.3166
+	Accuracy =  98.96%
+	F1 score (unweighted average across all classes for batch) = 0.2187
+
+Train metrics (averages):
+	Recon loss =   0.2912
+	KL div =   0.0001
+	Accuracy =  99.07%
+	F1 score (weighted average) = 0.9909
+
+Processed [   64/  541]
+Estimated test/validation loop completion: 18-Jan-2025 01:56:42
+Batch metrics (test):
+	Loss =   0.2747
+	Accuracy =  99.13%
+	F1 score (unweighted average across all classes for batch) = 0.2268
+
+Test metrics (averages):
+	Recon loss =   0.2854
+	KL div =   0.0005
+	Accuracy =  99.10%
+	F1 score (weighted average) = 0.9911
+
+Saving history to: 'base_log_weights_toy_bs64_ld4_bce_adam_lr0.001_wd0_be0.1_history.pth'...
+History saved to 'metric_history/base_log_weights_toy_bs64_ld4_bce_adam_lr0.001_wd0_be0.1_history.pth'
+
+Epoch  22/ 30: 'base_log_weights_toy_bs64_ld4_bce_adam_lr0.001_wd0_be0.1'
+Estimated training validation loop completion: 18-Jan-2025 02:41:50
+--------------------------------------------------
+Processed [   64/ 3781]
+Estimated train loop completion: 18-Jan-2025 02:01:02
+Batch metrics (train):
+	Loss =   0.2942
+	Accuracy =  99.07%
+	F1 score (unweighted average across all classes for batch) = 0.2238
+
+Processed [ 3264/ 3781]
+Estimated train loop completion: 18-Jan-2025 02:01:06
+Batch metrics (train):
+	Loss =   0.2739
+	Accuracy =  99.08%
+	F1 score (unweighted average across all classes for batch) = 0.2216
+
+Train metrics (averages):
+	Recon loss =   0.2904
+	KL div =   0.0001
+	Accuracy =  99.06%
+	F1 score (weighted average) = 0.9908
+
+Processed [   64/  541]
+Estimated test/validation loop completion: 18-Jan-2025 02:01:42
+Batch metrics (test):
+	Loss =   0.2753
+	Accuracy =  99.16%
+	F1 score (unweighted average across all classes for batch) = 0.2270
+
+Test metrics (averages):
+	Recon loss =   0.2849
+	KL div =   0.0004
+	Accuracy =  99.12%
+	F1 score (weighted average) = 0.9912
+
+Saving history to: 'base_log_weights_toy_bs64_ld4_bce_adam_lr0.001_wd0_be0.1_history.pth'...
+History saved to 'metric_history/base_log_weights_toy_bs64_ld4_bce_adam_lr0.001_wd0_be0.1_history.pth'
+
+Epoch  23/ 30: 'base_log_weights_toy_bs64_ld4_bce_adam_lr0.001_wd0_be0.1'
+Estimated training validation loop completion: 18-Jan-2025 02:41:50
+--------------------------------------------------
+Processed [   64/ 3781]
+Estimated train loop completion: 18-Jan-2025 02:06:03
+Batch metrics (train):
+	Loss =   0.2851
+	Accuracy =  99.08%
+	F1 score (unweighted average across all classes for batch) = 0.2163
+
+Processed [ 3264/ 3781]
+Estimated train loop completion: 18-Jan-2025 02:06:08
+Batch metrics (train):
+	Loss =   0.2851
+	Accuracy =  99.06%
+	F1 score (unweighted average across all classes for batch) = 0.2225
+
+Train metrics (averages):
+	Recon loss =   0.2898
+	KL div =   0.0001
+	Accuracy =  99.08%
+	F1 score (weighted average) = 0.9909
+
+Processed [   64/  541]
+Estimated test/validation loop completion: 18-Jan-2025 02:06:44
+Batch metrics (test):
+	Loss =   0.2736
+	Accuracy =  99.13%
+	F1 score (unweighted average across all classes for batch) = 0.2265
+
+Test metrics (averages):
+	Recon loss =   0.2845
+	KL div =   0.0004
+	Accuracy =  99.09%
+	F1 score (weighted average) = 0.9910
+
+Saving history to: 'base_log_weights_toy_bs64_ld4_bce_adam_lr0.001_wd0_be0.1_history.pth'...
+History saved to 'metric_history/base_log_weights_toy_bs64_ld4_bce_adam_lr0.001_wd0_be0.1_history.pth'
+
+Epoch  24/ 30: 'base_log_weights_toy_bs64_ld4_bce_adam_lr0.001_wd0_be0.1'
+Estimated training validation loop completion: 18-Jan-2025 02:41:50
+--------------------------------------------------
+Processed [   64/ 3781]
+Estimated train loop completion: 18-Jan-2025 02:11:12
+Batch metrics (train):
+	Loss =   0.2601
+	Accuracy =  99.08%
+	F1 score (unweighted average across all classes for batch) = 0.2198
+
+Processed [ 3264/ 3781]
+Estimated train loop completion: 18-Jan-2025 02:11:08
+Batch metrics (train):
+	Loss =   0.3072
+	Accuracy =  99.08%
+	F1 score (unweighted average across all classes for batch) = 0.2276
+
+Train metrics (averages):
+	Recon loss =   0.2893
+	KL div =   0.0001
+	Accuracy =  99.07%
+	F1 score (weighted average) = 0.9909
+
+Processed [   64/  541]
+Estimated test/validation loop completion: 18-Jan-2025 02:11:45
+Batch metrics (test):
+	Loss =   0.2732
+	Accuracy =  99.11%
+	F1 score (unweighted average across all classes for batch) = 0.2261
+
+Test metrics (averages):
+	Recon loss =   0.2848
+	KL div =   0.0004
+	Accuracy =  99.08%
+	F1 score (weighted average) = 0.9910
+
+Saving history to: 'base_log_weights_toy_bs64_ld4_bce_adam_lr0.001_wd0_be0.1_history.pth'...
+History saved to 'metric_history/base_log_weights_toy_bs64_ld4_bce_adam_lr0.001_wd0_be0.1_history.pth'
+
+Epoch  25/ 30: 'base_log_weights_toy_bs64_ld4_bce_adam_lr0.001_wd0_be0.1'
+Estimated training validation loop completion: 18-Jan-2025 02:41:49
+--------------------------------------------------
+Processed [   64/ 3781]
+Estimated train loop completion: 18-Jan-2025 02:16:03
+Batch metrics (train):
+	Loss =   0.3015
+	Accuracy =  99.04%
+	F1 score (unweighted average across all classes for batch) = 0.2200
+
+Processed [ 3264/ 3781]
+Estimated train loop completion: 18-Jan-2025 02:16:09
+Batch metrics (train):
+	Loss =   0.2764
+	Accuracy =  99.09%
+	F1 score (unweighted average across all classes for batch) = 0.2210
+
+Train metrics (averages):
+	Recon loss =   0.2894
+	KL div =   0.0000
+	Accuracy =  99.07%
+	F1 score (weighted average) = 0.9909
+
+Processed [   64/  541]
+Estimated test/validation loop completion: 18-Jan-2025 02:16:46
+Batch metrics (test):
+	Loss =   0.2729
+	Accuracy =  99.12%
+	F1 score (unweighted average across all classes for batch) = 0.2267
+
+Test metrics (averages):
+	Recon loss =   0.2842
+	KL div =   0.0004
+	Accuracy =  99.08%
+	F1 score (weighted average) = 0.9910
+
+Checkpointing model and optimizer...
+Model saved to 'model_checkpoints/base_log_weights_toy_bs64_ld4_bce_adam_lr0.001_wd0_be0.1/best_loss_epoch_25.pth'
+
+Saving history to: 'base_log_weights_toy_bs64_ld4_bce_adam_lr0.001_wd0_be0.1_history.pth'...
+History saved to 'metric_history/base_log_weights_toy_bs64_ld4_bce_adam_lr0.001_wd0_be0.1_history.pth'
+
+Pruning old checkpoints...
+Old improvement files pruned.
+
+Epoch  26/ 30: 'base_log_weights_toy_bs64_ld4_bce_adam_lr0.001_wd0_be0.1'
+Estimated training validation loop completion: 18-Jan-2025 02:41:49
+--------------------------------------------------
+Processed [   64/ 3781]
+Estimated train loop completion: 18-Jan-2025 02:21:17
+Batch metrics (train):
+	Loss =   0.2909
+	Accuracy =  99.06%
+	F1 score (unweighted average across all classes for batch) = 0.2196
+
+Processed [ 3264/ 3781]
+Estimated train loop completion: 18-Jan-2025 02:21:12
+Batch metrics (train):
+	Loss =   0.2710
+	Accuracy =  99.15%
+	F1 score (unweighted average across all classes for batch) = 0.2211
+
+Train metrics (averages):
+	Recon loss =   0.2918
+	KL div =   0.0000
+	Accuracy =  99.07%
+	F1 score (weighted average) = 0.9909
+
+Processed [   64/  541]
+Estimated test/validation loop completion: 18-Jan-2025 02:21:49
+Batch metrics (test):
+	Loss =   0.2731
+	Accuracy =  99.14%
+	F1 score (unweighted average across all classes for batch) = 0.2269
+
+Test metrics (averages):
+	Recon loss =   0.2839
+	KL div =   0.0004
+	Accuracy =  99.11%
+	F1 score (weighted average) = 0.9911
+
+Checkpointing model and optimizer...
+Model saved to 'model_checkpoints/base_log_weights_toy_bs64_ld4_bce_adam_lr0.001_wd0_be0.1/best_loss_epoch_26.pth'
+
+Saving history to: 'base_log_weights_toy_bs64_ld4_bce_adam_lr0.001_wd0_be0.1_history.pth'...
+History saved to 'metric_history/base_log_weights_toy_bs64_ld4_bce_adam_lr0.001_wd0_be0.1_history.pth'
+
+Pruning old checkpoints...
+Old improvement files pruned.
+
+Epoch  27/ 30: 'base_log_weights_toy_bs64_ld4_bce_adam_lr0.001_wd0_be0.1'
+Estimated training validation loop completion: 18-Jan-2025 02:41:51
+--------------------------------------------------
+Processed [   64/ 3781]
+Estimated train loop completion: 18-Jan-2025 02:26:18
+Batch metrics (train):
+	Loss =   0.2973
+	Accuracy =  99.07%
+	F1 score (unweighted average across all classes for batch) = 0.2202
+
+Processed [ 3264/ 3781]
+Estimated train loop completion: 18-Jan-2025 02:26:14
+Batch metrics (train):
+	Loss =   0.2731
+	Accuracy =  99.07%
+	F1 score (unweighted average across all classes for batch) = 0.2208
+
+Train metrics (averages):
+	Recon loss =   0.2917
+	KL div =   0.0000
+	Accuracy =  99.06%
+	F1 score (weighted average) = 0.9908
+
+Processed [   64/  541]
+Estimated test/validation loop completion: 18-Jan-2025 02:26:50
+Batch metrics (test):
+	Loss =   0.2757
+	Accuracy =  99.11%
+	F1 score (unweighted average across all classes for batch) = 0.2265
+
+Test metrics (averages):
+	Recon loss =   0.2852
+	KL div =   0.0004
+	Accuracy =  99.08%
+	F1 score (weighted average) = 0.9910
+
+Saving history to: 'base_log_weights_toy_bs64_ld4_bce_adam_lr0.001_wd0_be0.1_history.pth'...
+History saved to 'metric_history/base_log_weights_toy_bs64_ld4_bce_adam_lr0.001_wd0_be0.1_history.pth'
+
+Epoch  28/ 30: 'base_log_weights_toy_bs64_ld4_bce_adam_lr0.001_wd0_be0.1'
+Estimated training validation loop completion: 18-Jan-2025 02:41:51
+--------------------------------------------------
+Processed [   64/ 3781]
+Estimated train loop completion: 18-Jan-2025 02:31:10
+Batch metrics (train):
+	Loss =   0.2690
+	Accuracy =  99.07%
+	F1 score (unweighted average across all classes for batch) = 0.2193
+
+Processed [ 3264/ 3781]
+Estimated train loop completion: 18-Jan-2025 02:31:15
+Batch metrics (train):
+	Loss =   0.2800
+	Accuracy =  99.11%
+	F1 score (unweighted average across all classes for batch) = 0.2220
+
+Train metrics (averages):
+	Recon loss =   0.2913
+	KL div =   0.0000
+	Accuracy =  99.08%
+	F1 score (weighted average) = 0.9909
+
+Processed [   64/  541]
+Estimated test/validation loop completion: 18-Jan-2025 02:31:52
+Batch metrics (test):
+	Loss =   0.2748
+	Accuracy =  99.11%
+	F1 score (unweighted average across all classes for batch) = 0.2265
+
+Test metrics (averages):
+	Recon loss =   0.2847
+	KL div =   0.0003
+	Accuracy =  99.08%
+	F1 score (weighted average) = 0.9910
+
+Saving history to: 'base_log_weights_toy_bs64_ld4_bce_adam_lr0.001_wd0_be0.1_history.pth'...
+History saved to 'metric_history/base_log_weights_toy_bs64_ld4_bce_adam_lr0.001_wd0_be0.1_history.pth'
+
+Epoch  29/ 30: 'base_log_weights_toy_bs64_ld4_bce_adam_lr0.001_wd0_be0.1'
+Estimated training validation loop completion: 18-Jan-2025 02:41:51
+--------------------------------------------------
+Processed [   64/ 3781]
+Estimated train loop completion: 18-Jan-2025 02:36:19
+Batch metrics (train):
+	Loss =   0.2619
+	Accuracy =  99.09%
+	F1 score (unweighted average across all classes for batch) = 0.2244
+
+Processed [ 3264/ 3781]
+Estimated train loop completion: 18-Jan-2025 02:36:16
+Batch metrics (train):
+	Loss =   0.3009
+	Accuracy =  99.05%
+	F1 score (unweighted average across all classes for batch) = 0.2205
+
+Train metrics (averages):
+	Recon loss =   0.2900
+	KL div =   0.0000
+	Accuracy =  99.06%
+	F1 score (weighted average) = 0.9908
+
+Processed [   64/  541]
+Estimated test/validation loop completion: 18-Jan-2025 02:36:53
+Batch metrics (test):
+	Loss =   0.2735
+	Accuracy =  99.17%
+	F1 score (unweighted average across all classes for batch) = 0.2268
+
+Test metrics (averages):
+	Recon loss =   0.2843
+	KL div =   0.0003
+	Accuracy =  99.14%
+	F1 score (weighted average) = 0.9913
+
+Saving history to: 'base_log_weights_toy_bs64_ld4_bce_adam_lr0.001_wd0_be0.1_history.pth'...
+History saved to 'metric_history/base_log_weights_toy_bs64_ld4_bce_adam_lr0.001_wd0_be0.1_history.pth'
+
+Epoch  30/ 30: 'base_log_weights_toy_bs64_ld4_bce_adam_lr0.001_wd0_be0.1'
+Estimated training validation loop completion: 18-Jan-2025 02:41:51
+--------------------------------------------------
+Processed [   64/ 3781]
+Estimated train loop completion: 18-Jan-2025 02:41:21
+Batch metrics (train):
+	Loss =   0.3145
+	Accuracy =  99.06%
+	F1 score (unweighted average across all classes for batch) = 0.2142
+
+Processed [ 3264/ 3781]
+Estimated train loop completion: 18-Jan-2025 02:41:16
+Batch metrics (train):
+	Loss =   0.3076
+	Accuracy =  99.07%
+	F1 score (unweighted average across all classes for batch) = 0.2272
+
+Train metrics (averages):
+	Recon loss =   0.2889
+	KL div =   0.0000
+	Accuracy =  99.09%
+	F1 score (weighted average) = 0.9909
+
+Processed [   64/  541]
+Estimated test/validation loop completion: 18-Jan-2025 02:41:51
+Batch metrics (test):
+	Loss =   0.2741
+	Accuracy =  99.14%
+	F1 score (unweighted average across all classes for batch) = 0.2263
+
+Test metrics (averages):
+	Recon loss =   0.2847
+	KL div =   0.0003
+	Accuracy =  99.11%
+	F1 score (weighted average) = 0.9911
+
+Checkpointing model and optimizer...
+Model saved to 'model_checkpoints/base_log_weights_toy_bs64_ld4_bce_adam_lr0.001_wd0_be0.1/final_model_epoch_30.pth'
+
+Saving history to: 'base_log_weights_toy_bs64_ld4_bce_adam_lr0.001_wd0_be0.1_history.pth'...
+History saved to 'metric_history/base_log_weights_toy_bs64_ld4_bce_adam_lr0.001_wd0_be0.1_history.pth'
+
+Train / Validation loop complete!
+==================================================
+
+Added 'base_log_weights_toy_bs64_ld4_bce_adam_lr0.001_wd0_be0.1_history.pth' to 'metric_history/grid_search_list.txt'
+
+Grid search training complete!
+**************************************************
+
+Starting gridsearch for best trade-off performance model...
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+Searching grid...
+
+Best Configuration tradeoff score: 0.0028 at epoch: 1
+Training History Summary for Model: 'base_log_weights_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1'
+Model Directory: '/users/40538519/sharedscratch/outputs/model_checkpoints/base_log_weights_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1'
+--------------------------------------------------
+Epochs Run: 30
+Last Updated Model: 'final_model_epoch_30.pth'
+
+Epochs Without Improvement: 1
+Last Improved Model: 'best_loss_epoch_29.pth'
+
+Batch Size: 64
+Optimizer: Adam
+Weight Decay: 0
+Loss Function: VAE Loss: MSELoss, KL Divergence
+Scheduler: None
+
+Best Validation Loss: 0.0374
+Best Validation Loss Model: 'best_loss_epoch_29.pth'
+Best Validation Weighted F1: 0.9915
+Best Validation Weighted F1 Model: 'best_f1_avg_epoch_1.pth'
+--------------------------------------------------
+Training Metrics (Last Epoch):
+	- Reconstruction Loss, Weighted by Class Imbalance, Averaged Across Batches: 0.0380
+	- KL Divergence, Averaged Across Batches: 0.0000
+	- Beta: 0.1
+	- Accuracy: 0.9907
+	- Weighted F1: 0.9909
+	- Learning Rate: 0.001
+	- Average Training Time: 00:04:24
+--------------------------------------------------
+Validation Metrics (Last Epoch):
+	- Reconstruction Loss, Weighted by Class Imbalance, Averaged Across Batches: 0.0375
+	- KL Divergence, Averaged Across Batches: 0.0002
+	- Beta: 0.1
+	- Accuracy: 0.9908
+	- Weighted F1: 0.9910
+	- Average Validation Time: 00:01:38
+--------------------------------------------------
+Model Architecture Used:
+Latent Dim: 2
+
+- '':
+VAE(
+  (encoder): Encoder(
+    (flatten): Flatten(start_dim=1, end_dim=-1)
+    (fc1): Linear(in_features=1331, out_features=512, bias=True)
+    (fc2): Linear(in_features=512, out_features=256, bias=True)
+    (z_mean): Linear(in_features=256, out_features=2, bias=True)
+    (z_log_var): Linear(in_features=256, out_features=2, bias=True)
+  )
+  (sampling): Sample()
+  (decoder): Decoder(
+    (fc1): Linear(in_features=2, out_features=256, bias=True)
+    (fc2): Linear(in_features=256, out_features=512, bias=True)
+    (fc3): Linear(in_features=512, out_features=1331, bias=True)
+  )
+)
+
+- 'encoder':
+Encoder(
+  (flatten): Flatten(start_dim=1, end_dim=-1)
+  (fc1): Linear(in_features=1331, out_features=512, bias=True)
+  (fc2): Linear(in_features=512, out_features=256, bias=True)
+  (z_mean): Linear(in_features=256, out_features=2, bias=True)
+  (z_log_var): Linear(in_features=256, out_features=2, bias=True)
+)
+
+- 'encoder.flatten':
+Flatten(start_dim=1, end_dim=-1)
+
+- 'encoder.fc1':
+Linear(in_features=1331, out_features=512, bias=True)
+
+- 'encoder.fc2':
+Linear(in_features=512, out_features=256, bias=True)
+
+- 'encoder.z_mean':
+Linear(in_features=256, out_features=2, bias=True)
+
+- 'encoder.z_log_var':
+Linear(in_features=256, out_features=2, bias=True)
+
+- 'sampling':
+Sample()
+
+- 'decoder':
+Decoder(
+  (fc1): Linear(in_features=2, out_features=256, bias=True)
+  (fc2): Linear(in_features=256, out_features=512, bias=True)
+  (fc3): Linear(in_features=512, out_features=1331, bias=True)
+)
+
+- 'decoder.fc1':
+Linear(in_features=2, out_features=256, bias=True)
+
+- 'decoder.fc2':
+Linear(in_features=256, out_features=512, bias=True)
+
+- 'decoder.fc3':
+Linear(in_features=512, out_features=1331, bias=True)
+--------------------------------------------------
+Search complete!
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+Alternative history filename updated: 'best_performing_base_log_weights_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1_epoch_1'
+Saving to alternative history filename: 'best_performing_base_log_weights_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1_epoch_1.pth'...
+History saved to 'metric_history/best_performing_base_log_weights_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1_epoch_1.pth'
+
+Creating directory '/users/40538519/sharedscratch/plots'...
+Plot saved to 'best_performing_base_log_weights_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1_epoch_1_recon-beta_kl_vs_epochs.png'
+Plot saved to 'best_performing_base_log_weights_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1_epoch_1_f1_vs_epochs.png'
+Plot saved to 'best_performing_base_log_weights_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1_epoch_1_total_loss_vs_epochs.png'
+Plot saved to 'best_performing_base_log_weights_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1_epoch_1_acc_vs_epochs.png'
+Plot saved to 'best_performing_base_log_weights_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1_epoch_1_kl_vs_recon.png'
+Plot saved to 'best_performing_base_log_weights_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1_epoch_1_beta_kl_vs_recon.png'
+Plot saved to 'best_performing_base_log_weights_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1_epoch_1_total_loss_vs_f1.png'
+
+Resetting history to epoch 1...
+
+Best loss model checkpoint for epoch 1 does not exist.
+
+TrainingHistory rolled back to epoch 1. Updated attributes:
+	- Last updated model: best_f1_avg_epoch_1.pth
+	- Last improved model: best_f1_avg_epoch_1.pth
+	- Best loss: 0.0004, Model: None
+	- Best F1 average: 0.9915, Model: best_f1_avg_epoch_1.pth
+
+Attempting to load last updated model...
+Loading model and optimizer checkpoint from '/users/40538519/sharedscratch/outputs/model_checkpoints/base_log_weights_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1/best_f1_avg_epoch_1.pth'...
+Checkpoint loaded.
+
+Plotting latent space using PCA and UMAP with K=5...
+Plot saved to 'best_performing_base_log_weights_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1_epoch_1_pca.png'
+Plot saved to 'best_performing_base_log_weights_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1_epoch_1_umap.png'
+
+Latent analysis metrics:
+Silhouette score (PCA): 0.3016
+Silhouette score (UMAP): 0.4246
+
+Unique distances:
+tensor([0.0000e+00, 6.1035e-05, 1.2207e-04,  ..., 6.1669e+00, 6.4524e+00,
+        6.5135e+00])
+
+Max distance: 6.513459205627441
+Mean pairwise distance: 1.8032, Standard deviation: 0.9349
+
+Alternative history filename updated: 'best_performing_base_log_weights_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1_epoch_1'
+Saving to alternative history filename: 'best_performing_base_log_weights_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1_epoch_1.pth'...
+History saved to 'metric_history/best_performing_base_log_weights_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1_epoch_1.pth'
+
+Getting samples for comparison visualisations...
+Robot comparison visualisation plot saved to 'comparison_best_performing_base_log_weights_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1_epoch_1_101482.png'
+Robot comparison visualisation plot saved to 'comparison_best_performing_base_log_weights_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1_epoch_1_220597.png'
+Robot comparison visualisation plot saved to 'comparison_best_performing_base_log_weights_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1_epoch_1_70987.png'
+
+Starting gridsearch for best loss model...
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+Searching grid...
+
+Best Configuration tradeoff score: 0.0004 at epoch: 30
+Training History Summary for Model: 'base_log_weights_toy_bs64_ld4_mse_adam_lr0.001_wd0_be0.1'
+Model Directory: '/users/40538519/sharedscratch/outputs/model_checkpoints/base_log_weights_toy_bs64_ld4_mse_adam_lr0.001_wd0_be0.1'
+--------------------------------------------------
+Epochs Run: 30
+Last Updated Model: 'final_model_epoch_30.pth'
+
+Epochs Without Improvement: 0
+Last Improved Model: 'best_loss_epoch_30.pth'
+
+Batch Size: 64
+Optimizer: Adam
+Weight Decay: 0
+Loss Function: VAE Loss: MSELoss, KL Divergence
+Scheduler: None
+
+Best Validation Loss: 0.0374
+Best Validation Loss Model: 'best_loss_epoch_30.pth'
+Best Validation Weighted F1: 0.9914
+Best Validation Weighted F1 Model: 'best_f1_avg_epoch_1.pth'
+--------------------------------------------------
+Training Metrics (Last Epoch):
+	- Reconstruction Loss, Weighted by Class Imbalance, Averaged Across Batches: 0.0383
+	- KL Divergence, Averaged Across Batches: 0.0000
+	- Beta: 0.1
+	- Accuracy: 0.9907
+	- Weighted F1: 0.9909
+	- Learning Rate: 0.001
+	- Average Training Time: 00:04:24
+--------------------------------------------------
+Validation Metrics (Last Epoch):
+	- Reconstruction Loss, Weighted by Class Imbalance, Averaged Across Batches: 0.0374
+	- KL Divergence, Averaged Across Batches: 0.0004
+	- Beta: 0.1
+	- Accuracy: 0.9913
+	- Weighted F1: 0.9913
+	- Average Validation Time: 00:01:38
+--------------------------------------------------
+Model Architecture Used:
+Latent Dim: 4
+
+- '':
+VAE(
+  (encoder): Encoder(
+    (flatten): Flatten(start_dim=1, end_dim=-1)
+    (fc1): Linear(in_features=1331, out_features=512, bias=True)
+    (fc2): Linear(in_features=512, out_features=256, bias=True)
+    (z_mean): Linear(in_features=256, out_features=4, bias=True)
+    (z_log_var): Linear(in_features=256, out_features=4, bias=True)
+  )
+  (sampling): Sample()
+  (decoder): Decoder(
+    (fc1): Linear(in_features=4, out_features=256, bias=True)
+    (fc2): Linear(in_features=256, out_features=512, bias=True)
+    (fc3): Linear(in_features=512, out_features=1331, bias=True)
+  )
+)
+
+- 'encoder':
+Encoder(
+  (flatten): Flatten(start_dim=1, end_dim=-1)
+  (fc1): Linear(in_features=1331, out_features=512, bias=True)
+  (fc2): Linear(in_features=512, out_features=256, bias=True)
+  (z_mean): Linear(in_features=256, out_features=4, bias=True)
+  (z_log_var): Linear(in_features=256, out_features=4, bias=True)
+)
+
+- 'encoder.flatten':
+Flatten(start_dim=1, end_dim=-1)
+
+- 'encoder.fc1':
+Linear(in_features=1331, out_features=512, bias=True)
+
+- 'encoder.fc2':
+Linear(in_features=512, out_features=256, bias=True)
+
+- 'encoder.z_mean':
+Linear(in_features=256, out_features=4, bias=True)
+
+- 'encoder.z_log_var':
+Linear(in_features=256, out_features=4, bias=True)
+
+- 'sampling':
+Sample()
+
+- 'decoder':
+Decoder(
+  (fc1): Linear(in_features=4, out_features=256, bias=True)
+  (fc2): Linear(in_features=256, out_features=512, bias=True)
+  (fc3): Linear(in_features=512, out_features=1331, bias=True)
+)
+
+- 'decoder.fc1':
+Linear(in_features=4, out_features=256, bias=True)
+
+- 'decoder.fc2':
+Linear(in_features=256, out_features=512, bias=True)
+
+- 'decoder.fc3':
+Linear(in_features=512, out_features=1331, bias=True)
+--------------------------------------------------
+Search complete!
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+Alternative history filename updated: 'best_loss_base_log_weights_toy_bs64_ld4_mse_adam_lr0.001_wd0_be0.1_epoch_30'
+Saving to alternative history filename: 'best_loss_base_log_weights_toy_bs64_ld4_mse_adam_lr0.001_wd0_be0.1_epoch_30.pth'...
+History saved to 'metric_history/best_loss_base_log_weights_toy_bs64_ld4_mse_adam_lr0.001_wd0_be0.1_epoch_30.pth'
+
+Plot saved to 'best_loss_base_log_weights_toy_bs64_ld4_mse_adam_lr0.001_wd0_be0.1_epoch_30_recon-beta_kl_vs_epochs.png'
+Plot saved to 'best_loss_base_log_weights_toy_bs64_ld4_mse_adam_lr0.001_wd0_be0.1_epoch_30_f1_vs_epochs.png'
+Plot saved to 'best_loss_base_log_weights_toy_bs64_ld4_mse_adam_lr0.001_wd0_be0.1_epoch_30_total_loss_vs_epochs.png'
+Plot saved to 'best_loss_base_log_weights_toy_bs64_ld4_mse_adam_lr0.001_wd0_be0.1_epoch_30_acc_vs_epochs.png'
+Plot saved to 'best_loss_base_log_weights_toy_bs64_ld4_mse_adam_lr0.001_wd0_be0.1_epoch_30_kl_vs_recon.png'
+Plot saved to 'best_loss_base_log_weights_toy_bs64_ld4_mse_adam_lr0.001_wd0_be0.1_epoch_30_beta_kl_vs_recon.png'
+Plot saved to 'best_loss_base_log_weights_toy_bs64_ld4_mse_adam_lr0.001_wd0_be0.1_epoch_30_total_loss_vs_f1.png'
+
+Attempting to load last updated model...
+Loading model and optimizer checkpoint from '/users/40538519/sharedscratch/outputs/model_checkpoints/base_log_weights_toy_bs64_ld4_mse_adam_lr0.001_wd0_be0.1/final_model_epoch_30.pth'...
+Checkpoint loaded.
+
+Plotting latent space using PCA and UMAP with K=5...
+Plot saved to 'best_loss_base_log_weights_toy_bs64_ld4_mse_adam_lr0.001_wd0_be0.1_epoch_30_pca.png'
+Plot saved to 'best_loss_base_log_weights_toy_bs64_ld4_mse_adam_lr0.001_wd0_be0.1_epoch_30_umap.png'
+
+Latent analysis metrics:
+Silhouette score (PCA): 0.2861
+Silhouette score (UMAP): 0.3927
+
+Unique distances:
+tensor([0.0000e+00, 2.4414e-04, 3.4527e-04,  ..., 8.0724e+00, 8.0801e+00,
+        8.1070e+00])
+
+Max distance: 8.106993675231934
+Mean pairwise distance: 2.6745, Standard deviation: 0.9934
+
+Alternative history filename updated: 'best_loss_base_log_weights_toy_bs64_ld4_mse_adam_lr0.001_wd0_be0.1_epoch_30'
+Saving to alternative history filename: 'best_loss_base_log_weights_toy_bs64_ld4_mse_adam_lr0.001_wd0_be0.1_epoch_30.pth'...
+History saved to 'metric_history/best_loss_base_log_weights_toy_bs64_ld4_mse_adam_lr0.001_wd0_be0.1_epoch_30.pth'
+
+Getting samples for comparison visualisations...
+Robot comparison visualisation plot saved to 'comparison_best_loss_base_log_weights_toy_bs64_ld4_mse_adam_lr0.001_wd0_be0.1_epoch_30_101482.png'
+Robot comparison visualisation plot saved to 'comparison_best_loss_base_log_weights_toy_bs64_ld4_mse_adam_lr0.001_wd0_be0.1_epoch_30_220597.png'
+Robot comparison visualisation plot saved to 'comparison_best_loss_base_log_weights_toy_bs64_ld4_mse_adam_lr0.001_wd0_be0.1_epoch_30_70987.png'
+
+Starting gridsearch for best weighted F1 model...
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+Searching grid...
+
+Best Configuration tradeoff score: 0.0085 at epoch: 1
+Training History Summary for Model: 'base_log_weights_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1'
+Model Directory: '/users/40538519/sharedscratch/outputs/model_checkpoints/base_log_weights_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1'
+--------------------------------------------------
+Epochs Run: 30
+Last Updated Model: 'final_model_epoch_30.pth'
+
+Epochs Without Improvement: 1
+Last Improved Model: 'best_loss_epoch_29.pth'
+
+Batch Size: 64
+Optimizer: Adam
+Weight Decay: 0
+Loss Function: VAE Loss: MSELoss, KL Divergence
+Scheduler: None
+
+Best Validation Loss: 0.0374
+Best Validation Loss Model: 'best_loss_epoch_29.pth'
+Best Validation Weighted F1: 0.9915
+Best Validation Weighted F1 Model: 'best_f1_avg_epoch_1.pth'
+--------------------------------------------------
+Training Metrics (Last Epoch):
+	- Reconstruction Loss, Weighted by Class Imbalance, Averaged Across Batches: 0.0380
+	- KL Divergence, Averaged Across Batches: 0.0000
+	- Beta: 0.1
+	- Accuracy: 0.9907
+	- Weighted F1: 0.9909
+	- Learning Rate: 0.001
+	- Average Training Time: 00:04:24
+--------------------------------------------------
+Validation Metrics (Last Epoch):
+	- Reconstruction Loss, Weighted by Class Imbalance, Averaged Across Batches: 0.0375
+	- KL Divergence, Averaged Across Batches: 0.0002
+	- Beta: 0.1
+	- Accuracy: 0.9908
+	- Weighted F1: 0.9910
+	- Average Validation Time: 00:01:38
+--------------------------------------------------
+Model Architecture Used:
+Latent Dim: 2
+
+- '':
+VAE(
+  (encoder): Encoder(
+    (flatten): Flatten(start_dim=1, end_dim=-1)
+    (fc1): Linear(in_features=1331, out_features=512, bias=True)
+    (fc2): Linear(in_features=512, out_features=256, bias=True)
+    (z_mean): Linear(in_features=256, out_features=2, bias=True)
+    (z_log_var): Linear(in_features=256, out_features=2, bias=True)
+  )
+  (sampling): Sample()
+  (decoder): Decoder(
+    (fc1): Linear(in_features=2, out_features=256, bias=True)
+    (fc2): Linear(in_features=256, out_features=512, bias=True)
+    (fc3): Linear(in_features=512, out_features=1331, bias=True)
+  )
+)
+
+- 'encoder':
+Encoder(
+  (flatten): Flatten(start_dim=1, end_dim=-1)
+  (fc1): Linear(in_features=1331, out_features=512, bias=True)
+  (fc2): Linear(in_features=512, out_features=256, bias=True)
+  (z_mean): Linear(in_features=256, out_features=2, bias=True)
+  (z_log_var): Linear(in_features=256, out_features=2, bias=True)
+)
+
+- 'encoder.flatten':
+Flatten(start_dim=1, end_dim=-1)
+
+- 'encoder.fc1':
+Linear(in_features=1331, out_features=512, bias=True)
+
+- 'encoder.fc2':
+Linear(in_features=512, out_features=256, bias=True)
+
+- 'encoder.z_mean':
+Linear(in_features=256, out_features=2, bias=True)
+
+- 'encoder.z_log_var':
+Linear(in_features=256, out_features=2, bias=True)
+
+- 'sampling':
+Sample()
+
+- 'decoder':
+Decoder(
+  (fc1): Linear(in_features=2, out_features=256, bias=True)
+  (fc2): Linear(in_features=256, out_features=512, bias=True)
+  (fc3): Linear(in_features=512, out_features=1331, bias=True)
+)
+
+- 'decoder.fc1':
+Linear(in_features=2, out_features=256, bias=True)
+
+- 'decoder.fc2':
+Linear(in_features=256, out_features=512, bias=True)
+
+- 'decoder.fc3':
+Linear(in_features=512, out_features=1331, bias=True)
+--------------------------------------------------
+Search complete!
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+Alternative history filename updated: 'best_f1_base_log_weights_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1_epoch_1'
+Saving to alternative history filename: 'best_f1_base_log_weights_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1_epoch_1.pth'...
+History saved to 'metric_history/best_f1_base_log_weights_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1_epoch_1.pth'
+
+Plot saved to 'best_f1_base_log_weights_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1_epoch_1_recon-beta_kl_vs_epochs.png'
+Plot saved to 'best_f1_base_log_weights_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1_epoch_1_f1_vs_epochs.png'
+Plot saved to 'best_f1_base_log_weights_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1_epoch_1_total_loss_vs_epochs.png'
+Plot saved to 'best_f1_base_log_weights_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1_epoch_1_acc_vs_epochs.png'
+Plot saved to 'best_f1_base_log_weights_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1_epoch_1_kl_vs_recon.png'
+Plot saved to 'best_f1_base_log_weights_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1_epoch_1_beta_kl_vs_recon.png'
+Plot saved to 'best_f1_base_log_weights_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1_epoch_1_total_loss_vs_f1.png'
+
+Resetting history to epoch 1...
+
+Best loss model checkpoint for epoch 1 does not exist.
+
+TrainingHistory rolled back to epoch 1. Updated attributes:
+	- Last updated model: best_f1_avg_epoch_1.pth
+	- Last improved model: best_f1_avg_epoch_1.pth
+	- Best loss: 0.0004, Model: None
+	- Best F1 average: 0.9915, Model: best_f1_avg_epoch_1.pth
+
+Attempting to load last updated model...
+Loading model and optimizer checkpoint from '/users/40538519/sharedscratch/outputs/model_checkpoints/base_log_weights_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1/best_f1_avg_epoch_1.pth'...
+Checkpoint loaded.
+
+Plotting latent space using PCA and UMAP with K=5...
+Plot saved to 'best_f1_base_log_weights_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1_epoch_1_pca.png'
+Plot saved to 'best_f1_base_log_weights_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1_epoch_1_umap.png'
+
+Latent analysis metrics:
+Silhouette score (PCA): 0.3163
+Silhouette score (UMAP): 0.3854
+
+Unique distances:
+tensor([0.0000e+00, 8.6317e-05, 1.2207e-04,  ..., 6.1781e+00, 6.3264e+00,
+        6.5708e+00])
+
+Max distance: 6.570794105529785
+Mean pairwise distance: 1.7297, Standard deviation: 0.8987
+
+Alternative history filename updated: 'best_f1_base_log_weights_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1_epoch_1'
+Saving to alternative history filename: 'best_f1_base_log_weights_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1_epoch_1.pth'...
+History saved to 'metric_history/best_f1_base_log_weights_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1_epoch_1.pth'
+
+Getting samples for comparison visualisations...
+Robot comparison visualisation plot saved to 'comparison_best_f1_base_log_weights_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1_epoch_1_101482.png'
+Robot comparison visualisation plot saved to 'comparison_best_f1_base_log_weights_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1_epoch_1_220597.png'
+Robot comparison visualisation plot saved to 'comparison_best_f1_base_log_weights_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1_epoch_1_70987.png'
+
+Pipeline complete!
+Script execution completed.
+Deactivating environment...
+Job complete.
