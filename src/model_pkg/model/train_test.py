@@ -13,7 +13,6 @@ from .history_checkpoint import TrainingHistory, remove_old_improvement_models, 
 def train(model: torch.nn.Module, dataloader: torch.utils.data.DataLoader, loss_fn, optimizer: torch.optim.Optimizer, beta: int = 1) -> dict:
     """
     Single epoch training loop.
-    Uses decoder output to calculate loss (differentiable), and reconstructed output (decoder output scaled, rounded and clamped) for metrics.
     Reconstruction loss is weighted by class imbalance, and averaged across batches.
     Displayed loss, reconstruction loss and KL divergence are scaled for easier interpretability due to weighted recon and averaged KL.
 
@@ -90,7 +89,7 @@ def train(model: torch.nn.Module, dataloader: torch.utils.data.DataLoader, loss_
                 formatted_estimate = time.strftime('%d-%b-%Y %H:%M:%S', time.localtime(estimated_completion))
                 print(f"Estimated train loop completion: {formatted_estimate}")
             print(f"Batch metrics (train):")
-            print(f"\tLoss = {loss.item() * 100:>8.4f}")  # Scaled for easier interpretability due to weighted recon and averaged KL
+            print(f"\tLoss = {loss.item() * 100:>8.4f} (*100 for easier interpretability due to weighted recon & averaged KL)")
             print(f"\tAccuracy = {accuracy * 100:>6.2f}%")
             print(f"\tF1 score (unweighted average across all classes for batch) = {f1_score.mean().item():>6.4f}\n")
 
@@ -109,8 +108,8 @@ def train(model: torch.nn.Module, dataloader: torch.utils.data.DataLoader, loss_
     epoch_f1_weighted_avg = (total_f1 / total_support.sum()).sum().item()  # normalises weighted f1 and sums to get weighted average
 
     print(f"Train metrics (averages):")
-    print(f"\tRecon loss = {epoch_recon_loss * 100:>8.4f}")  # Scaled for easier interpretability due to weighted recon
-    print(f"\tKL div = {epoch_kl_div * 100:>8.4f}")  # Scaled for easier interpretability due to averaged KL
+    print(f"\tRecon loss = {epoch_recon_loss * 100:>8.4f} (*100 for easier interpretability due to weighted recon)")
+    print(f"\tKL div = {epoch_kl_div * 100:>8.4f} (*100 for easier interpretability due to averaged KL)")
     print(f"\tAccuracy = {epoch_accuracy * 100:>6.2f}%")
     print(f"\tF1 score (weighted average) = {epoch_f1_weighted_avg:>6.4f}\n")
 
@@ -132,7 +131,6 @@ def train(model: torch.nn.Module, dataloader: torch.utils.data.DataLoader, loss_
 def test(model: torch.nn.Module, dataloader: torch.utils.data.DataLoader, loss_fn, beta: int = 1) -> dict:
     """
     Single epoch test/validation loop.
-    Uses decoder output to calculate loss (differentiable), and reconstructed output (decoder output scaled, rounded and clamped) for metrics.
     Reconstruction loss is weighted by class imbalance.
     Displayed loss, reconstruction loss and KL divergence are scaled for easier interpretability due to weighted recon and averaged KL.
 
@@ -202,7 +200,7 @@ def test(model: torch.nn.Module, dataloader: torch.utils.data.DataLoader, loss_f
                     formatted_estimate = time.strftime('%d-%b-%Y %H:%M:%S', time.localtime(estimated_completion))
                     print(f"Estimated test loop completion: {formatted_estimate}")
                 print(f"Batch metrics (test):")
-                print(f"\tLoss = {loss.item() * 100:>8.4f}")  # Scaled for easier interpretability due to weighted recon and averaged KL
+                print(f"\tLoss = {loss.item() * 100:>8.4f} (*100 for easier interpretability due to weighted recon & averaged KL)")
                 print(f"\tAccuracy = {accuracy * 100:>6.2f}%")
                 print(f"\tF1 score (unweighted average across all classes for batch) = {f1_score.mean().item():>6.4f}\n")
 
@@ -221,8 +219,8 @@ def test(model: torch.nn.Module, dataloader: torch.utils.data.DataLoader, loss_f
     epoch_f1_weighted_avg = (total_f1 / total_support.sum()).sum().item()  # normalises weighted f1 and sums to get weighted average
 
     print(f"Test metrics (averages):")
-    print(f"\tRecon loss = {epoch_recon_loss * 100:>8.4f}")  # Scaled for easier interpretability due to weighted recon
-    print(f"\tKL div = {epoch_kl_div * 100:>8.4f}")  # Scaled for easier interpretability due to averaged KL
+    print(f"\tRecon loss = {epoch_recon_loss * 100:>8.4f} (*100 for easier interpretability due to weighted recon)")
+    print(f"\tKL div = {epoch_kl_div * 100:>8.4f} (*100 for easier interpretability due to averaged KL)")
     print(f"\tAccuracy = {epoch_accuracy * 100:>6.2f}%")
     print(f"\tF1 score (weighted average) = {epoch_f1_weighted_avg:>6.4f}\n")
 

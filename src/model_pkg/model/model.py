@@ -70,6 +70,7 @@ class Decoder(nn.Module):
     def forward(self, z: torch.Tensor) -> torch.Tensor:
         """
         Forward pass.
+        Normalises using sigmoid and scales to range [0, 4]
 
         :param z: Sampled latent vector with shape (batch_size, latent_dim)
         :return: Reconstructed input with shape (batch_size, *input_dim)
@@ -80,6 +81,7 @@ class Decoder(nn.Module):
         x = torch.relu(self.deconv1(x))
         x = self.upsample2(x)  # (B, 128, 13, 13, 13)
         x = self.deconv2(x)
+        x = torch.sigmoid(x) * (NUM_CLASSES - 1)  # Scales to range [0, 4]
         x = x.squeeze(1)  # Remove channel dimension (B, 11, 11, 11)
 
         return x
@@ -129,8 +131,6 @@ class VAE(nn.Module):
     def forward(self, x: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
         """
         Forward pass.
-        Scales, rounds, clamps and reshapes decoder output to match original shape and descriptor values.
-        Note rounding and clamping (partially) are not differentiable, so use x_decoder for loss/backpropagation.
 
         :param x: Input tensor with shape (batch_size, *input_dim)
         :return:

@@ -15,9 +15,10 @@ def compute_prediction_table(x: torch.Tensor, x_reconstructed: torch.Tensor) -> 
     :param x_reconstructed: Reconstructed tensor with same shape as input tensor
     :return: Prediction table
     """
-    print(f"x unique: {x.unique()}")
-    print(f"x reconstructed max: {x_reconstructed.max()}")
-    print(f"x reconstructed unique: {x_reconstructed.unique()}")
+    # Ensure reconstructed values are integers
+    x_reconstructed = torch.round(x_reconstructed)  # Round to the nearest integer
+    x_reconstructed = torch.clamp(x_reconstructed, min=0, max=4)  # Ensure range is [0, 4]
+
     # Flatten tensors
     x_flat = x.view(-1).to(torch.long)  # Long for indexing
     x_reconstructed_flat = x_reconstructed.view(-1).to(torch.long)  # Long for indexing

@@ -44,13 +44,12 @@ class VaeLoss:
         :return: Reconstruction loss weighted by class imbalance with mean reduction, KL divergence
         """
         # Calculate reconstruction loss, element wise due to reduction being 'none'
-        if self.loss_name == "bce":
-            # Normalise inputs to range [0, 1] for BCE
-            x_normalised = x / (NUM_CLASSES - 1)
-            x_reconstructed_normalised = torch.sigmoid(x_reconstructed)
-            raw_loss = self.recon_loss_fn(x_reconstructed_normalised, x_normalised)
-        else:
-            raw_loss = self.recon_loss_fn(x_reconstructed, x)
+
+        # Normalise inputs to range [0, 1] for BCE, and for other losses for grid search comparison between losses
+        x_normalised = x / (NUM_CLASSES - 1)
+        x_reconstructed_normalised = torch.sigmoid(x_reconstructed)
+
+        raw_loss = self.recon_loss_fn(x_reconstructed_normalised, x_normalised)
 
         # Apply class weights
         x_flat = x.view(-1).to(torch.long)  # Flatten x for indexing class_weights, long for indexing

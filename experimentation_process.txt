@@ -87,3 +87,10 @@ Decoder: 5 layers (3 trainable)
 	Upsample,
 	ConvTranspose3d,  3457 parameters
 Total: 6 trainable layers, 1825285 parameters
+
+
+
+Removed rounding and clamping operations from VAE. 
+Decoder output is now used directly in the loss functions. 
+Values are normalised for BCE, but also for other losses to make them comparable in the grid search.
+Retrain pooling model for comparative results going forward.
