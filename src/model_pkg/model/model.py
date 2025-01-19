@@ -70,7 +70,8 @@ class Decoder(nn.Module):
     def forward(self, z: torch.Tensor) -> torch.Tensor:
         """
         Forward pass.
-        Normalises using sigmoid and scales to range [0, 4]
+        Normalises using sigmoid and scales to range [0, 4].
+        Output values are floats.
 
         :param z: Sampled latent vector with shape (batch_size, latent_dim)
         :return: Reconstructed input with shape (batch_size, *input_dim)

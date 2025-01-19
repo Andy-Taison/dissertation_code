@@ -169,6 +169,11 @@ def compare_reconstructed(model: torch.nn.Module, dataloader: torch.utils.data.D
             visualise_robot(grid_data[i].unsqueeze(0).cpu(), title="Original", ax=axes[0])
 
             x_reconstructed, _, _, _ = model(grid_data[i].unsqueeze(0))
+            
+            # Ensure reconstructed values are integers in the correct range
+            x_reconstructed = torch.round(x_reconstructed)  # Round to the nearest integer
+            x_reconstructed = torch.clamp(x_reconstructed, min=0, max=4)  # Ensure range is [0, 4]
+
             visualise_robot(x_reconstructed.cpu(), title="Reconstructed", ax=axes[1])
 
             # Add common legend
