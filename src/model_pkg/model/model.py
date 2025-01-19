@@ -16,8 +16,11 @@ class Encoder(nn.Module):
         """
         super(Encoder, self).__init__()
         # Convolutional layers
-        self.conv1 = nn.Conv3d(1, 128, kernel_size=3, stride=2, padding=1)  # (B, 128, 6, 6, 6)
-        self.conv2 = nn.Conv3d(128, 256, kernel_size=3, stride=2, padding=1)  # (B, 256, 3, 3, 3)
+        self.conv1 = nn.Conv3d(1, 128, kernel_size=3, stride=1, padding=2)  # (B, 128, 13, 13, 13)  increases size with padding to avoid loss of edge information during pooling
+        self.conv2 = nn.Conv3d(128, 256, kernel_size=3, stride=1, padding=1)  # (B, 256, 6, 6, 6)
+
+        # Pooling layers
+        self.pool = nn.MaxPool3d(kernel_size=2, stride=2)
 
         # Fully connected and flatten layers
         self.flatten = nn.Flatten()
@@ -35,7 +38,9 @@ class Encoder(nn.Module):
         """
         x = x.unsqueeze(1)  # Add channel dimension for 3D convolution input: (B, 1, 11, 11, 11)
         x = torch.relu(self.conv1(x))
+        x = self.pool(x)  # (B, 128, 6, 6, 6)
         x = torch.relu(self.conv2(x))
+        x = self.pool(x)  # (B, 256, 3, 3, 3)
         x = self.flatten(x)
         z_mean = self.z_mean_fc(x)
         z_log_var = self.z_log_var_fc(x)
@@ -54,9 +59,13 @@ class Decoder(nn.Module):
         super(Decoder, self).__init__()
         self.fc = nn.Linear(latent_dim, 256 * 3 * 3 * 3)
 
+        # Upsample layer
+        self.upsample1 = nn.Upsample(size=(6, 6, 6))
+        self.upsample2 = nn.Upsample(size=(13, 13, 13))  # Matches encoder conv1 padded output
+
         # Transposed convolutional layers for reconstruction
-        self.deconv1 = nn.ConvTranspose3d(256, 128, kernel_size=3, stride=2, padding=1, output_padding=1)  # (B, 128, 6, 6, 6)
-        self.deconv2 = nn.ConvTranspose3d(128, 1, kernel_size=3, stride=2, padding=1, output_padding=0)  # (B, 1, 11, 11, 11)
+        self.deconv1 = nn.ConvTranspose3d(256, 128, kernel_size=3, stride=1, padding=1)  # (B, 128, 6, 6, 6)
+        self.deconv2 = nn.ConvTranspose3d(128, 1, kernel_size=3, stride=1, padding=2)  # (B, 1, 11, 11, 11)
 
     def forward(self, z: torch.Tensor) -> torch.Tensor:
         """
@@ -68,7 +77,9 @@ class Decoder(nn.Module):
         """
         x = torch.relu(self.fc(z))
         x = x.view(-1, 256, 3, 3, 3)  # Reshape for input to deconvolution layers
+        x = self.upsample1(x)  # (B, 256, 6, 6, 6)
         x = torch.relu(self.deconv1(x))
+        x = self.upsample2(x)  # (B, 128, 13, 13, 13)
         x = self.deconv2(x)
         x = torch.sigmoid(x)
         x = x.squeeze(1)  # Remove channel dimension (B, 11, 11, 11)

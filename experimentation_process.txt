@@ -62,4 +62,28 @@ Decoder: 3 layers (3 trainable)
 Total: 6 trainable layers, 1825285 parameters which is fairly close to the original FC model for good comparison
 
 Started training convolutional model.
-	
+Base model had a slightly better tradeoff score and loss, whilst the convolution model had a slightly better F1 score,
+however all of these are extremely close. 
+It should be noted that the best model found in the linear model used a latent dimension of 4, whilst the convolution model used 2. 
+The clusters look tighter in the convolution model (good), and there is slight overlapping for both the convolution and linear models (suggesting latent dim is too small).
+Due to these being very close, and the clustering being better in the convolution model along with convolution being expected to capture spatial data better than a linear model,
+decided to move forward expanding the convolution model.
+
+* Added pooling and upsample layers
+Conv_pool model:
+Encoder: 6 layers (3 trainable)
+	Conv3d,  3584 parameters
+	MaxPool3d,  
+	Conv3d,  884992 parameters
+	MaxPool3d,
+	Flatten,
+	Latent FC branching,  13826 parameters for each branch assuming latent dim = 2, so 27652 parameters
+Sampling: 1 layer (0 trainable)
+	Reparameterization step
+Decoder: 5 layers (3 trainable)
+	FC,  20736 parameters
+	Upsample,
+	ConvTranspose3d,  884864 parameters
+	Upsample,
+	ConvTranspose3d,  3457 parameters
+Total: 6 trainable layers, 1825285 parameters
