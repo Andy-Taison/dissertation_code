@@ -1,0 +1,613 @@
+Job started...
+Loading Anaconda module...
+Module loaded.
+Initialising Conda...
+Conda initialised.
+Activating virtual environment...
+Environment activated.
+Running script...
+Using cuda device
+
+Starting VAE pipeline...
+
+Loading train, validation and test set from: 'toy_sets'...
+Datasets loaded.
+
+Training dataset:
+Dataset Summary:
+--------------------------------------------------
+Dimensions: 3781 rows x 1331 columns
+
+Overall Class Counts:
+0    5006854
+1      11045
+2       5420
+3       4874
+4       4318
+
+Proportion of Each Class (%):
+0    99.49
+1     0.22
+2     0.11
+3     0.10
+4     0.09
+
+Average Zeros Per Row: 1324.21
+Average Non-Zero Classes Per Row: 6.79
+Rows with Only Zero Values: 0 (0.00%)
+Rows with Exactly 1 Non-Zero Value: 36 (0.95%)
+Rows with Multiple Non-Zero Values: 3745 (99.05%)
+Unique Rows: 3781 (100.00)%
+
+Creating DataLoader object...
+DataLoader created.
+
+Validation dataset:
+Dataset Summary:
+--------------------------------------------------
+Dimensions: 541 rows x 1331 columns
+
+Overall Class Counts:
+0    716445
+1      1550
+2       748
+3       702
+4       626
+
+Proportion of Each Class (%):
+0    99.50
+1     0.22
+2     0.10
+3     0.10
+4     0.09
+
+Average Zeros Per Row: 1324.30
+Average Non-Zero Classes Per Row: 6.70
+Rows with Only Zero Values: 0 (0.00%)
+Rows with Exactly 1 Non-Zero Value: 4 (0.74%)
+Rows with Multiple Non-Zero Values: 537 (99.26%)
+Unique Rows: 541 (100.00)%
+
+Creating DataLoader object...
+DataLoader created.
+
+Preprocessed datasets loaded: train (3781) and val (541) sets.
+
+robot_ids batch shape: torch.Size([64]), sample ID: 201854
+grid_data batch shape: torch.Size([64, 11, 11, 11]), grid data sample shape: torch.Size([11, 11, 11])
+
+Model summary:
+==========================================================================================
+Layer (type:depth-idx)                   Output Shape              Param #
+==========================================================================================
+VAE                                      [1, 11, 11, 11]           --
+├─Encoder: 1-1                           [1, 2]                    --
+│    └─Conv3d: 2-1                       [1, 128, 6, 6, 6]         3,584
+│    └─Conv3d: 2-2                       [1, 256, 3, 3, 3]         884,992
+│    └─Flatten: 2-3                      [1, 6912]                 --
+│    └─Linear: 2-4                       [1, 2]                    13,826
+│    └─Linear: 2-5                       [1, 2]                    13,826
+├─Sample: 1-2                            [1, 2]                    --
+├─Decoder: 1-3                           [1, 11, 11, 11]           --
+│    └─Linear: 2-6                       [1, 6912]                 20,736
+│    └─ConvTranspose3d: 2-7              [1, 128, 6, 6, 6]         884,864
+│    └─ConvTranspose3d: 2-8              [1, 1, 11, 11, 11]        3,457
+==========================================================================================
+Total params: 1,825,285
+Trainable params: 1,825,285
+Non-trainable params: 0
+Total mult-adds (M): 220.45
+==========================================================================================
+Input size (MB): 0.01
+Forward/backward pass size (MB): 0.56
+Params size (MB): 7.30
+Estimated Total Size (MB): 7.87
+==========================================================================================
+
+Model parameters:
+Parameter: encoder.conv1.weight, Requires Grad: True
+Parameter: encoder.conv1.bias, Requires Grad: True
+Parameter: encoder.conv2.weight, Requires Grad: True
+Parameter: encoder.conv2.bias, Requires Grad: True
+Parameter: encoder.z_mean_fc.weight, Requires Grad: True
+Parameter: encoder.z_mean_fc.bias, Requires Grad: True
+Parameter: encoder.z_log_var_fc.weight, Requires Grad: True
+Parameter: encoder.z_log_var_fc.bias, Requires Grad: True
+Parameter: decoder.fc.weight, Requires Grad: True
+Parameter: decoder.fc.bias, Requires Grad: True
+Parameter: decoder.deconv1.weight, Requires Grad: True
+Parameter: decoder.deconv1.bias, Requires Grad: True
+Parameter: decoder.deconv2.weight, Requires Grad: True
+Parameter: decoder.deconv2.bias, Requires Grad: True
+
+**************************************************
+Starting grid search training...
+Creating grid...
+Grid created with 4 configuration(s).
+Skipping configuration, already completed: 'conv_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1'
+Skipping configuration, already completed: 'conv_toy_bs64_ld2_bce_adam_lr0.001_wd0_be0.1'
+Skipping configuration, already completed: 'conv_toy_bs64_ld4_mse_adam_lr0.001_wd0_be0.1'
+Skipping configuration, already completed: 'conv_toy_bs64_ld4_bce_adam_lr0.001_wd0_be0.1'
+
+Grid search training complete!
+**************************************************
+
+Starting gridsearch for best trade-off performance model...
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+Searching grid...
+
+Best Configuration tradeoff score: 0.0026 at epoch: 3
+Training History Summary for Model: 'conv_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1'
+Model Directory: '/users/40538519/sharedscratch/outputs/model_checkpoints/conv_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1'
+--------------------------------------------------
+Epochs Run: 18
+Last Updated Model: 'terminated_model_epoch_18.pth'
+
+Epochs Without Improvement: 5
+Last Improved Model: 'best_loss_epoch_13.pth'
+
+Batch Size: 64
+Optimizer: Adam
+Weight Decay: 0
+Loss Function: VAE Loss: MSELoss, KL Divergence
+Scheduler: None
+
+Best Validation Loss: 0.0401
+Best Validation Loss Model: 'best_loss_epoch_13.pth'
+Best Validation Weighted F1: 0.9925
+Best Validation Weighted F1 Model: 'best_f1_avg_epoch_1.pth'
+--------------------------------------------------
+Training Metrics (Last Epoch):
+	- Reconstruction Loss, Weighted by Class Imbalance, Averaged Across Batches: 0.0406
+	- KL Divergence, Averaged Across Batches: 0.0000
+	- Beta: 0.1
+	- Accuracy: 0.9935
+	- Weighted F1: 0.9919
+	- Learning Rate: 0.001
+	- Average Training Time: 00:05:56
+--------------------------------------------------
+Validation Metrics (Last Epoch):
+	- Reconstruction Loss, Weighted by Class Imbalance, Averaged Across Batches: 0.0407
+	- KL Divergence, Averaged Across Batches: 0.0000
+	- Beta: 0.1
+	- Accuracy: 0.9929
+	- Weighted F1: 0.9918
+	- Average Validation Time: 00:01:42
+--------------------------------------------------
+Model Architecture Used:
+Latent Dim: 2
+
+- '':
+VAE(
+  (encoder): Encoder(
+    (conv1): Conv3d(1, 128, kernel_size=(3, 3, 3), stride=(2, 2, 2), padding=(1, 1, 1))
+    (conv2): Conv3d(128, 256, kernel_size=(3, 3, 3), stride=(2, 2, 2), padding=(1, 1, 1))
+    (flatten): Flatten(start_dim=1, end_dim=-1)
+    (z_mean_fc): Linear(in_features=6912, out_features=2, bias=True)
+    (z_log_var_fc): Linear(in_features=6912, out_features=2, bias=True)
+  )
+  (sampling): Sample()
+  (decoder): Decoder(
+    (fc): Linear(in_features=2, out_features=6912, bias=True)
+    (deconv1): ConvTranspose3d(256, 128, kernel_size=(3, 3, 3), stride=(2, 2, 2), padding=(1, 1, 1), output_padding=(1, 1, 1))
+    (deconv2): ConvTranspose3d(128, 1, kernel_size=(3, 3, 3), stride=(2, 2, 2), padding=(1, 1, 1))
+  )
+)
+
+- 'encoder':
+Encoder(
+  (conv1): Conv3d(1, 128, kernel_size=(3, 3, 3), stride=(2, 2, 2), padding=(1, 1, 1))
+  (conv2): Conv3d(128, 256, kernel_size=(3, 3, 3), stride=(2, 2, 2), padding=(1, 1, 1))
+  (flatten): Flatten(start_dim=1, end_dim=-1)
+  (z_mean_fc): Linear(in_features=6912, out_features=2, bias=True)
+  (z_log_var_fc): Linear(in_features=6912, out_features=2, bias=True)
+)
+
+- 'encoder.conv1':
+Conv3d(1, 128, kernel_size=(3, 3, 3), stride=(2, 2, 2), padding=(1, 1, 1))
+
+- 'encoder.conv2':
+Conv3d(128, 256, kernel_size=(3, 3, 3), stride=(2, 2, 2), padding=(1, 1, 1))
+
+- 'encoder.flatten':
+Flatten(start_dim=1, end_dim=-1)
+
+- 'encoder.z_mean_fc':
+Linear(in_features=6912, out_features=2, bias=True)
+
+- 'encoder.z_log_var_fc':
+Linear(in_features=6912, out_features=2, bias=True)
+
+- 'sampling':
+Sample()
+
+- 'decoder':
+Decoder(
+  (fc): Linear(in_features=2, out_features=6912, bias=True)
+  (deconv1): ConvTranspose3d(256, 128, kernel_size=(3, 3, 3), stride=(2, 2, 2), padding=(1, 1, 1), output_padding=(1, 1, 1))
+  (deconv2): ConvTranspose3d(128, 1, kernel_size=(3, 3, 3), stride=(2, 2, 2), padding=(1, 1, 1))
+)
+
+- 'decoder.fc':
+Linear(in_features=2, out_features=6912, bias=True)
+
+- 'decoder.deconv1':
+ConvTranspose3d(256, 128, kernel_size=(3, 3, 3), stride=(2, 2, 2), padding=(1, 1, 1), output_padding=(1, 1, 1))
+
+- 'decoder.deconv2':
+ConvTranspose3d(128, 1, kernel_size=(3, 3, 3), stride=(2, 2, 2), padding=(1, 1, 1))
+--------------------------------------------------
+Search complete!
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+Alternative history filename updated: 'best_performing_conv_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1_epoch_3'
+Saving to alternative history filename: 'best_performing_conv_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1_epoch_3.pth'...
+History saved to 'metric_history/best_performing_conv_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1_epoch_3.pth'
+
+Creating directory '/users/40538519/sharedscratch/plots'...
+Plot saved to 'best_performing_conv_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1_epoch_3_recon-beta_kl_vs_epochs.png'
+Plot saved to 'best_performing_conv_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1_epoch_3_f1_vs_epochs.png'
+Plot saved to 'best_performing_conv_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1_epoch_3_total_loss_vs_epochs.png'
+Plot saved to 'best_performing_conv_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1_epoch_3_acc_vs_epochs.png'
+Plot saved to 'best_performing_conv_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1_epoch_3_kl_vs_recon.png'
+Plot saved to 'best_performing_conv_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1_epoch_3_beta_kl_vs_recon.png'
+Plot saved to 'best_performing_conv_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1_epoch_3_total_loss_vs_f1.png'
+
+Resetting history to epoch 3...
+
+Best loss model checkpoint for epoch 3 does not exist.
+
+Last improved model checkpoint file '/users/40538519/sharedscratch/outputs/model_checkpoints/conv_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1/best_loss_epoch_3.pth' does not exist.
+
+TrainingHistory rolled back to epoch 3. Updated attributes:
+	- Last updated model: 'best_f1_avg_epoch_1.pth'
+	- Last improved model: 'None' Epoch: 3
+	- Best loss: 0.0004, Model: 'None' Epoch: 3
+	- Best F1 average: 0.9925, Model: 'best_f1_avg_epoch_1.pth' Epoch: 1
+
+Attempting to load last updated model...
+Loading model and optimizer checkpoint from '/users/40538519/sharedscratch/outputs/model_checkpoints/conv_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1/best_f1_avg_epoch_1.pth'...
+Checkpoint loaded.
+
+Plotting latent space using PCA and UMAP with K=5...
+Plot saved to 'closest_checkpoint_best_performing_conv_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1_epoch_1_pca.png'
+Plot saved to 'closest_checkpoint_best_performing_conv_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1_epoch_1_umap.png'
+
+Latent analysis metrics:
+Silhouette score (PCA): 0.3222
+Silhouette score (UMAP): 0.3960
+
+Unique distances:
+tensor([0.0000e+00, 6.1035e-05, 8.6317e-05,  ..., 6.2735e+00, 6.4550e+00,
+        6.4550e+00])
+
+Max distance: 6.454955101013184
+Mean pairwise distance: 1.7868, Standard deviation: 0.9259
+
+Alternative history filename updated: 'closest_checkpoint_best_performing_conv_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1_epoch_1'
+Saving to alternative history filename: 'closest_checkpoint_best_performing_conv_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1_epoch_1.pth'...
+History saved to 'metric_history/closest_checkpoint_best_performing_conv_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1_epoch_1.pth'
+
+Getting samples for comparison visualisations...
+Robot comparison visualisation plot saved to 'comparison_closest_checkpoint_best_performing_conv_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1_epoch_1_101482.png'
+Robot comparison visualisation plot saved to 'comparison_closest_checkpoint_best_performing_conv_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1_epoch_1_220597.png'
+Robot comparison visualisation plot saved to 'comparison_closest_checkpoint_best_performing_conv_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1_epoch_1_70987.png'
+
+Starting gridsearch for best loss model...
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+Searching grid...
+
+Best Configuration tradeoff score: 0.0004 at epoch: 23
+Training History Summary for Model: 'conv_toy_bs64_ld4_mse_adam_lr0.001_wd0_be0.1'
+Model Directory: '/users/40538519/sharedscratch/outputs/model_checkpoints/conv_toy_bs64_ld4_mse_adam_lr0.001_wd0_be0.1'
+--------------------------------------------------
+Epochs Run: 28
+Last Updated Model: 'terminated_model_epoch_28.pth'
+
+Epochs Without Improvement: 5
+Last Improved Model: 'best_loss_epoch_23.pth'
+
+Batch Size: 64
+Optimizer: Adam
+Weight Decay: 0
+Loss Function: VAE Loss: MSELoss, KL Divergence
+Scheduler: None
+
+Best Validation Loss: 0.0392
+Best Validation Loss Model: 'best_loss_epoch_23.pth'
+Best Validation Weighted F1: 0.9924
+Best Validation Weighted F1 Model: 'best_f1_avg_epoch_2.pth'
+--------------------------------------------------
+Training Metrics (Last Epoch):
+	- Reconstruction Loss, Weighted by Class Imbalance, Averaged Across Batches: 0.0408
+	- KL Divergence, Averaged Across Batches: 0.0000
+	- Beta: 0.1
+	- Accuracy: 0.9932
+	- Weighted F1: 0.9918
+	- Learning Rate: 0.001
+	- Average Training Time: 00:05:56
+--------------------------------------------------
+Validation Metrics (Last Epoch):
+	- Reconstruction Loss, Weighted by Class Imbalance, Averaged Across Batches: 0.0402
+	- KL Divergence, Averaged Across Batches: 0.0000
+	- Beta: 0.1
+	- Accuracy: 0.9933
+	- Weighted F1: 0.9920
+	- Average Validation Time: 00:01:42
+--------------------------------------------------
+Model Architecture Used:
+Latent Dim: 4
+
+- '':
+VAE(
+  (encoder): Encoder(
+    (conv1): Conv3d(1, 128, kernel_size=(3, 3, 3), stride=(2, 2, 2), padding=(1, 1, 1))
+    (conv2): Conv3d(128, 256, kernel_size=(3, 3, 3), stride=(2, 2, 2), padding=(1, 1, 1))
+    (flatten): Flatten(start_dim=1, end_dim=-1)
+    (z_mean_fc): Linear(in_features=6912, out_features=4, bias=True)
+    (z_log_var_fc): Linear(in_features=6912, out_features=4, bias=True)
+  )
+  (sampling): Sample()
+  (decoder): Decoder(
+    (fc): Linear(in_features=4, out_features=6912, bias=True)
+    (deconv1): ConvTranspose3d(256, 128, kernel_size=(3, 3, 3), stride=(2, 2, 2), padding=(1, 1, 1), output_padding=(1, 1, 1))
+    (deconv2): ConvTranspose3d(128, 1, kernel_size=(3, 3, 3), stride=(2, 2, 2), padding=(1, 1, 1))
+  )
+)
+
+- 'encoder':
+Encoder(
+  (conv1): Conv3d(1, 128, kernel_size=(3, 3, 3), stride=(2, 2, 2), padding=(1, 1, 1))
+  (conv2): Conv3d(128, 256, kernel_size=(3, 3, 3), stride=(2, 2, 2), padding=(1, 1, 1))
+  (flatten): Flatten(start_dim=1, end_dim=-1)
+  (z_mean_fc): Linear(in_features=6912, out_features=4, bias=True)
+  (z_log_var_fc): Linear(in_features=6912, out_features=4, bias=True)
+)
+
+- 'encoder.conv1':
+Conv3d(1, 128, kernel_size=(3, 3, 3), stride=(2, 2, 2), padding=(1, 1, 1))
+
+- 'encoder.conv2':
+Conv3d(128, 256, kernel_size=(3, 3, 3), stride=(2, 2, 2), padding=(1, 1, 1))
+
+- 'encoder.flatten':
+Flatten(start_dim=1, end_dim=-1)
+
+- 'encoder.z_mean_fc':
+Linear(in_features=6912, out_features=4, bias=True)
+
+- 'encoder.z_log_var_fc':
+Linear(in_features=6912, out_features=4, bias=True)
+
+- 'sampling':
+Sample()
+
+- 'decoder':
+Decoder(
+  (fc): Linear(in_features=4, out_features=6912, bias=True)
+  (deconv1): ConvTranspose3d(256, 128, kernel_size=(3, 3, 3), stride=(2, 2, 2), padding=(1, 1, 1), output_padding=(1, 1, 1))
+  (deconv2): ConvTranspose3d(128, 1, kernel_size=(3, 3, 3), stride=(2, 2, 2), padding=(1, 1, 1))
+)
+
+- 'decoder.fc':
+Linear(in_features=4, out_features=6912, bias=True)
+
+- 'decoder.deconv1':
+ConvTranspose3d(256, 128, kernel_size=(3, 3, 3), stride=(2, 2, 2), padding=(1, 1, 1), output_padding=(1, 1, 1))
+
+- 'decoder.deconv2':
+ConvTranspose3d(128, 1, kernel_size=(3, 3, 3), stride=(2, 2, 2), padding=(1, 1, 1))
+--------------------------------------------------
+Search complete!
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+Alternative history filename updated: 'best_loss_conv_toy_bs64_ld4_mse_adam_lr0.001_wd0_be0.1_epoch_23'
+Saving to alternative history filename: 'best_loss_conv_toy_bs64_ld4_mse_adam_lr0.001_wd0_be0.1_epoch_23.pth'...
+History saved to 'metric_history/best_loss_conv_toy_bs64_ld4_mse_adam_lr0.001_wd0_be0.1_epoch_23.pth'
+
+Plot saved to 'best_loss_conv_toy_bs64_ld4_mse_adam_lr0.001_wd0_be0.1_epoch_23_recon-beta_kl_vs_epochs.png'
+Plot saved to 'best_loss_conv_toy_bs64_ld4_mse_adam_lr0.001_wd0_be0.1_epoch_23_f1_vs_epochs.png'
+Plot saved to 'best_loss_conv_toy_bs64_ld4_mse_adam_lr0.001_wd0_be0.1_epoch_23_total_loss_vs_epochs.png'
+Plot saved to 'best_loss_conv_toy_bs64_ld4_mse_adam_lr0.001_wd0_be0.1_epoch_23_acc_vs_epochs.png'
+Plot saved to 'best_loss_conv_toy_bs64_ld4_mse_adam_lr0.001_wd0_be0.1_epoch_23_kl_vs_recon.png'
+Plot saved to 'best_loss_conv_toy_bs64_ld4_mse_adam_lr0.001_wd0_be0.1_epoch_23_beta_kl_vs_recon.png'
+Plot saved to 'best_loss_conv_toy_bs64_ld4_mse_adam_lr0.001_wd0_be0.1_epoch_23_total_loss_vs_f1.png'
+
+Resetting history to epoch 23...
+
+TrainingHistory rolled back to epoch 23. Updated attributes:
+	- Last updated model: 'best_loss_epoch_23.pth'
+	- Last improved model: 'best_loss_epoch_23.pth' Epoch: 23
+	- Best loss: 0.0004, Model: 'best_loss_epoch_23.pth' Epoch: 23
+	- Best F1 average: 0.9924, Model: 'best_f1_avg_epoch_2.pth' Epoch: 2
+
+Attempting to load last updated model...
+Loading model and optimizer checkpoint from '/users/40538519/sharedscratch/outputs/model_checkpoints/conv_toy_bs64_ld4_mse_adam_lr0.001_wd0_be0.1/best_loss_epoch_23.pth'...
+Checkpoint loaded.
+
+Plotting latent space using PCA and UMAP with K=5...
+Plot saved to 'best_loss_conv_toy_bs64_ld4_mse_adam_lr0.001_wd0_be0.1_epoch_23_pca.png'
+Plot saved to 'best_loss_conv_toy_bs64_ld4_mse_adam_lr0.001_wd0_be0.1_epoch_23_umap.png'
+
+Latent analysis metrics:
+Silhouette score (PCA): 0.3152
+Silhouette score (UMAP): 0.3646
+
+Unique distances:
+tensor([0.0000e+00, 2.4414e-04, 3.4527e-04,  ..., 7.2433e+00, 7.3935e+00,
+        7.3935e+00])
+
+Max distance: 7.393488883972168
+Mean pairwise distance: 2.6292, Standard deviation: 0.9536
+
+Alternative history filename updated: 'best_loss_conv_toy_bs64_ld4_mse_adam_lr0.001_wd0_be0.1_epoch_23'
+Saving to alternative history filename: 'best_loss_conv_toy_bs64_ld4_mse_adam_lr0.001_wd0_be0.1_epoch_23.pth'...
+History saved to 'metric_history/best_loss_conv_toy_bs64_ld4_mse_adam_lr0.001_wd0_be0.1_epoch_23.pth'
+
+Getting samples for comparison visualisations...
+Robot comparison visualisation plot saved to 'comparison_best_loss_conv_toy_bs64_ld4_mse_adam_lr0.001_wd0_be0.1_epoch_23_101482.png'
+Robot comparison visualisation plot saved to 'comparison_best_loss_conv_toy_bs64_ld4_mse_adam_lr0.001_wd0_be0.1_epoch_23_220597.png'
+Robot comparison visualisation plot saved to 'comparison_best_loss_conv_toy_bs64_ld4_mse_adam_lr0.001_wd0_be0.1_epoch_23_70987.png'
+
+Starting gridsearch for best weighted F1 model...
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+Searching grid...
+
+Best Configuration tradeoff score: 0.0075 at epoch: 1
+Training History Summary for Model: 'conv_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1'
+Model Directory: '/users/40538519/sharedscratch/outputs/model_checkpoints/conv_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1'
+--------------------------------------------------
+Epochs Run: 18
+Last Updated Model: 'terminated_model_epoch_18.pth'
+
+Epochs Without Improvement: 5
+Last Improved Model: 'best_loss_epoch_13.pth'
+
+Batch Size: 64
+Optimizer: Adam
+Weight Decay: 0
+Loss Function: VAE Loss: MSELoss, KL Divergence
+Scheduler: None
+
+Best Validation Loss: 0.0401
+Best Validation Loss Model: 'best_loss_epoch_13.pth'
+Best Validation Weighted F1: 0.9925
+Best Validation Weighted F1 Model: 'best_f1_avg_epoch_1.pth'
+--------------------------------------------------
+Training Metrics (Last Epoch):
+	- Reconstruction Loss, Weighted by Class Imbalance, Averaged Across Batches: 0.0406
+	- KL Divergence, Averaged Across Batches: 0.0000
+	- Beta: 0.1
+	- Accuracy: 0.9935
+	- Weighted F1: 0.9919
+	- Learning Rate: 0.001
+	- Average Training Time: 00:05:56
+--------------------------------------------------
+Validation Metrics (Last Epoch):
+	- Reconstruction Loss, Weighted by Class Imbalance, Averaged Across Batches: 0.0407
+	- KL Divergence, Averaged Across Batches: 0.0000
+	- Beta: 0.1
+	- Accuracy: 0.9929
+	- Weighted F1: 0.9918
+	- Average Validation Time: 00:01:42
+--------------------------------------------------
+Model Architecture Used:
+Latent Dim: 2
+
+- '':
+VAE(
+  (encoder): Encoder(
+    (conv1): Conv3d(1, 128, kernel_size=(3, 3, 3), stride=(2, 2, 2), padding=(1, 1, 1))
+    (conv2): Conv3d(128, 256, kernel_size=(3, 3, 3), stride=(2, 2, 2), padding=(1, 1, 1))
+    (flatten): Flatten(start_dim=1, end_dim=-1)
+    (z_mean_fc): Linear(in_features=6912, out_features=2, bias=True)
+    (z_log_var_fc): Linear(in_features=6912, out_features=2, bias=True)
+  )
+  (sampling): Sample()
+  (decoder): Decoder(
+    (fc): Linear(in_features=2, out_features=6912, bias=True)
+    (deconv1): ConvTranspose3d(256, 128, kernel_size=(3, 3, 3), stride=(2, 2, 2), padding=(1, 1, 1), output_padding=(1, 1, 1))
+    (deconv2): ConvTranspose3d(128, 1, kernel_size=(3, 3, 3), stride=(2, 2, 2), padding=(1, 1, 1))
+  )
+)
+
+- 'encoder':
+Encoder(
+  (conv1): Conv3d(1, 128, kernel_size=(3, 3, 3), stride=(2, 2, 2), padding=(1, 1, 1))
+  (conv2): Conv3d(128, 256, kernel_size=(3, 3, 3), stride=(2, 2, 2), padding=(1, 1, 1))
+  (flatten): Flatten(start_dim=1, end_dim=-1)
+  (z_mean_fc): Linear(in_features=6912, out_features=2, bias=True)
+  (z_log_var_fc): Linear(in_features=6912, out_features=2, bias=True)
+)
+
+- 'encoder.conv1':
+Conv3d(1, 128, kernel_size=(3, 3, 3), stride=(2, 2, 2), padding=(1, 1, 1))
+
+- 'encoder.conv2':
+Conv3d(128, 256, kernel_size=(3, 3, 3), stride=(2, 2, 2), padding=(1, 1, 1))
+
+- 'encoder.flatten':
+Flatten(start_dim=1, end_dim=-1)
+
+- 'encoder.z_mean_fc':
+Linear(in_features=6912, out_features=2, bias=True)
+
+- 'encoder.z_log_var_fc':
+Linear(in_features=6912, out_features=2, bias=True)
+
+- 'sampling':
+Sample()
+
+- 'decoder':
+Decoder(
+  (fc): Linear(in_features=2, out_features=6912, bias=True)
+  (deconv1): ConvTranspose3d(256, 128, kernel_size=(3, 3, 3), stride=(2, 2, 2), padding=(1, 1, 1), output_padding=(1, 1, 1))
+  (deconv2): ConvTranspose3d(128, 1, kernel_size=(3, 3, 3), stride=(2, 2, 2), padding=(1, 1, 1))
+)
+
+- 'decoder.fc':
+Linear(in_features=2, out_features=6912, bias=True)
+
+- 'decoder.deconv1':
+ConvTranspose3d(256, 128, kernel_size=(3, 3, 3), stride=(2, 2, 2), padding=(1, 1, 1), output_padding=(1, 1, 1))
+
+- 'decoder.deconv2':
+ConvTranspose3d(128, 1, kernel_size=(3, 3, 3), stride=(2, 2, 2), padding=(1, 1, 1))
+--------------------------------------------------
+Search complete!
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+Alternative history filename updated: 'best_f1_conv_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1_epoch_1'
+Saving to alternative history filename: 'best_f1_conv_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1_epoch_1.pth'...
+History saved to 'metric_history/best_f1_conv_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1_epoch_1.pth'
+
+Plot saved to 'best_f1_conv_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1_epoch_1_recon-beta_kl_vs_epochs.png'
+Plot saved to 'best_f1_conv_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1_epoch_1_f1_vs_epochs.png'
+Plot saved to 'best_f1_conv_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1_epoch_1_total_loss_vs_epochs.png'
+Plot saved to 'best_f1_conv_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1_epoch_1_acc_vs_epochs.png'
+Plot saved to 'best_f1_conv_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1_epoch_1_kl_vs_recon.png'
+Plot saved to 'best_f1_conv_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1_epoch_1_beta_kl_vs_recon.png'
+Plot saved to 'best_f1_conv_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1_epoch_1_total_loss_vs_f1.png'
+
+Resetting history to epoch 1...
+
+Best loss model checkpoint for epoch 1 does not exist.
+
+TrainingHistory rolled back to epoch 1. Updated attributes:
+	- Last updated model: 'best_f1_avg_epoch_1.pth'
+	- Last improved model: 'best_f1_avg_epoch_1.pth' Epoch: 1
+	- Best loss: 0.0004, Model: 'None' Epoch: 1
+	- Best F1 average: 0.9925, Model: 'best_f1_avg_epoch_1.pth' Epoch: 1
+
+Attempting to load last updated model...
+Loading model and optimizer checkpoint from '/users/40538519/sharedscratch/outputs/model_checkpoints/conv_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1/best_f1_avg_epoch_1.pth'...
+Checkpoint loaded.
+
+Plotting latent space using PCA and UMAP with K=5...
+Plot saved to 'best_f1_conv_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1_epoch_1_pca.png'
+Plot saved to 'best_f1_conv_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1_epoch_1_umap.png'
+
+Latent analysis metrics:
+Silhouette score (PCA): 0.3117
+Silhouette score (UMAP): 0.3964
+
+Unique distances:
+tensor([0.0000e+00, 8.6317e-05, 1.2207e-04,  ..., 7.6513e+00, 7.8385e+00,
+        8.1652e+00])
+
+Max distance: 8.165162086486816
+Mean pairwise distance: 1.7628, Standard deviation: 0.9343
+
+Alternative history filename updated: 'best_f1_conv_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1_epoch_1'
+Saving to alternative history filename: 'best_f1_conv_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1_epoch_1.pth'...
+History saved to 'metric_history/best_f1_conv_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1_epoch_1.pth'
+
+Getting samples for comparison visualisations...
+Robot comparison visualisation plot saved to 'comparison_best_f1_conv_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1_epoch_1_101482.png'
+Robot comparison visualisation plot saved to 'comparison_best_f1_conv_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1_epoch_1_220597.png'
+Robot comparison visualisation plot saved to 'comparison_best_f1_conv_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1_epoch_1_70987.png'
+
+Pipeline complete!
+Script execution completed.
+Deactivating environment...
+Job complete.
