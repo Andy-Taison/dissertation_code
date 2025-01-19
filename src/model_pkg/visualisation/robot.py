@@ -168,7 +168,7 @@ def compare_reconstructed(model: torch.nn.Module, dataloader: torch.utils.data.D
             # Visualise on the first subplot
             visualise_robot(grid_data[i].unsqueeze(0).cpu(), title="Original", ax=axes[0])
 
-            x_reconstructed, _, _, _, _ = model(grid_data[i].unsqueeze(0))
+            x_reconstructed, _, _, _ = model(grid_data[i].unsqueeze(0))
             visualise_robot(x_reconstructed.cpu(), title="Reconstructed", ax=axes[1])
 
             # Add common legend

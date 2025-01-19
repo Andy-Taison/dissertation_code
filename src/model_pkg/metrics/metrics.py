@@ -15,12 +15,15 @@ def compute_prediction_table(x: torch.Tensor, x_reconstructed: torch.Tensor) -> 
     :param x_reconstructed: Reconstructed tensor with same shape as input tensor
     :return: Prediction table
     """
+    print(f"x unique: {x.unique()}")
+    print(f"x reconstructed max: {x_reconstructed.max()}")
+    print(f"x reconstructed unique: {x_reconstructed.unique()}")
     # Flatten tensors
     x_flat = x.view(-1).to(torch.long)  # Long for indexing
     x_reconstructed_flat = x_reconstructed.view(-1).to(torch.long)  # Long for indexing
     
     prediction_table = torch.zeros(NUM_CLASSES, NUM_CLASSES, dtype=torch.int64).to(DEVICE)
-    
+
     for idx, cls in enumerate(x_flat):
         prediction_table[cls, x_reconstructed_flat[idx]] += 1
 

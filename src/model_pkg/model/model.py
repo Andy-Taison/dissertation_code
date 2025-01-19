@@ -70,7 +70,6 @@ class Decoder(nn.Module):
     def forward(self, z: torch.Tensor) -> torch.Tensor:
         """
         Forward pass.
-        Returns a normalized output in range [0, 1].
 
         :param z: Sampled latent vector with shape (batch_size, latent_dim)
         :return: Reconstructed input with shape (batch_size, *input_dim)
@@ -81,7 +80,6 @@ class Decoder(nn.Module):
         x = torch.relu(self.deconv1(x))
         x = self.upsample2(x)  # (B, 128, 13, 13, 13)
         x = self.deconv2(x)
-        x = torch.sigmoid(x)
         x = x.squeeze(1)  # Remove channel dimension (B, 11, 11, 11)
 
         return x
@@ -128,7 +126,7 @@ class VAE(nn.Module):
         self.sampling = Sample()
         self.decoder = Decoder(latent_dim)
 
-    def forward(self, x: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
+    def forward(self, x: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
         """
         Forward pass.
         Scales, rounds, clamps and reshapes decoder output to match original shape and descriptor values.
@@ -137,18 +135,12 @@ class VAE(nn.Module):
         :param x: Input tensor with shape (batch_size, *input_dim)
         :return:
             x_reconstructed - Reconstructed input with shape (batch_size, *input_dim),
-            x_decoder - Decoder output reshaped to (batch_size, *input_dim), (sigmoid) normalized in range [0, 1],
             z - Sampled latent vector with shape (batch_size, latent_dim),
             z_mean - Latent space mean with shape (batch_size, latent_dim),
             z_log_var - Log variance of latent space with shape (batch_size, latent_dim)
         """
         z_mean, z_log_var = self.encoder(x)
         z = self.sampling(z_mean, z_log_var)
-        x_decoder = self.decoder(z)
+        x_reconstructed = self.decoder(z)
 
-        # Adjust values to obtain original descriptor values
-        x_reconstructed = x_decoder * (NUM_CLASSES - 1)  # Scale output to [0, 4]
-        x_reconstructed = torch.round(x_reconstructed)  # Round to the nearest integer
-        x_reconstructed = torch.clamp(x_reconstructed, min=0, max=4)  # Ensure range is [0, 4]
-
-        return x_reconstructed, x_decoder, z, z_mean, z_log_var
+        return x_reconstructed, z, z_mean, z_log_var
