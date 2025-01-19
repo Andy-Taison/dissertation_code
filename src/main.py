@@ -125,7 +125,7 @@ def run():
     best_history, best_score, best_epoch = search_grid_history(loss_f1_tradeoff=0.7)
     alt_name = f"best_performing_{best_history.model_name}_epoch_{best_epoch}"
     print()
-    best_history.save_history(alt_name)
+    best_history.save_history(alt_name)  # Updates alt_history_filename which is used in the plots
 
     generate_plots(best_history, alt_name)
     print()
@@ -136,25 +136,29 @@ def run():
 
     try:
         # Load best tradeoff model checkpoint
-        best_model, _, _, _ = load_model_checkpoint(best_history)
+        best_model, _, _, epochs_run = load_model_checkpoint(best_history)
+
+        # Updates name for analysis plots and saved history if intended checkpoint to load does not exist
+        if epochs_run != best_epoch:
+            alt_name = f"closest_checkpoint_best_performing_{best_history.model_name}_epoch_{epochs_run}"
 
         # Analyse latent space for best tradeoff model and store to history
         latent_metrics = analyse_latent_space(best_model, train_loader, val_loader, k=5, filename=alt_name)
-        best_history.latent_analysis = latent_metrics
+        best_history.latent_analysis = latent_metrics  # Adds metrics to history
         print()
         best_history.save_history(alt_name)
 
         compare_reconstructed(best_model, val_loader, 3, filename=f"comparison_{alt_name}")
         print()
-    except FileNotFoundError:
-        print(f"Checkpoint for '{alt_name}' has been pruned, so cannot perform latent analysis.")
+    except (FileNotFoundError, ValueError) as e:
+        print(f"{e} Cannot perform latent analysis for {alt_name}.")
 
     # Grid search using only loss to score
     print("Starting gridsearch for best loss model...")
     best_loss_history, best_loss_score, best_loss_epoch = search_grid_history(loss_f1_tradeoff=1)
     alt_loss_name = f"best_loss_{best_loss_history.model_name}_epoch_{best_loss_epoch}"
     print()
-    best_loss_history.save_history(alt_loss_name)
+    best_loss_history.save_history(alt_loss_name)  # Updates alt_history_filename which is used in the plots
 
     generate_plots(best_loss_history, alt_loss_name)
     print()
@@ -165,25 +169,29 @@ def run():
 
     try:
         # Load best tradeoff model checkpoint
-        best_loss_model, _, _, _ = load_model_checkpoint(best_loss_history)
+        best_loss_model, _, _, loss_epochs_run = load_model_checkpoint(best_loss_history)
+
+        # Updates name for analysis plots and saved history if intended checkpoint to load does not exist
+        if loss_epochs_run != best_loss_epoch:
+            alt_loss_name = f"closest_checkpoint_best_loss_{best_loss_history.model_name}_epoch_{loss_epochs_run}"
 
         # Analyse latent space for best tradeoff model and store to history
         latent_metrics = analyse_latent_space(best_loss_model, train_loader, val_loader, k=5, filename=alt_loss_name)
-        best_loss_history.latent_analysis = latent_metrics
+        best_loss_history.latent_analysis = latent_metrics  # Adds metrics to history
         print()
         best_loss_history.save_history(alt_loss_name)
 
         compare_reconstructed(best_loss_model, val_loader, 3, filename=f"comparison_{alt_loss_name}")
         print()
-    except FileNotFoundError:
-        print(f"Checkpoint for '{alt_loss_name}' has been pruned, so cannot perform latent analysis.")
+    except (FileNotFoundError, ValueError) as e:
+        print(f"{e} Cannot perform latent analysis for {alt_loss_name}.")
 
     # Grid search using only weighted F1 to score
     print("Starting gridsearch for best weighted F1 model...")
     best_f1_history, best_f1_score, best_f1_epoch = search_grid_history(loss_f1_tradeoff=0)
     alt_f1_name = f"best_f1_{best_f1_history.model_name}_epoch_{best_f1_epoch}"
     print()
-    best_f1_history.save_history(alt_f1_name)
+    best_f1_history.save_history(alt_f1_name)  # Updates alt_history_filename which is used in the plots
 
     generate_plots(best_f1_history, alt_f1_name)
     print()
@@ -194,17 +202,21 @@ def run():
 
     try:
         # Load best tradeoff model checkpoint
-        best_f1_model, _, _, _ = load_model_checkpoint(best_f1_history)
+        best_f1_model, _, _, f1_epochs_run = load_model_checkpoint(best_f1_history)
+
+        # Updates name for analysis plots and saved history if intended checkpoint to load does not exist
+        if f1_epochs_run != best_f1_epoch:
+            alt_f1_name = f"closest_checkpoint_best_performing_{best_f1_history.model_name}_epoch_{f1_epochs_run}"
 
         # Analyse latent space for best tradeoff model and store to history
         latent_metrics = analyse_latent_space(best_f1_model, train_loader, val_loader, k=5, filename=alt_f1_name)
-        best_f1_history.latent_analysis = latent_metrics
+        best_f1_history.latent_analysis = latent_metrics  # Adds metrics to history
         print()
         best_f1_history.save_history(alt_f1_name)
 
         compare_reconstructed(best_f1_model, val_loader, 3, filename=f"comparison_{alt_f1_name}")
-    except FileNotFoundError:
-        print(f"Checkpoint for '{alt_f1_name}' has been pruned, so cannot perform latent analysis.")
+    except (FileNotFoundError, ValueError) as e:
+        print(f"{e} Cannot perform latent analysis for {alt_f1_name}.")
 
     print("\nPipeline complete!")
 

@@ -420,10 +420,10 @@ class TrainingHistory:
             self.last_updated_model = max(valid_files, key=lambda x: x[0])[1]
 
         print(f"\nTrainingHistory rolled back to epoch {self.epochs_run}. Updated attributes:")
-        print(f"\t- Last updated model: {self.last_updated_model.name}")
-        print(f"\t- Last improved model: {self.last_improved_model.name}")
-        print(f"\t- Best loss: {self.bests['best_loss']:.4f}, Model: {self.bests['best_loss_model'].name if self.bests['best_loss_model'] else 'None'}")  # type: ignore
-        print(f"\t- Best F1 average: {self.bests['best_f1_avg']:.4f}, Model: {self.bests['best_f1_avg_model'].name if self.bests['best_f1_avg_model'] else 'None'}\n")  # type: ignore
+        print(f"\t- Last updated model: '{self.last_updated_model.name if self.last_updated_model else 'None'}'")
+        print(f"\t- Last improved model: '{self.last_improved_model.name if self.last_improved_model else 'None'}' Epoch: {last_improved_epoch}")
+        print(f"\t- Best loss: {self.bests['best_loss']:.4f}, Model: '{self.bests['best_loss_model'].name if self.bests['best_loss_model'] else 'None'}' Epoch: {best_loss_epoch}")  # type: ignore
+        print(f"\t- Best F1 average: {self.bests['best_f1_avg']:.4f}, Model: '{self.bests['best_f1_avg_model'].name if self.bests['best_f1_avg_model'] else 'None'}' Epoch: {best_weighted_f1_epoch}\n")  # type: ignore
 
     def save_history(self, change_filename_to: str = None):
         """
@@ -579,7 +579,7 @@ def load_model_checkpoint(source: Path | str | TrainingHistory, load: str = "upd
     if not checkpoint_path.parent.exists():
         raise FileNotFoundError(f"Directory {checkpoint_path.parent} not found.")
     if not checkpoint_path.exists():
-        raise FileNotFoundError(f"Checkpoint file '{checkpoint_path.name}' does not exist in '{checkpoint_path.parent}'")
+        raise FileNotFoundError(f"Checkpoint file '{checkpoint_path.name}' does not exist in '{checkpoint_path.parent}'.")
 
     print(f"Loading model and optimizer checkpoint from '{checkpoint_path}'...")
     checkpoint = torch.load(checkpoint_path, weights_only=False, map_location=DEVICE)  # map_location prevents errors when checkpoint was saved with GPU, but loaded with CPU
