@@ -55,7 +55,7 @@ def calculate_metric_data(history: TrainingHistory, metric: str, metrics_from: s
 
 
 def process_metrics(training_histories: list[TrainingHistory], metrics: tuple[str, ...], labels: list[str],
-                    metrics_from: str, group_by_history: bool = False) -> tuple[list[dict], dict, dict] | tuple[dict, int, list[float]]:
+                    metrics_from: str, group_by_history: bool = False) -> tuple[list[dict], dict, dict] | tuple[dict, int, dict, list[float]]:
     """
     Collect and process data from list of TrainingHistory objects
     When 'group_by_history' is True, processes to a list of dictionaries for each TrainingHistory object.
@@ -67,7 +67,9 @@ def process_metrics(training_histories: list[TrainingHistory], metrics: tuple[st
     :param labels: List of labels to ID each TrainingHistory dataset, prefix to 'legend_label' in returned dictionary
     :param metrics_from: Get data from - 'train_and_val', 'train', or 'val'
     :param group_by_history: When True, organises data by history, when False, organises history by metric
-    :return: List of processed data, data min, and data max dictionaries when 'group_by_history', else metrics to plot dictionary, max data epochs, sorted list of maximum y scale data values
+    :return:
+        - List of processed data, data min, and data max dictionaries when 'group_by_history',
+        - Else metrics to plot dictionary, max data epochs, maximum y scale values dict by metric, sorted list of maximum y scale data values
     """
     if group_by_history:
         processed_data = []
@@ -94,7 +96,7 @@ def process_metrics(training_histories: list[TrainingHistory], metrics: tuple[st
     else:
         metrics_to_plot = {"legend_label": [], "data": [], "mode": [], "metric": [], "history": []}
         epochs = 0
-        y_scales = []
+        metric_max_y = {}  # Used to determine which scale to plot metric on when twin scales
 
         for history_counter, (history, label) in enumerate(zip(training_histories, labels)):
             for metric in metrics:
@@ -111,9 +113,12 @@ def process_metrics(training_histories: list[TrainingHistory], metrics: tuple[st
                         metrics_to_plot['metric'].append(formatted_metric)
                         metrics_to_plot['history'].append(history_counter)
                         epochs = max(epochs, len(data))
-                        y_scales.append(max(data))
+                        if formatted_metric not in metric_max_y or max(data) > metric_max_y[formatted_metric]:
+                            metric_max_y[formatted_metric] = max(data)
 
-        return metrics_to_plot, epochs, sorted(y_scales)
+        y_scales = list(metric_max_y.values())  # Used to determine twin scale
+
+        return metrics_to_plot, epochs, metric_max_y, sorted(y_scales)
 
 
 def determine_scale_limits(sorted_y_scales: list[float], threshold: int = 10) -> list[float]:
@@ -228,7 +233,7 @@ def plot_metrics_vs_epochs(training_histories: TrainingHistory | list[TrainingHi
     training_histories, history_labels, title = check_inputs(training_histories, history_labels, title, metrics_from)
 
     # Get data and calculate scales required
-    processed_metrics, epochs, y_scales = process_metrics(training_histories, metrics, history_labels, metrics_from)
+    processed_metrics, epochs, metric_max_y, y_scales = process_metrics(training_histories, metrics, history_labels, metrics_from)
     y_scales = determine_scale_limits(y_scales, y_scale_threshold)
 
     # Initialise plot
@@ -247,6 +252,8 @@ def plot_metrics_vs_epochs(training_histories: TrainingHistory | list[TrainingHi
     colour_idx = 0
     primary_axis_labels = set()
     secondary_axis_labels = set()
+    plotted_on_primary = set()
+    plotted_on_secondary = set()
 
     # Markers and styles
     markers = ["None", "v", "x", "D", "o"]
@@ -262,7 +269,7 @@ def plot_metrics_vs_epochs(training_histories: TrainingHistory | list[TrainingHi
             processed_metrics['metric'],
             processed_metrics['mode'],
             processed_metrics['history']):
-        primary_axis = True if max(data) <= y_scales[0] else False
+        primary_axis = True if metric_max_y[metric] <= y_scales[0] else False
 
         # Set colour for each metric
         if metric not in colours_by_metric:
@@ -295,10 +302,12 @@ def plot_metrics_vs_epochs(training_histories: TrainingHistory | list[TrainingHi
 
     # Configure axes
     ax.set_xlabel("Epochs")
-    ax.set_ylim(0, y_scales[0] * 1.1)  # Always start y-axis at 0 and extend vertically by 10%
+    ax_current_lim = ax.get_ylim()
+    ax.set_ylim(0, ax_current_lim[1] * 1.1)  # Always start y-axis at 0 and extend vertically by 10%
     ax.set_ylabel(y1_label or ", ".join(primary_axis_labels))
     if ax2:
-        ax2.set_ylim(0, y_scales[1] * 1.1)
+        ax2_current_lim = ax2.get_ylim()
+        ax2.set_ylim(0, ax2_current_lim[1] * 1.1)
         ax2.set_ylabel(y2_label or ", ".join(secondary_axis_labels))
     ax.grid(True, alpha=0.3)  # Make grid opaque
 

@@ -96,4 +96,4 @@ It appears the with pooling looses spatial information.
 * Removed rounding and clamping operations from VAE. 
 Decoder output is now used directly in the loss functions. 
 Values are normalised for BCE, but also for other losses to make them comparable in the grid search.
-Retrain model for comparative results going forward.
+Retraining model without pooling for comparative results going forward.
