@@ -88,9 +88,12 @@ Decoder: 5 layers (3 trainable)
 	ConvTranspose3d,  3457 parameters
 Total: 6 trainable layers, 1825285 parameters
 
+The model without pooling showed lower reconstruction loss and higher accuracy (more accurately reconstructs the input).
+Clusters in the latent space were better separated using UMAP for the model with pooling (may improve latent representations), 
+however they are tigher clusters (PCA) for the model without pooling.
+It appears the with pooling looses spatial information.
 
-
-Removed rounding and clamping operations from VAE. 
+* Removed rounding and clamping operations from VAE. 
 Decoder output is now used directly in the loss functions. 
 Values are normalised for BCE, but also for other losses to make them comparable in the grid search.
-Retrain pooling model for comparative results going forward.
+Retrain model for comparative results going forward.

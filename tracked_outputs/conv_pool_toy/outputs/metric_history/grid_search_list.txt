@@ -1,4 +1,0 @@
-conv_pool_toy_bs64_ld2_mse_adam_lr0.001_wd0_be0.1_history.pth
-conv_pool_toy_bs64_ld2_bce_adam_lr0.001_wd0_be0.1_history.pth
-conv_pool_toy_bs64_ld4_mse_adam_lr0.001_wd0_be0.1_history.pth
-conv_pool_toy_bs64_ld4_bce_adam_lr0.001_wd0_be0.1_history.pth
