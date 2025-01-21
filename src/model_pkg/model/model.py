@@ -67,9 +67,6 @@ class Decoder(nn.Module):
         self.deconv1 = nn.ConvTranspose3d(256, 128, kernel_size=3, stride=2, padding=1, output_padding=1)  # (B, 128, 6, 6, 6)
         self.deconv2 = nn.ConvTranspose3d(128, 1, kernel_size=3, stride=2, padding=1, output_padding=0)  # (B, 1, 11, 11, 11)
 
-        # Skip connection convolution
-        self.skip_deconv = nn.ConvTranspose3d(256, 1, kernel_size=7, stride=2)  # (B, 1, 11, 11, 11)
-
     def forward(self, z: torch.Tensor) -> torch.Tensor:
         """
         Forward pass.
@@ -82,13 +79,8 @@ class Decoder(nn.Module):
         x = torch.relu(self.fc(z))
         x = x.view(-1, 256, 3, 3, 3)  # Reshape for input to deconvolution layers
 
-        # Skip connection
-        skip = self.skip_deconv(x)  # (B, 1, 11, 11, 11)
-
         x = torch.relu(self.deconv1(x))  # (B, 128, 6, 6, 6)
         x = self.deconv2(x)  # (B, 1, 11, 11, 11)
-
-        x = x + skip
 
         x = torch.sigmoid(x) * (NUM_CLASSES - 1)  # Scales to range [0, 4]
         x = x.squeeze(1)  # Remove channel dimension (B, 11, 11, 11)
