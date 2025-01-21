@@ -97,3 +97,22 @@ It appears the with pooling looses spatial information.
 Decoder output is now used directly in the loss functions. 
 Values are normalised for BCE, but also for other losses to make them comparable in the grid search.
 Retraining model without pooling for comparative results going forward.
+
+* Added convolution skip connection in the hope to capture additional features.
+Might be worth testing having just a skip connection in the encoder to prevent overfitting.
+Conv_skip model:
+Encoder: 5 layers (4 trainable)
+	(skip) Conv3d,  88064 parameters
+	Conv3d,  3584 parameters
+	Conv3d,  884992 parameters
+	skip path combined with main path,
+	Flatten,
+	Latent FC branching,  13826 parameters for each branch assuming latent dim = 2, so 27652 parameters
+Sampling: 1 layer (0 trainable)
+	Reparameterization step
+Decoder: 4 layers (4 trainable)
+	FC,  20736 parameters
+	(skip) ConvTranspose3d,  87809 parameters
+	ConvTranspose3d,  884864 parameters
+	ConvTranspose3d,  3457 parameters
+Total: 8 trainable layers, 2001158 parameters
