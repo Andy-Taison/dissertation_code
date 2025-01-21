@@ -22,6 +22,8 @@ class VaeLoss:
             self.recon_loss_fn = nn.MSELoss(reduction='none')
         elif self.loss_name == "bce":
             self.recon_loss_fn = nn.BCELoss(reduction='none')
+        elif self.loss_name == "cce":
+            self.recon_loss_fn = nn.CrossEntropyLoss(reduction='none')
         elif self.loss_name == "smoothl1":
             self.recon_loss_fn = nn.SmoothL1Loss(reduction='none')
         else:
