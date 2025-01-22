@@ -16,16 +16,17 @@ class Encoder(nn.Module):
         """
         super(Encoder, self).__init__()
         # Convolutional layers
-        self.conv1 = nn.Conv3d(1, 128, kernel_size=3, stride=2, padding=1)  # (B, 128, 6, 6, 6)
-        self.conv2 = nn.Conv3d(128, 256, kernel_size=3, stride=2, padding=1)  # (B, 256, 3, 3, 3)
-
-        # Skip connection convolution
-        self.skip_conv = nn.Conv3d(1, 256, kernel_size=7, stride=2)  # (B, 256, 3, 3, 3)
+        self.conv1 = nn.Conv3d(1, 64, kernel_size=3, stride=1, padding=1)  # (B, 64, 11, 11, 11)
+        self.conv2 = nn.Conv3d(64, 128, kernel_size=3, stride=2, padding=1)  # (B, 128, 6, 6, 6)
+        self.conv3 = nn.Conv3d(128, 256, kernel_size=3, stride=1, padding=1)  # (B, 256, 6, 6, 6)
+        self.conv4 = nn.Conv3d(256, 256, kernel_size=3, stride=1, padding=1)  # (B, 256, 6, 6, 6)
 
         # Fully connected and flatten layers
         self.flatten = nn.Flatten()
-        self.z_mean_fc = nn.Linear(256 * 3 * 3 * 3, latent_dim)
-        self.z_log_var_fc = nn.Linear(256 * 3 * 3 * 3, latent_dim)
+        self.z_mean_fc = nn.Linear(256 * 6 * 6 * 6, latent_dim)
+        self.z_log_var_fc = nn.Linear(256 * 6 * 6 * 6, latent_dim)
+
+        self.leaky = nn.LeakyReLU(0.1)
 
     def forward(self, x: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
         """
@@ -38,12 +39,10 @@ class Encoder(nn.Module):
         """
         x = x.unsqueeze(1)  # Add channel dimension for 3D convolution input: (B, 1, 11, 11, 11)
 
-        skip = self.skip_conv(x)  # (B, 256, 3, 3, 3)
-
-        x = torch.relu(self.conv1(x))  # (B, 128, 6, 6, 6)
-        x = torch.relu(self.conv2(x))  # (B, 256, 3, 3, 3)
-
-        x = x + skip
+        x = self.leaky(self.conv1(x))  # (B, 64, 11, 11, 11)
+        x = self.leaky(self.conv2(x))  # (B, 128, 6, 6, 6)
+        x = self.leaky(self.conv3(x))  # (B, 256, 6, 6, 6)
+        x = self.leaky(self.conv4(x))  # (B, 256, 6, 6, 6)
 
         x = self.flatten(x)
         z_mean = self.z_mean_fc(x)
@@ -61,14 +60,15 @@ class Decoder(nn.Module):
         :param latent_dim: Dimensionality of latent space
         """
         super(Decoder, self).__init__()
-        self.fc = nn.Linear(latent_dim, 256 * 3 * 3 * 3)
+        self.fc = nn.Linear(latent_dim, 256 * 6 * 6 * 6)
 
         # Transposed convolutional layers for reconstruction
-        self.deconv1 = nn.ConvTranspose3d(256, 128, kernel_size=3, stride=2, padding=1, output_padding=1)  # (B, 128, 6, 6, 6)
-        self.deconv2 = nn.ConvTranspose3d(128, 1, kernel_size=3, stride=2, padding=1, output_padding=0)  # (B, 1, 11, 11, 11)
+        self.deconv1 = nn.Conv3d(256, 256, kernel_size=3, stride=1, padding=1)  # (B, 256, 6, 6, 6)
+        self.deconv2 = nn.Conv3d(256, 128, kernel_size=3, stride=1, padding=1)  # (B, 128, 6, 6, 6)
+        self.deconv3 = nn.ConvTranspose3d(128, 64, kernel_size=3, stride=2, padding=1)  # (B, 64, 11, 11, 11)
+        self.deconv4 = nn.Conv3d(64, 1, kernel_size=3, stride=1, padding=1)  # (B, 1, 11, 11, 11)
 
-        # Skip connection convolution
-        self.skip_deconv = nn.ConvTranspose3d(256, 1, kernel_size=7, stride=2)  # (B, 1, 11, 11, 11)
+        self.leaky = nn.LeakyReLU(0.1)
 
     def forward(self, z: torch.Tensor) -> torch.Tensor:
         """
@@ -80,15 +80,12 @@ class Decoder(nn.Module):
         :return: Reconstructed input with shape (batch_size, *input_dim)
         """
         x = torch.relu(self.fc(z))
-        x = x.view(-1, 256, 3, 3, 3)  # Reshape for input to deconvolution layers
+        x = x.view(-1, 256, 6, 6, 6)  # Reshape for input to deconvolution layers
 
-        # Skip connection
-        skip = self.skip_deconv(x)  # (B, 1, 11, 11, 11)
-
-        x = torch.relu(self.deconv1(x))  # (B, 128, 6, 6, 6)
-        x = self.deconv2(x)  # (B, 1, 11, 11, 11)
-
-        x = x + skip
+        x = self.leaky(self.deconv1(x))  # (B, 256, 6, 6, 6)
+        x = self.leaky(self.deconv2(x))  # (B, 128, 6, 6, 6)
+        x = self.leaky(self.deconv3(x))  # (B, 64, 11, 11, 11)
+        x = self.deconv4(x)  # (B, 1, 11, 11, 11)
 
         x = torch.sigmoid(x) * (NUM_CLASSES - 1)  # Scales to range [0, 4]
         x = x.squeeze(1)  # Remove channel dimension (B, 11, 11, 11)

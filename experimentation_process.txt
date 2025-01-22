@@ -116,3 +116,41 @@ Decoder: 4 layers (4 trainable)
 	ConvTranspose3d,  884864 parameters
 	ConvTranspose3d,  3457 parameters
 Total: 8 trainable layers, 2001158 parameters
+
+Skip connection model pca clusters overlap slightly, UMAP has better seperation, but clusters still overlap slightly.
+The convolution model without the skip connection produced better separation in the latent space.
+Fluctuations seen in the reconstruction loss and KL divergence.
+Model without skip connection had a constent lower loss, though this may be due to overfitting.
+The fluctuations seen with the skip connection may be due to the model trying to predict other values.
+Though overall the model without the skip connection performed better.
+
+* Trialing deeper network with LeakyReLU to avoid dying relu (usually better for deeper networks)
+Also trialing using conv3d in the decoder to try to refine the input before upsampling.
+deep model:
+Encoder: 6 layers (5 trainable)
+	Conv3d,  1792 parameters
+	Conv3d,  221312 parameters
+	Conv3d,  884992 parameters
+	Conv3d,  1769728 parameters
+	Flatten,
+	Latent FC branching,  110594 parameters for each branch assuming latent dim = 2, so 221188 parameters
+Sampling: 1 layer (0 trainable)
+	Reparameterization step
+Decoder: 5 layers (5 trainable)
+	FC,  165888 parameters
+	Conv3d,  1769728 parameters
+	Conv3d,  884864 parameters
+	ConvTranspose3d,  221248 parameters
+	Conv3d,  1729 parameters
+Total: 10 trainable layers, 6142469
+
+Trialing using the following configurations (4 configurations):
+ - batch_sizes = [64]
+ - latent_dims = [4, 8]  increasing latent dim
+ - loss_functions = ["mse"]  MSE has consistently outperformed BCE.
+ - optimizer = [
+        {"type": optim.Adam, "params": {}, "model_name": "adam"}
+    ]
+ - learning_rates = [1e-3]
+ - weight_decay = [0]
+ - betas = [0.1, 0.5]  trialing larger beta value

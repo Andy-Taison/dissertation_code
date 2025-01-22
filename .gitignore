@@ -158,3 +158,4 @@ tracked_outputs/base_log_weights_toy/
 tracked_outputs/conv_toy/
 tracked_outputs/conv_pool_toy/
 tracked_outputs/conv_decode_loss_toy/
+tracked_outputs/conv_skip_toy/
