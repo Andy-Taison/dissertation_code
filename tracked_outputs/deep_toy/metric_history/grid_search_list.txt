@@ -1,4 +1,0 @@
-deep_toy_bs64_ld4_mse_adam_lr0.001_wd0_be0.1_history.pth
-deep_toy_bs64_ld4_mse_adam_lr0.001_wd0_be0.5_history.pth
-deep_toy_bs64_ld8_mse_adam_lr0.001_wd0_be0.1_history.pth
-deep_toy_bs64_ld8_mse_adam_lr0.001_wd0_be0.5_history.pth
