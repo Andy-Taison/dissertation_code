@@ -142,7 +142,7 @@ Decoder: 5 layers (5 trainable)
 	Conv3d,  884864 parameters
 	ConvTranspose3d,  221248 parameters
 	Conv3d,  1729 parameters
-Total: 10 trainable layers, 6142469
+Total: 10 trainable layers, 6142469 parameters
 
 Trialing using the following configurations (4 configurations):
  - batch_sizes = [64]
@@ -154,3 +154,41 @@ Trialing using the following configurations (4 configurations):
  - learning_rates = [1e-3]
  - weight_decay = [0]
  - betas = [0.1, 0.5]  trialing larger beta value
+
+Demonstrated ability to leverage larger latent space (best model found used latent dim = 8)
+Though appears to still be overfitting and biased towards empty space predicting only zeros.
+Better reconstruction loss and KL div, though probably because its predicting zeros (simpler outputs).
+Potentially may be too heavily regularised by beta 0.1.
+Model with best F1 score used beta 0.5, whereas the best performing model used beta 0.1.
+Clustering seems more structured latent space distributions, suggesting the architectur does help improve the model.
+Increased training configurations:
+latent_dims = [4, 8, 16] 
+betas = [0.1, 0.5, 1]
+
+* Added batch normalisation in an attempt to stabilise training.
+
+batch_norm model:
+Encoder: 10 layers (9 trainable)
+	Conv3d,  1792 parameters
+	BatchNorm3d,  128 parameters
+	Conv3d,  221312 parameters
+	BatchNorm3d,  256 parameters
+	Conv3d,  884992 parameters
+	BatchNorm3d,  512 parameters
+	Conv3d,  1769728 parameters
+	BatchNorm3d,  512 parameters
+	Flatten,
+	Latent FC branching,  110594 parameters for each branch assuming latent dim = 2, so 221188 parameters
+Sampling: 1 layer (0 trainable)
+	Reparameterization step
+Decoder: 9 layers (9 trainable)
+	FC,  165888 parameters
+	BatchNorm1d,  110592 parameters
+	Conv3d,  1769728 parameters
+	BatchNorm3d,  512 parameters
+	Conv3d,  884864 parameters
+	BatchNorm3d,  256 parameters
+	ConvTranspose3d,  221248 parameters
+	BatchNorm3d,  128 parameters
+	Conv3d,  1729 parameters
+Total: 10 trainable layers, 6255365 parameters
