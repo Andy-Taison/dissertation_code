@@ -10,15 +10,16 @@ from pathlib import Path
 import pandas as pd
 from torchinfo import summary
 import torch.optim as optim
+from torch.utils.data import DataLoader, Subset
 
 
 def run():
     print("Starting VAE pipeline...\n")
 
-    grid_search_model_name = "batch_norm_toy"
+    grid_search_model_name = "sparse_toy"
     combine_and_save = False  # When false, will load processed files
     use_toy_set = True  # Use 20% of full dataset or full dataset, does not use test set
-    testing = False  # 128 samples for train and val sets for quick run testing
+    testing = True  # 128 samples for train and val sets for quick run testing
 
     if combine_and_save:
         # Combine all CSV files and clean
@@ -59,14 +60,18 @@ def run():
     # Create datasets and dataloaders
     print("\nTraining dataset:")
     summarise_dataset(train_data)
-    train_ds, train_loader = create_dataset_and_loader(train_data, batch_size=config.BATCH_SIZE, shuffle=True)
+    train_ds = VoxelDataset(train_data)
+    train_loader = DataLoader(train_ds, batch_size=config.BATCH_SIZE, shuffle=True)
+
     print("Validation dataset:")
     summarise_dataset(val_data)
-    val_ds, val_loader = create_dataset_and_loader(val_data, batch_size=config.BATCH_SIZE)
+    val_ds = VoxelDataset(val_data)
+    val_loader = DataLoader(val_ds, batch_size=config.BATCH_SIZE, shuffle=False)
     if test_data is not None:
         print("Test dataset:")
         summarise_dataset(test_data)  # type: ignore
-        test_ds, test_loader = create_dataset_and_loader(test_data, batch_size=config.BATCH_SIZE)  # type: ignore
+        test_ds = VoxelDataset(test_data)
+        test_loader = DataLoader(test_ds, batch_size=config.BATCH_SIZE, shuffle=False)
         print(f"Preprocessed datasets loaded: train ({len(train_ds)}), val ({len(val_ds)}), and test ({len(test_ds)}) sets.\n")
     else:
         print(f"Preprocessed datasets loaded: train ({len(train_ds)}) and val ({len(val_ds)}) sets.\n")
@@ -97,7 +102,6 @@ def run():
     if testing:
         # For testing
         print("Using TESTING subsets (128 samples)...")
-        from torch.utils.data import DataLoader, Subset
         subset_indices = list(range(128))  # Indices for the first 128 samples
         subset_train_ds = Subset(train_ds, subset_indices)
         subset_val_ds = Subset(val_ds, subset_indices)

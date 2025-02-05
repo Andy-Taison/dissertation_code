@@ -192,3 +192,7 @@ Decoder: 9 layers (9 trainable)
 	BatchNorm3d,  128 parameters
 	Conv3d,  1729 parameters
 Total: 10 trainable layers, 6255365 parameters
+
+Still overfitting and nothing in the reconstructed output. Looking into sparse matrix representations.
+
+* Setup a dataset class. Within that, obtaining sparse representation of data, padded to max number of voxels in the dataset (8 in this case - shape (8,(x,y,z,value))

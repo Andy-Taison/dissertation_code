@@ -180,6 +180,8 @@ def summarise_dataset(dataset: pd.DataFrame):
     rows_with_only_zero = (non_zero_counts_per_row == 0).sum()
     rows_with_one_non_zero = (non_zero_counts_per_row == 1).sum()
     rows_with_multiple_non_zero = (non_zero_counts_per_row > 1).sum()
+    max_non_zero_in_row = non_zero_counts_per_row.max()
+    min_non_zero_in_row = non_zero_counts_per_row.min()
 
     # Unique rows
     unique_rows = len(grids.drop_duplicates())
@@ -194,6 +196,8 @@ def summarise_dataset(dataset: pd.DataFrame):
     print(f"\nOverall Class Counts:\n{total_counts.to_string()}")
     print(f"\nProportion of Each Class (%):\n{proportions.to_string()}")
     print(f"\nAverage Zeros Per Row: {avg_zeros_per_row:.2f}")
+    print(f"Maximum Non-zero Values in a Row: {max_non_zero_in_row}")
+    print(f"Minimum Non-zero values in a Row: {min_non_zero_in_row}")
     print(f"Average Non-Zero Classes Per Row: {avg_class_per_row:.2f}")
     print(f"Rows with Only Zero Values: {rows_with_only_zero} ({rows_with_only_zero / num_rows * 100:.2f}%)")
     print(f"Rows with Exactly 1 Non-Zero Value: {rows_with_one_non_zero} ({rows_with_one_non_zero / num_rows * 100:.2f}%)")
