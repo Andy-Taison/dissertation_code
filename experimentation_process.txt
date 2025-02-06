@@ -195,4 +195,5 @@ Total: 10 trainable layers, 6255365 parameters
 
 Still overfitting and nothing in the reconstructed output. Looking into sparse matrix representations.
 
-* Setup a dataset class. Within that, obtaining sparse representation of data, padded to max number of voxels in the dataset (8 in this case - shape (8,(x,y,z,value))
+* Setup a dataset class. Within that, obtaining sparse representation of data, padded to max number of voxels in the dataset (8 in this case - shape (8,(x,y,z,one-hot descriptors))
+Modified model inspired by pointnet (though simpler to see if that works to start with due to small sparse representation matrix (8x8)

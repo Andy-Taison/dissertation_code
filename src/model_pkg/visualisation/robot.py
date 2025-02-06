@@ -8,6 +8,7 @@ import matplotlib.patches as mpatches  # For legend
 import numpy as np
 from pathlib import Path
 from ..config import PLOT_DIR, DEVICE
+from ..data.dataset import sparse_to_dense
 
 
 def load_grid_from_file(filepath: str, robot_id: int, robot_id_column_idx: int = 0) -> tuple[torch.Tensor, int]:
@@ -166,15 +167,13 @@ def compare_reconstructed(model: torch.nn.Module, dataloader: torch.utils.data.D
             fig.suptitle(f"Comparison of Original and Reconstructed Robot, ID: {robot_id}")
 
             # Visualise on the first subplot
-            visualise_robot(grid_data[i].unsqueeze(0).cpu(), title="Original", ax=axes[0])
+            dense_grid_orig = sparse_to_dense(grid_data[i])
+            visualise_robot(dense_grid_orig.unsqueeze(0).cpu(), title="Original", ax=axes[0])
 
+            # Forward pass and visualise on second subplot
             x_reconstructed, _, _, _ = model(grid_data[i].unsqueeze(0))
-            
-            # Ensure reconstructed values are integers in the correct range
-            x_reconstructed = torch.round(x_reconstructed)  # Round to the nearest integer
-            x_reconstructed = torch.clamp(x_reconstructed, min=0, max=4)  # Ensure range is [0, 4]
-
-            visualise_robot(x_reconstructed.cpu(), title="Reconstructed", ax=axes[1])
+            dense_grid_recon = sparse_to_dense(x_reconstructed.squeeze(0))
+            visualise_robot(dense_grid_recon.cpu(), title="Reconstructed", ax=axes[1])
 
             # Add common legend
             fig.legend(handles=legend_elements, loc='upper center', bbox_to_anchor=(0.5, 0.9), ncol=4)

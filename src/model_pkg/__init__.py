@@ -4,7 +4,7 @@ Defines public API for src package
 
 from . import config
 from .data.preprocess import combine_csv_files, split_data, save_split_datasets, summarise_dataset, clean_data, load_processed_datasets
-from .data.dataset import VoxelDataset
+from .data.dataset import VoxelDataset, sparse_to_dense
 from .visualisation.robot import load_grid_from_file, visualise_robot, compare_reconstructed
 from .visualisation.plots import plot_metrics_vs_epochs, plot_loss_tradeoffs
 from .visualisation.latent import analyse_latent_space
@@ -25,6 +25,7 @@ __all__ = ["config",
            "clean_data",
            "load_processed_datasets",
            "VoxelDataset",
+           "sparse_to_dense",
            "load_grid_from_file",
            "visualise_robot",
            "compare_reconstructed",

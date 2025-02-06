@@ -7,13 +7,13 @@ from pathlib import Path
 import time
 import math
 from ..config import DEVICE, NUM_CLASSES, MODEL_CHECKPOINT_DIR
-from ..metrics.metrics import calculate_metrics, compute_class_weights
+from ..metrics.metrics import calculate_metrics, get_batch_support
 from .history_checkpoint import TrainingHistory, remove_old_improvement_models, extract_epoch_number
 
 def train(model: torch.nn.Module, dataloader: torch.utils.data.DataLoader, loss_fn, optimizer: torch.optim.Optimizer, beta: int = 1) -> dict:
     """
     Single epoch training loop.
-    Reconstruction loss is weighted by class imbalance, and averaged across batches.
+    Reconstruction loss is sum of coordinate loss and descriptor loss, averaged across batches.
     Displayed loss, reconstruction loss and KL divergence are scaled for easier interpretability due to weighted recon and averaged KL.
 
     :param model: VAE model
@@ -37,6 +37,7 @@ def train(model: torch.nn.Module, dataloader: torch.utils.data.DataLoader, loss_
     total_precision = torch.zeros(NUM_CLASSES).to(DEVICE)  # Total weighted precision for each class/descriptor value
     total_f1 = torch.zeros(NUM_CLASSES).to(DEVICE)  # Total weighted F1 score for each class/descriptor value
     total_support = torch.zeros(NUM_CLASSES).to(DEVICE)  # Support for each class/descriptor value
+    total_distance = 0  # Total Euclidean distance for coordinate values
 
     time_to_train = []  # Maintains average time to train from each batch loop for progress statements
 
@@ -53,12 +54,11 @@ def train(model: torch.nn.Module, dataloader: torch.utils.data.DataLoader, loss_
         x_reconstructed, z, z_mean, z_log_var = model(x)
 
         # Get metrics
-        accuracy, recall, precision, f1_score, prediction_table = calculate_metrics(x, x_reconstructed)
-        batch_support = torch.sum(prediction_table, dim=1)  # True positives + False negatives
-        class_weights = compute_class_weights(batch_support)
+        accuracy, recall, precision, f1_score, euclid_dist = calculate_metrics(x, x_reconstructed)
+        batch_support = get_batch_support(x, x_reconstructed)  # Based on descriptor values
 
         # Compute loss
-        recon_loss, kl_div = loss_fn(x, x_reconstructed, z_mean, z_log_var, class_weights)
+        recon_loss, kl_div = loss_fn(x, x_reconstructed, z_mean, z_log_var)
         loss = recon_loss + beta * kl_div
 
         # Backpropagation
@@ -73,6 +73,7 @@ def train(model: torch.nn.Module, dataloader: torch.utils.data.DataLoader, loss_
         total_precision += precision * batch_support  # Precision weighted by batch support
         total_f1 += f1_score * batch_support  # F1 scores weighted by batch support
         total_support += batch_support
+        total_distance += euclid_dist
 
         # Update count
         processed += len(ids)
@@ -89,9 +90,10 @@ def train(model: torch.nn.Module, dataloader: torch.utils.data.DataLoader, loss_
                 formatted_estimate = time.strftime('%d-%b-%Y %H:%M:%S', time.localtime(estimated_completion))
                 print(f"Estimated train loop completion: {formatted_estimate}")
             print(f"Batch metrics (train):")
-            print(f"\tLoss = {loss.item() * 100:>8.4f} (*100 for easier interpretability due to weighted recon & averaged KL)")
-            print(f"\tAccuracy = {accuracy * 100:>6.2f}%")
-            print(f"\tF1 score (unweighted average across all classes for batch) = {f1_score.mean().item():>6.4f}\n")
+            print(f"\tLoss = {loss.item():>8.4f}")
+            print(f"\tAccuracy = {accuracy:>6.2f}%")
+            print(f"\tF1 score (unweighted average across all classes for batch) = {f1_score.mean().item():>6.4f}")
+            print(f"\tAverage coordinate Euclidean distance: {euclid_dist:>6.4f}\n")
 
     # Averages
     epoch_recon_loss = total_recon_loss / len(dataloader)
@@ -100,20 +102,23 @@ def train(model: torch.nn.Module, dataloader: torch.utils.data.DataLoader, loss_
     epoch_recall_per_class = total_recall / total_support  # average recall score for each class
     epoch_recall_per_class[torch.isnan(epoch_recall_per_class)] = 0  # Replace nan values from division by zero
     epoch_recall_weighted_avg = (total_recall / total_support.sum()).sum().item()  # normalises weighted recall and sums to get weighted average
-    epoch_precision_per_class = total_precision / total_support  # average precision score for each class
+    epoch_precision_per_class = total_precision / total_support  # Average precision score for each class
     epoch_precision_per_class[torch.isnan(epoch_precision_per_class)] = 0  # Replace nan values from division by zero
-    epoch_precision_weighted_avg = (total_precision / total_support.sum()).sum().item()  # normalises weighted precision and sums to get weighted average
-    epoch_f1_per_class = total_f1 / total_support  # average f1 score for each class
+    epoch_precision_weighted_avg = (total_precision / total_support.sum()).sum().item()  # Normalises weighted precision and sums to get weighted average
+    epoch_f1_per_class = total_f1 / total_support  # Average f1 score for each class
     epoch_f1_per_class[torch.isnan(epoch_f1_per_class)] = 0  # Replace nan values from division by zero
-    epoch_f1_weighted_avg = (total_f1 / total_support.sum()).sum().item()  # normalises weighted f1 and sums to get weighted average
+    epoch_f1_weighted_avg = (total_f1 / total_support.sum()).sum().item()  # Normalises weighted f1 and sums to get weighted average
+    epoch_euclid_dist = total_distance / len(dataloader)
 
     print(f"Train metrics (averages):")
-    print(f"\tRecon loss = {epoch_recon_loss * 100:>8.4f} (*100 for easier interpretability due to weighted recon)")
-    print(f"\tKL div = {epoch_kl_div * 100:>8.4f} (*100 for easier interpretability due to averaged KL)")
+    print(f"\tRecon loss = {epoch_recon_loss:>8.4f}")
+    print(f"\tKL div = {epoch_kl_div:>8.4f}")
     print(f"\tAccuracy = {epoch_accuracy * 100:>6.2f}%")
-    print(f"\tF1 score (weighted average) = {epoch_f1_weighted_avg:>6.4f}\n")
+    print(f"\tF1 score (weighted average) = {epoch_f1_weighted_avg:>6.4f}")
+    print(f"\tCoordinate Euclidean distance: {epoch_euclid_dist:>6.4f}\n")
 
     return {
+        "coor_euclid": epoch_euclid_dist,
         "recon": epoch_recon_loss,
         "kl": epoch_kl_div,
         "beta": beta,
@@ -131,7 +136,7 @@ def train(model: torch.nn.Module, dataloader: torch.utils.data.DataLoader, loss_
 def test(model: torch.nn.Module, dataloader: torch.utils.data.DataLoader, loss_fn, beta: int = 1) -> dict:
     """
     Single epoch test/validation loop.
-    Reconstruction loss is weighted by class imbalance.
+    Reconstruction loss is sum of coordinate loss and descriptor loss, averaged across batches.
     Displayed loss, reconstruction loss and KL divergence are scaled for easier interpretability due to weighted recon and averaged KL.
 
     :param model: VAE model
@@ -154,6 +159,7 @@ def test(model: torch.nn.Module, dataloader: torch.utils.data.DataLoader, loss_f
     total_precision = torch.zeros(NUM_CLASSES).to(DEVICE)  # Total weighted precision for each class/descriptor value
     total_f1 = torch.zeros(NUM_CLASSES).to(DEVICE)  # Total weighted F1 score for each class/descriptor value
     total_support = torch.zeros(NUM_CLASSES).to(DEVICE)  # Support for each class/descriptor value
+    total_distance = 0  # Total Euclidean distance for coordinate values
 
     time_to_train = []  # Maintains average time to train from each batch loop for progress statements
 
@@ -168,12 +174,11 @@ def test(model: torch.nn.Module, dataloader: torch.utils.data.DataLoader, loss_f
             x_reconstructed, z, z_mean, z_log_var = model(x)
 
             # Get metrics
-            accuracy, recall, precision, f1_score, prediction_table = calculate_metrics(x, x_reconstructed)
-            batch_support = torch.sum(prediction_table, dim=1)  # True positives + False negatives
-            class_weights = compute_class_weights(batch_support)
+            accuracy, recall, precision, f1_score, euclid_dist = calculate_metrics(x, x_reconstructed)
+            batch_support = get_batch_support(x, x_reconstructed)  # Based on descriptor values
 
             # Compute loss
-            recon_loss, kl_div = loss_fn(x, x_reconstructed, z_mean, z_log_var, class_weights)
+            recon_loss, kl_div = loss_fn(x, x_reconstructed, z_mean, z_log_var)
             loss = recon_loss + beta * kl_div
 
             # Update metrics
@@ -184,6 +189,7 @@ def test(model: torch.nn.Module, dataloader: torch.utils.data.DataLoader, loss_f
             total_precision += precision * batch_support  # Precision weighted by batch support
             total_f1 += f1_score * batch_support  # F1 scores weighted by batch support
             total_support += batch_support
+            total_distance += euclid_dist
 
             # Update count
             processed += len(ids)
@@ -200,9 +206,10 @@ def test(model: torch.nn.Module, dataloader: torch.utils.data.DataLoader, loss_f
                     formatted_estimate = time.strftime('%d-%b-%Y %H:%M:%S', time.localtime(estimated_completion))
                     print(f"Estimated test loop completion: {formatted_estimate}")
                 print(f"Batch metrics (test):")
-                print(f"\tLoss = {loss.item() * 100:>8.4f} (*100 for easier interpretability due to weighted recon & averaged KL)")
+                print(f"\tLoss = {loss.item():>8.4f}")
                 print(f"\tAccuracy = {accuracy * 100:>6.2f}%")
-                print(f"\tF1 score (unweighted average across all classes for batch) = {f1_score.mean().item():>6.4f}\n")
+                print(f"\tF1 score (unweighted average across all classes for batch) = {f1_score.mean().item():>6.4f}")
+                print(f"\tAverage coordinate Euclidean distance: {euclid_dist:>6.4f}\n")
 
     # Averages
     epoch_recon_loss = total_recon_loss / len(dataloader)
@@ -213,18 +220,21 @@ def test(model: torch.nn.Module, dataloader: torch.utils.data.DataLoader, loss_f
     epoch_recall_weighted_avg = (total_recall / total_support.sum()).sum().item()  # normalises weighted recall and sums to get weighted average
     epoch_precision_per_class = total_precision / total_support  # average precision score for each class
     epoch_precision_per_class[torch.isnan(epoch_precision_per_class)] = 0  # Replace nan values from division by zero
-    epoch_precision_weighted_avg = (total_precision / total_support.sum()).sum().item()  # normalises weighted precision and sums to get weighted average
-    epoch_f1_per_class = total_f1 / total_support  # average f1 score for each class
+    epoch_precision_weighted_avg = (total_precision / total_support.sum()).sum().item()  # Normalises weighted precision and sums to get weighted average
+    epoch_f1_per_class = total_f1 / total_support  # Average f1 score for each class
     epoch_f1_per_class[torch.isnan(epoch_f1_per_class)] = 0  # Replace nan values from division by zero
-    epoch_f1_weighted_avg = (total_f1 / total_support.sum()).sum().item()  # normalises weighted f1 and sums to get weighted average
+    epoch_f1_weighted_avg = (total_f1 / total_support.sum()).sum().item()  # Normalises weighted f1 and sums to get weighted average
+    epoch_euclid_dist = total_distance / len(dataloader)
 
     print(f"Test metrics (averages):")
-    print(f"\tRecon loss = {epoch_recon_loss * 100:>8.4f} (*100 for easier interpretability due to weighted recon)")
-    print(f"\tKL div = {epoch_kl_div * 100:>8.4f} (*100 for easier interpretability due to averaged KL)")
+    print(f"\tRecon loss = {epoch_recon_loss:>8.4f}")
+    print(f"\tKL div = {epoch_kl_div:>8.4f}")
     print(f"\tAccuracy = {epoch_accuracy * 100:>6.2f}%")
-    print(f"\tF1 score (weighted average) = {epoch_f1_weighted_avg:>6.4f}\n")
+    print(f"\tF1 score (weighted average) = {epoch_f1_weighted_avg:>6.4f}")
+    print(f"\tCoordinate Euclidean distance: {epoch_euclid_dist:>6.4f}\n")
 
     return {
+        "coor_euclid": epoch_euclid_dist,
         "recon": epoch_recon_loss,
         "kl": epoch_kl_div,
         "beta": beta,

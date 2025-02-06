@@ -177,7 +177,8 @@ class TrainingHistory:
         }
 
         self.train = {
-            'recon': [],  # Average reconstruction loss per epoch, weighted by class imbalance
+            'coor_euclid': [],  # Average coordinate Euclidean distance per epoch
+            'recon': [],  # Average reconstruction loss per epoch
             'kl': [],  # Average KL divergence per epoch
             'accuracy': [],  # Average accuracy per epoch
             'recall_classes': torch.empty(0, NUM_CLASSES, device=DEVICE),
@@ -193,7 +194,8 @@ class TrainingHistory:
 
         # No learning rate required for validation due to not using optimizer
         self.val = {
-            'recon': [],  # Average reconstruction loss per epoch, weighted by class imbalance
+            'coor_euclid': [],  # Average coordinate Euclidean distance per epoch
+            'recon': [],  # Average reconstruction loss per epoch
             'kl': [],  # Average KL divergence per epoch
             'accuracy': [],  # Average accuracy per epoch
             'recall_classes': torch.empty(0, NUM_CLASSES, device=DEVICE),
@@ -287,6 +289,7 @@ class TrainingHistory:
 
         if increment_epochs_run:
             self.epochs_run += 1
+        history['coor_euclid'].append(epoch_metrics['coor_euclid'])
         history['recon'].append(epoch_metrics['recon'])
         history['kl'].append(epoch_metrics['kl'])
         history['accuracy'].append(epoch_metrics['accuracy'])
@@ -514,7 +517,8 @@ class TrainingHistory:
             f"Best Validation Weighted F1 Model: '{self.bests['best_f1_avg_model'].name if self.bests['best_f1_avg_model'] else 'None'}'",  # type: ignore
             f"{'-' * 50}",
             "Training Metrics (Last Epoch):",
-            f"\t- Reconstruction Loss, Weighted by Class Imbalance, Averaged Across Batches: {self.train['recon'][-1] * 100:.4f}" if self.train['recon'] else "\t- Reconstruction Loss: None",
+            f"\t- Coordinate Euclidean Distance: {self.train['coor_euclid'][-1]:.4f}" if self.train['coor_euclid'] else "\t- Coordinate Euclidean Distance: None",
+            f"\t- Reconstruction Loss, Averaged Across Batches: {self.train['recon'][-1] * 100:.4f}" if self.train['recon'] else "\t- Reconstruction Loss: None",
             f"\t- KL Divergence, Averaged Across Batches: {self.train['kl'][-1] * 100:.4f}" if self.train['kl'] else "\t- KL Divergence: None",
             f"\t- Beta: {self.train['beta'][-1]}",
             f"\t- Accuracy: {self.train['accuracy'][-1]:.4f}" if self.train['accuracy'] else "\t- Accuracy: None",
@@ -523,7 +527,8 @@ class TrainingHistory:
             f"\t- Average Training Time: {avg_and_format_time(self.train['training_time'])}" if self.train['training_time'] else "\t- Average Training Time: None",
             f"{'-' * 50}",
             "Validation Metrics (Last Epoch):",
-            f"\t- Reconstruction Loss, Weighted by Class Imbalance, Averaged Across Batches: {self.val['recon'][-1] * 100:.4f}" if self.val['recon'] else "\t- Reconstruction Loss: None",
+            f"\t- Coordinate Euclidean Distance: {self.val['coor_euclid'][-1]:.4f}" if self.val['coor_euclid'] else "\t- Coordinate Euclidean Distance: None",
+            f"\t- Reconstruction Loss, Averaged Across Batches: {self.val['recon'][-1] * 100:.4f}" if self.val['recon'] else "\t- Reconstruction Loss: None",
             f"\t- KL Divergence, Averaged Across Batches: {self.val['kl'][-1] * 100:.4f}" if self.val['kl'] else "\t- KL Divergence: None",
             f"\t- Beta: {self.val['beta'][-1]}",
             f"\t- Accuracy: {self.val['accuracy'][-1]:.4f}" if self.val['accuracy'] else "\t- Accuracy: None",

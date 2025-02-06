@@ -16,23 +16,26 @@ class VaeLoss:
         """
         self.loss_name = recon_loss_name.lower()
 
-        # Assign reconstruction loss function
-        # Reduction is none for applying class weights element wise in __call__
+        # Assign reconstruction loss function, used for coordinates
         if self.loss_name == "mse":
-            self.recon_loss_fn = nn.MSELoss(reduction='none')
+            self.recon_loss_fn = nn.MSELoss(reduction='mean')
         elif self.loss_name == "bce":
-            self.recon_loss_fn = nn.BCELoss(reduction='none')
+            self.recon_loss_fn = nn.BCELoss(reduction='mean')
         elif self.loss_name == "smoothl1":
-            self.recon_loss_fn = nn.SmoothL1Loss(reduction='none')
+            self.recon_loss_fn = nn.SmoothL1Loss(reduction='mean')
         else:
             raise ValueError(f"Unsupported reconstruction loss: {recon_loss_name}")
 
-        self.loss_name = f"VAE Loss: {type(self.recon_loss_fn).__name__}, KL Divergence"
+        self.desc_loss_fn = nn.CrossEntropyLoss(reduction='mean')  # Used for descriptor values
 
-    def __call__(self, x: torch.Tensor, x_reconstructed: torch.Tensor, z_mean: torch.Tensor, z_log_var: torch.Tensor, class_weights: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
+        self.loss_name = f"VAE Loss: {type(self.recon_loss_fn).__name__} + {type(self.desc_loss_fn).__name__}, KL Divergence"
+
+    def __call__(self, x: torch.Tensor, x_reconstructed: torch.Tensor, z_mean: torch.Tensor, z_log_var: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
         """
-        Calculates VAE loss (weighted reconstruction loss + beta * KL divergence), each is returned individually as tensors.
-        Reconstruction loss is weighted by class imbalance (loss reduction must be 'none' when initialised for element wise application). Mean reduction applied.
+        Calculates VAE loss (reconstruction loss + beta * KL divergence), each is returned individually as tensors.
+        Reconstruction loss is the sum of coordinate loss and descriptor loss.
+        Coordinate loss uses the defined recon_loss_fn with mean reduction.
+        Descriptor loss uses CrossEntropyLoss also with mean reduction.
         KL divergence is averaged across batch size.
         Beta is applied in train/test loops.
 
@@ -40,23 +43,14 @@ class VaeLoss:
         :param x_reconstructed: Decoder output with shape (batch_size, *input_dim)
         :param z_mean: Latent space mean with shape (batch_size, latent_dim)
         :param z_log_var: Log variance of latent space with shape (batch_size, latent_dim)
-        :param class_weights: Class weight tensor to weight loss to account for class imbalance (descriptor values are sparse)
-        :return: Reconstruction loss weighted by class imbalance with mean reduction, KL divergence
+        :return: Reconstruction loss with mean reduction, KL divergence
         """
-        # Calculate reconstruction loss, element wise due to reduction being 'none'
-        # Normalise inputs to range [0, 1] for BCE, and for other losses for grid search comparison between losses
-        x_normalised = x / (NUM_CLASSES - 1)
-        x_reconstructed_normalised = x_reconstructed / (NUM_CLASSES - 1)
+        # Reconstruction loss for coordinates and descriptors
+        coor_loss = self.recon_loss_fn(x_reconstructed[:, :, :3], x[:, :, :3])  # For [x, y, z]
+        desc_loss = self.desc_loss_fn(x_reconstructed[:, :, 3:].view(-1, NUM_CLASSES), x[:, :, 3:].argmax(dim=-1).view(-1))  # For one-hot descriptor values, internally applies softmax
 
-        raw_loss = self.recon_loss_fn(x_reconstructed_normalised, x_normalised)
-
-        # Apply class weights
-        x_flat = x.view(-1).to(torch.long)  # Flatten x for indexing class_weights, long for indexing
-        weights_map = class_weights[x_flat]
-        weighted_loss = raw_loss.view(-1) * weights_map
-
-        # Mean reduction
-        recon_loss = weighted_loss.mean()
+        # Combine coordinate loss and descriptor loss
+        recon_loss = coor_loss + desc_loss
 
         kl_div = -0.5 * torch.sum(1 + z_log_var - z_mean.pow(2) - z_log_var.exp()) / x.shape[0]  # Averaged across batch size
 
