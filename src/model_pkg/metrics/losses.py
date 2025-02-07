@@ -91,12 +91,11 @@ class VaeLoss:
         desc_loss = self.desc_loss_fn(x_reconstructed[:, :, 3:].view(-1, NUM_CLASSES), x[:, :, 3:].argmax(dim=-1).view(-1))  # For one-hot descriptor values, internally applies softmax
 
         # Calculate a penalty for duplicate coordinates, adjusted for padded voxel values
-        coor_penalty = duplicate_coordinate_penalty(x, x_reconstructed) * 0.1
-        print(f"original: {x}")
-        print(f"recon: {x_reconstructed}\n")
+        duplicate_penalty = duplicate_coordinate_penalty(x, x_reconstructed) * 0.1
+
         # Combine coordinate loss and descriptor loss
         # High alpha emphasises descriptor accuracy, lower focuses on coordinate reconstruction
-        recon_loss = alpha * desc_loss + (1 - alpha) * (coor_loss * coor_penalty)
+        recon_loss = alpha * desc_loss + (1 - alpha) * (coor_loss + duplicate_penalty)
 
         kl_div = -0.5 * torch.sum(1 + z_log_var - z_mean.pow(2) - z_log_var.exp()) / x.shape[0]  # Averaged across batch size
 
