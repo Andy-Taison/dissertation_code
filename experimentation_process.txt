@@ -197,3 +197,12 @@ Still overfitting and nothing in the reconstructed output. Looking into sparse m
 
 * Setup a dataset class. Within that, obtaining sparse representation of data, padded to max number of voxels in the dataset (8 in this case - shape (8,(x,y,z,one-hot descriptors))
 Modified model inspired by pointnet (though simpler to see if that works to start with due to small sparse representation matrix (8x8)
+
+Model only predicting a single voxel (though slightly varying its location and descriptor type).
+Suspect a few possiblities 
+- padded voxels always have coordinates (0,0,0), which make it a safe bet, though currently it doesn't look like the model is predicting only zeros.
+- descriptor loss and coordinate loss are not equal scales.
+- reconstructed tensor observed to be predicting the same for every voxel, this needs investigating. 
+
+Introduced alpha value to balance descriptor loss and coordinate loss. 
+Also introduced penalty for duplicate coordinate values, adjusted for padded voxel embeddings in the original data.

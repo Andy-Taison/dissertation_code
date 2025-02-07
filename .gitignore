@@ -161,3 +161,4 @@ tracked_outputs/conv_decode_loss_toy/
 tracked_outputs/conv_skip_toy/
 tracked_outputs/deep_toy/
 tracked_outputs/batch_norm_toy/
+tracked_outputs/sparse_toy/
