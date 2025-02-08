@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches  # For legend
 import numpy as np
 from pathlib import Path
-from ..config import PLOT_DIR, DEVICE
+from ..config import PLOT_DIR, DEVICE, COORDINATE_DIMENSIONS
 from ..data.dataset import sparse_to_dense
 
 
@@ -119,7 +119,7 @@ def visualise_robot(grid_data: torch.Tensor, title: str = None, filename: str | 
         plt.close(fig)
 
 
-def compare_reconstructed(model: torch.nn.Module, dataloader: torch.utils.data.DataLoader, num_sample: int, filename: str | Path = "recon_comparison", skip_loader_samples: int = 0):
+def compare_reconstructed(model: torch.nn.Module, dataloader: torch.utils.data.DataLoader, num_sample: int, filename: str | Path = "recon_comparison", skip_loader_samples: int = 0, transform_original = False):
     """
     Plots original robot and reconstructed robot visualisations side by side.
 
@@ -166,13 +166,20 @@ def compare_reconstructed(model: torch.nn.Module, dataloader: torch.utils.data.D
             fig.subplots_adjust(top=0.85, hspace=0.3)  # Adjust spacing between main title and subplot titles
             fig.suptitle(f"Comparison of Original and Reconstructed Robot, ID: {robot_id}")
 
-            # Visualise on the first subplot
-            dense_grid_orig = sparse_to_dense(grid_data[i])
-            visualise_robot(dense_grid_orig.unsqueeze(0).cpu(), title="Original", ax=axes[0])
+            original_grid = grid_data[i]
 
-            # Forward pass and visualise on second subplot
-            x_reconstructed, _, _, _ = model(grid_data[i].unsqueeze(0))
+            # Forward pass and convert to dense grid
+            x_reconstructed, _, _, _, transform_matrix = model(grid_data[i].unsqueeze(0))
             dense_grid_recon = sparse_to_dense(x_reconstructed.squeeze(0))
+
+            # Transform original coordinates
+            if transform_original:
+                original_grid[:, :, :COORDINATE_DIMENSIONS] = torch.bmm(original_grid[:, :, :COORDINATE_DIMENSIONS], transform_matrix)
+
+            # Convert original to dense grid
+            dense_grid_orig = sparse_to_dense(original_grid)
+
+            visualise_robot(dense_grid_orig.unsqueeze(0).cpu(), title="Original", ax=axes[0])
             visualise_robot(dense_grid_recon.cpu(), title="Reconstructed", ax=axes[1])
 
             # Add common legend

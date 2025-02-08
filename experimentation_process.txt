@@ -204,5 +204,16 @@ Suspect a few possiblities
 - descriptor loss and coordinate loss are not equal scales.
 - reconstructed tensor observed to be predicting the same for every voxel, this needs investigating. 
 
+* Redefined model architecture to be more inline with pointnet (1D conv layers and batchnorm).
+Major changes made to entire codebase to accommodate. 
+Applying transformation matrix to original input coordinates before calculating loss.
 Introduced alpha value to balance descriptor loss and coordinate loss. 
-Also introduced penalty for duplicate coordinate values, adjusted for padded voxel embeddings in the original data.
+Also introduced penalty for duplicate coordinate values, and for incorrect number of padded voxels.
+And regularising term for transformation matrix to encourage orthogonality - based on https://medium.com/@itberrios6/point-net-for-classification-968ca64c57a9
+
+Normalsing sampled latent vectors for latent space analysis.
+
+Added penalty and scaling terms to grid search parameters (though using fixed for next run)
+Have set alpha to 0.3 (slight more focus on coordinate reconstructions than descriptor values)
+dup_pad_penalty_scale to 0.1 (for duplicate/padding penalties - my very quick tests showed that 0.01 may be too small)
+lambda_reg to 0.001 (regularising term for transform matrix)

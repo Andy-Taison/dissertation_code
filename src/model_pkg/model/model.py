@@ -4,83 +4,100 @@ Defines VAE model modules
 
 import torch
 import torch.nn as nn
-from ..config import DEVICE
+from ..config import DEVICE, NUM_CLASSES
 
 class TNet(nn.Module):
     """
     Transformation Net.
-    Learns a transformation matrix that is applied to each point helping to make the network invariant to geometric
+    Should only pass the coordinates to TNet.
+    Learns a transformation matrix that is applied to each point, helping to make the network invariant to geometric
     variations e.g. rotation, translation and scaling.
-
-    Simplified in comparison to pointnet due to small point cloud.
     """
-    def __init__(self, in_features: int):  # (x, y, z, one-hot descriptors)
+    def __init__(self, coordinate_dimensions: int):
         """
-        :param in_features: Number of input features (x, y, z, one-hot descriptors)
+        :param coordinate_dimensions: Number of coordinate_dimensions
         """
         super(TNet, self).__init__()
-        self.features = in_features
+        self.coord = coordinate_dimensions  # Only applied to coordinates
 
         self.fc = nn.Sequential(
-            nn.Linear(in_features, 64),
-            nn.ReLU(),
+            nn.Linear(self.coord, 64),
+            nn.LeakyReLU(),
             nn.Linear(64, 128),
-            nn.ReLU(),
-            nn.Linear(128, in_features * in_features)
+            nn.LeakyReLU(),
+            nn.Linear(128, self.coord * self.coord)
         )
 
         # Initialise as identity matrix for stability
-        self.eye = torch.eye(in_features).flatten()
+        self.eye = torch.eye(self.coord).flatten()
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """
         Forward pass.
 
-        :param x: Input tensor with shape (batch_size, *input_dim)
-        :return: Transformed input with shape (batch_size, in_features, in_features)
+        :param x: Input tensor with shape (batch_size, coordinate_dimensions)
+        :return: Transformation matrix (batch_size, coordinate_dimensions, coordinate_dimensions)
         """
         batch_size = x.size(0)
         transform = self.fc(x.mean(dim=1))  # Learns transformation matrix from average global features
-        transform = transform.view(batch_size, self.features, self.features) + self.eye.to(DEVICE).view(1, self.features, self.features)
+        transform = transform.view(batch_size, self.coord, self.coord) + self.eye.to(DEVICE).view(1, self.coord, self.coord)
 
-        # Apply transformation
-        transformed_x = torch.bmm(x, transform)
-
-        return transformed_x
+        return transform
 
 
 class Encoder(nn.Module):
     """
     Encoder module.
     """
-    def __init__(self, latent_dim: int, in_features: int):
+    def __init__(self, latent_dim: int, coordinate_dimensions: int = 3):
         """
         :param latent_dim: Dimensionality of latent space
-        :param in_features: Number of input features (x, y, z, one-hot descriptors)
+        :param coordinate_dimensions: Number of coordinate dimensions
         """
         super(Encoder, self).__init__()
-        self.tnet = TNet(in_features)
+        self.latent_dim = latent_dim
+        self.coord = coordinate_dimensions
+        self.tnet = TNet(self.coord)
 
-        self.mlp = nn.Sequential(
-            nn.Linear(in_features, 64),  # (x, y, z, one-hot descriptors)
-            nn.ReLU(),
-            nn.Linear(64, 128),
-            nn.ReLU(),
-            nn.Linear(128, 1024),
-            nn.ReLU()
+        # MLP for coordinates
+        self.spatial_mlp = nn.Sequential(
+            nn.Conv1d(self.coord, 64, kernel_size=1),
+            nn.BatchNorm1d(64),
+            nn.LeakyReLU(),
+            nn.Conv1d(64, 128, kernel_size=1),
+            nn.BatchNorm1d(128),
+            nn.LeakyReLU(),
+            nn.Conv1d(128, 1024, kernel_size=1),
+            nn.BatchNorm1d(1024),
+            nn.LeakyReLU()
         )
 
-        self.combined_mlp = nn.Sequential(
-            nn.Linear(1024 + 1024, 512),
-            nn.ReLU(),
+        # MLP for descriptor values (less complex than spatial, so do not need to go as deep)
+        self.descriptor_mlp = nn.Sequential(
+            nn.Conv1d(NUM_CLASSES, 64, kernel_size=1),
+            nn.BatchNorm1d(64),
+            nn.LeakyReLU(),
+            nn.Conv1d(64, 128, kernel_size=1),
+            nn.BatchNorm1d(128),
+            nn.LeakyReLU()
+        )
+
+        self.global_pool = nn.AdaptiveAvgPool1d(1)
+
+        # Reduction before latent space
+        self.fc = nn.Sequential(
+            nn.Linear(1024 + 1024 + 128, 1024),
+            nn.LeakyReLU(),
+            nn.Linear(1024, 512),
+            nn.LeakyReLU(),
             nn.Linear(512, 256),
-            nn.ReLU()
+            nn.LeakyReLU()
         )
 
-        self.z_mean_fc = nn.Linear(256, latent_dim)
-        self.z_log_var_fc = nn.Linear(256, latent_dim)
+        self.z_mean_fc = nn.Linear(256, self.latent_dim)
+        self.z_log_var_fc = nn.Linear(256, self.latent_dim)
 
-    def forward(self, x: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
+    def forward(self, x: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
         """
         Forward pass.
 
@@ -88,56 +105,103 @@ class Encoder(nn.Module):
         :return:
             z_mean - Latent space mean with shape (batch_size, latent_dim),
             z_log_var - Log variance of latent space with shape (batch_size, latent_dim)
+            transform_matrix - Transforms coordinates for geometric invariance
         """
-        # T-Net used for spatial alignment
-        x = self.tnet(x)
+        # Split coordinates and descriptors
+        coord = x[:, :, :self.coord]  # (B, N, coordinates)
+        desc = x[:, :, self.coord:]  # (B, N, descriptors)
 
-        # Per point features
-        local_features = self.mlp(x)
+        # T-Net used for learning spatial alignment matrix - coordinates only
+        transform_matrix = self.tnet(coord)
+        coord_transformed = torch.bmm(coord, transform_matrix)
 
-        # Symmetric max pooling for global features, retains only values and drops indices
-        global_features = torch.max(local_features, dim=1, keepdim=True)[0]  # (B, 1, 1024)
+        # Transpose for input to 1D convolutional layers
+        coord_transposed = coord_transformed.transpose(1, 2)  # (batch, num voxels, coordinate features) -> (batch, coordinate features, num voxels)
+        desc_transposed = desc.transpose(1, 2)  # (batch, num voxels, one-hot descriptors) -> (batch, one-hot descriptors, num voxels)
 
-        # Concatenate global features with local features
-        combined_features = torch.cat([local_features, global_features.expand(-1, local_features.size(1), -1)], dim=2)
+        # Per point features - spatial and descriptors processed separately
+        spatial_features = self.spatial_mlp(coord_transposed)
+        desc_features = self.descriptor_mlp(desc_transposed)
 
-        combined_out = self.combined_mlp(combined_features)
+        # Global feature extraction
+        pooled_global_features = self.global_pool(spatial_features).squeeze(-1)
+        pooled_desc_features = self.global_pool(desc_features).squeeze(-1)
 
-        avg_global = torch.mean(combined_out, dim=1)
+        # Concatenate global, local, and descriptor features
+        combined_features = torch.cat((pooled_global_features, torch.max(spatial_features, dim=2)[0], pooled_desc_features), dim=1)
 
-        z_mean = self.z_mean_fc(avg_global)
-        z_log_var = self.z_log_var_fc(avg_global)
+        reduced_features = self.fc(combined_features)
 
-        return z_mean, z_log_var
+        z_mean = self.z_mean_fc(reduced_features)
+        z_log_var = self.z_log_var_fc(reduced_features)
+
+        return z_mean, z_log_var, transform_matrix
 
 
 class Decoder(nn.Module):
     """
     Decoder module.
     """
-    def __init__(self, latent_dim: int, out_features: int):
+    def __init__(self, latent_dim: int, max_voxels: int, coordinate_dimensions: int = 3):
         """
         :param latent_dim: Dimensionality of latent space
-        :param out_features: Number of output features - should match in features (x, y, z, raw descriptors)
+        :param max_voxels: Maximum number of voxels per robot in full dataset
+        :param coordinate_dimensions: Number of coordinate dimensions
         """
         super(Decoder, self).__init__()
-        self.fc1 = nn.Linear(latent_dim, 256)
-        self.fc2 = nn.Sequential(
-            nn.ReLU(),
-            nn.Linear(256, 512),
-            nn.ReLU(),
-            nn.Linear(512, 1024),
-            nn.ReLU()
+        self.num_voxels = max_voxels
+        self.coord = coordinate_dimensions
+
+        # Mirrors encoders mean/logvar branches
+        self.fc = nn.Sequential(
+            nn.Linear(latent_dim, 256),
+            nn.LeakyReLU()
         )
 
-        self.mlp = nn.Sequential(
-            nn.Linear(1024 + latent_dim, 1024),
-            nn.ReLU(),
-            nn.Linear(1024, 128),
-            nn.ReLU(),
-            nn.Linear(128, 64),
-            nn.ReLU(),
-            nn.Linear(64, out_features)  # (x, y, z, raw descriptors)
+        # Upsample coordinates
+        self.coord_deconv = nn.Sequential(
+            nn.ConvTranspose1d(256, 512, kernel_size=2),  # 1 -> 2
+            nn.BatchNorm1d(512),
+            nn.LeakyReLU(),
+            nn.ConvTranspose1d(512, 1024, kernel_size=2, stride=2),  # 2 -> 4
+            nn.BatchNorm1d(1024),
+            nn.LeakyReLU(),
+            nn.ConvTranspose1d(1024, 256, kernel_size=2, stride=2),  # 4 -> 8
+            nn.BatchNorm1d(256),
+            nn.LeakyReLU(),
+            nn.ConvTranspose1d(256, self.coord, kernel_size=1)  # (B, coord dim, num_voxels) 8 -> 8
+        )
+
+        # Refine coordinates
+        self.coord_fc = nn.Sequential(
+            nn.Linear(self.coord, self.coord),
+            nn.LeakyReLU()
+        )
+
+        # Upsample descriptors
+        self.desc_deconv = nn.Sequential(
+            nn.ConvTranspose1d(256, 512, kernel_size=2),  # 1 -> 2
+            nn.BatchNorm1d(512),
+            nn.LeakyReLU(),
+            nn.ConvTranspose1d(512, 128, kernel_size=2, stride=2),  # 2 -> 4
+            nn.BatchNorm1d(128),
+            nn.LeakyReLU(),
+            nn.ConvTranspose1d(128, 64, kernel_size=2, stride=2),  # 4 -> 8
+            nn.BatchNorm1d(64),
+            nn.LeakyReLU(),
+            nn.ConvTranspose1d(64, NUM_CLASSES, kernel_size=1)  # (B, num descriptors, num_voxels)  8 -> 8
+        )
+
+        # Refine descriptors
+        self.desc_fc = nn.Sequential(
+            nn.Linear(NUM_CLASSES, NUM_CLASSES),
+            nn.LeakyReLU()
+        )
+
+        # Combined refining
+        self.combined_fc = nn.Sequential(
+            nn.Linear(self.coord + NUM_CLASSES, self.coord + NUM_CLASSES),
+            nn.LeakyReLU()
         )
 
     def forward(self, z: torch.Tensor) -> torch.Tensor:
@@ -149,25 +213,26 @@ class Decoder(nn.Module):
         :param z: Sampled latent vector with shape (batch_size, latent_dim)
         :return: Reconstructed input with shape (batch_size, *input_dim)
         """
-        upsampled = self.fc1(z)
+        upsampled_latent = self.fc(z).unsqueeze(-1)  # (B, 256, 1)
 
-        # Mirrors encoder`s mean operation
-        expanded = upsampled.unsqueeze(1).expand(-1, 8, -1)
+        upsampled_coord = self.coord_deconv(upsampled_latent)  # (B, coord dim, num_voxels)
+        upsampled_desc = self.desc_deconv(upsampled_latent)  # (B, num descriptors, num_voxels)
 
-        global_features = self.fc2(expanded)
+        transposed_coord = upsampled_coord.transpose(1, 2)  # (B, num_voxels, coord dim)
+        transposed_desc = upsampled_desc.transpose(1, 2)  # (B, num_voxels, descriptor_dim)
 
-        # Concatenate with latent vector to mirror encoders local and global feature separation
-        latent_expanded = z.unsqueeze(1).expand(-1, 8, -1)
-        combined = torch.cat([global_features, latent_expanded], dim=-1)  # Performed along last dimension
+        refined_coord = self.coord_fc(transposed_coord)
+        refined_desc = self.desc_fc(transposed_desc)
 
-        # Per point reconstruction
-        x_recon = self.mlp(combined)
+        combined = torch.cat((refined_coord, refined_desc), dim=2)
 
-        # Sigmoid applied to coordinates to normalise
-        x_recon[:, :, :3] = torch.sigmoid(x_recon[:, :, :3])
+        x_reconstructed = self.combined_fc(combined)
+
+        # Normalises coordinates
+        x_reconstructed[:, :, :self.coord] = torch.sigmoid(x_reconstructed[:, :, :self.coord])
 
         # Raw logits for descriptors
-        return x_recon
+        return x_reconstructed
 
 
 class Sample(nn.Module):
@@ -190,28 +255,25 @@ class Sample(nn.Module):
 class VAE(nn.Module):
     """
     Implements encoder, sampling (reparameterization trick) and decoder modules for complete VAE architecture.
-
-    Attributes:
-        encoder: Input to latent space (z_mean, z_log_var)
-        sampling: Reparameterization trick to sample z
-        decoder: Reconstructs input from sampled z
     """
-    def __init__(self, input_dim: tuple[int, int], latent_dim: int, model_name: str):
+    def __init__(self, input_dim: tuple[int, int], latent_dim: int, model_name: str, max_voxels: int, coordinate_dimensions: int = 3):
         """
         :param input_dim: Dimensions of input tensor (and reconstructed), (e.g., (8, 8))
         :param latent_dim: Dimensionality of latent space
         :param model_name: Name of model instance, used to identify models and name saved files, ENSURE UNIQUE to avoid overwriting
+        :param max_voxels: Maximum number of voxels per robot in full dataset
+        :param coordinate_dimensions: Number of coordinate dimensions
         """
         super(VAE, self).__init__()
         self.name = model_name
         self.input_dim = input_dim
         self.latent_dim = latent_dim
 
-        self.encoder = Encoder(latent_dim, input_dim[1])
+        self.encoder = Encoder(latent_dim, coordinate_dimensions)
         self.sampling = Sample()
-        self.decoder = Decoder(latent_dim, input_dim[1])
+        self.decoder = Decoder(latent_dim, max_voxels, coordinate_dimensions)
 
-    def forward(self, x: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
+    def forward(self, x: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
         """
         Forward pass.
 
@@ -221,9 +283,10 @@ class VAE(nn.Module):
             z - Sampled latent vector with shape (batch_size, latent_dim),
             z_mean - Latent space mean with shape (batch_size, latent_dim),
             z_log_var - Log variance of latent space with shape (batch_size, latent_dim)
+            transform_matrix - Transforms coordinates for geometric invariance
         """
-        z_mean, z_log_var = self.encoder(x)
+        z_mean, z_log_var, transform_matrix = self.encoder(x)
         z = self.sampling(z_mean, z_log_var)
         x_reconstructed = self.decoder(z)
 
-        return x_reconstructed, z, z_mean, z_log_var
+        return x_reconstructed, z, z_mean, z_log_var, transform_matrix

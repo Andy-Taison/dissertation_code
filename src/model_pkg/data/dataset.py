@@ -7,7 +7,7 @@ import torch
 import torch.utils.data
 from torch.utils.data import Dataset
 import torch.nn.functional as F
-from ..config import NUM_CLASSES
+from ..config import NUM_CLASSES, COORDINATE_DIMENSIONS
 
 
 class VoxelDataset(Dataset):
@@ -26,6 +26,7 @@ class VoxelDataset(Dataset):
         self.grid_data = grids.view(-1, 11, 11, 11)
         self.robot_ids = torch.tensor(dataframe.iloc[:, 0].values, dtype=torch.long)
         self.max_voxels = max_voxels
+        self.coordinate_dim = COORDINATE_DIMENSIONS
         self.shuffle_voxels = shuffle_voxels
 
         print("Dataset created.\n")

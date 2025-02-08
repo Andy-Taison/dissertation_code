@@ -20,6 +20,7 @@ from ..metrics.losses import VaeLoss
 from ..metrics.metrics import get_best_tradeoff_score
 from .train_test import train_val
 from .history_checkpoint import TrainingHistory
+from ..data.dataset import VoxelDataset
 
 def create_grid() -> list[dict]:
     """
@@ -45,6 +46,7 @@ def create_grid() -> list[dict]:
     print("Creating grid...")
     batch_sizes = [64]  # [32, 64]  # Possibly trial 16, and 128 later
     latent_dims = [4, 8, 16]  # Possibly trial 16 later
+    # Applied to coordinate loss, Cross entropy loss used for descriptor loss
     loss_functions = ["mse"]  # Possibly later trail "smoothL1", bce expects probabilities in range [0,1], otherwise use bcewithlogitsloss as internally applies sigmoid
     optimizer = [
         {"type": optim.Adam, "params": {}, "model_name": "adam"},
@@ -56,9 +58,12 @@ def create_grid() -> list[dict]:
     learning_rates = [1e-3]  # [1e-4, 1e-3]  # Later potentially trial 5e-4, 5e-3, and 1e-2 for fine-tuning
     weight_decay = [0]  # [0, 1e-4]  # Possibly later trial 1e-2
     betas = [0.1, 0.5, 1]  # [0.1, 1]  # Possibly trial 0.5, 2, and 4 later
+    alphas = [0.3]
+    dup_pad_penalty_scales = [0.1]
+    lambda_regs = [0.001]
 
     grid = [
-        {"batch_size": batch_size, "latent_dim": latent_dim, "loss": loss, "optimizer": opt, "lr": lr, "decay": decay, "beta": beta}
+        {"batch_size": batch_size, "latent_dim": latent_dim, "loss": loss, "optimizer": opt, "lr": lr, "decay": decay, "beta": beta, "alpha": alpha, "dup_pad": dup_pad, "lambda_reg": lambda_reg}
         for batch_size in batch_sizes
         for latent_dim in latent_dims
         for loss in loss_functions
@@ -66,13 +71,16 @@ def create_grid() -> list[dict]:
         for lr in learning_rates
         for decay in weight_decay
         for beta in betas
+        for alpha in alphas
+        for dup_pad in dup_pad_penalty_scales
+        for lambda_reg in lambda_regs
     ]
     print(f"Grid created with {len(grid)} configuration(s).")
 
     return grid
 
 
-def train_grid_search(train_ds: TensorDataset, val_ds: TensorDataset, model_architecture_name: str, clear_history_list: bool = False, history_list_filename: str = "grid_search_list", prune_old_checkpoints: bool = True):
+def train_grid_search(train_ds: VoxelDataset, val_ds: TensorDataset, model_architecture_name: str, clear_history_list: bool = False, history_list_filename: str = "grid_search_list", prune_old_checkpoints: bool = True):
     """
     Conducts training for grid search.
     Grid is created based on 'create_grid' function.
@@ -118,7 +126,7 @@ def train_grid_search(train_ds: TensorDataset, val_ds: TensorDataset, model_arch
             start_timer = time.perf_counter()
 
             # Assign unique name containing test information
-            model_name = f"{model_architecture_name}_bs{setup['batch_size']}_ld{setup['latent_dim']}_{setup['loss']}_{setup['optimizer']['model_name']}_lr{setup['lr']}_wd{setup['decay']}_be{setup['beta']}"
+            model_name = f"{model_architecture_name}_bs{setup['batch_size']}_ld{setup['latent_dim']}_{setup['loss']}_{setup['optimizer']['model_name']}_lr{setup['lr']}_wd{setup['decay']}_be{setup['beta']}_a{setup['alpha']}_dupd{setup['dup_pad']}_lam{setup['lambda_reg']}"
 
             # Check if history path is already in file
             if f"{model_name}_history.pth" in completed_histories:
@@ -140,10 +148,10 @@ def train_grid_search(train_ds: TensorDataset, val_ds: TensorDataset, model_arch
             val_loader = DataLoader(val_ds, batch_size=setup['batch_size'], shuffle=False)
 
             # Create model
-            vae = VAE(INPUT_DIM, setup['latent_dim'], model_name).to(DEVICE)
+            vae = VAE(INPUT_DIM, setup['latent_dim'], model_name, max_voxels=train_ds.max_voxels, coordinate_dimensions=train_ds.coordinate_dim).to(DEVICE)
 
             # Initialise loss function
-            criterion = VaeLoss(setup['loss'])
+            criterion = VaeLoss(setup['loss'], setup['alpha'], setup['dup_pad'], setup['lambda_reg'])
 
             # Initialise optimizer
             optim_params = setup['optimizer']['params']

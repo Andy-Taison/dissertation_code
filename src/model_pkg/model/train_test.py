@@ -51,14 +51,14 @@ def train(model: torch.nn.Module, dataloader: torch.utils.data.DataLoader, loss_
         optimizer.zero_grad()
 
         # Forward pass
-        x_reconstructed, z, z_mean, z_log_var = model(x)
+        x_reconstructed, z, z_mean, z_log_var, transform_matrix = model(x)
 
         # Get metrics
         accuracy, recall, precision, f1_score, euclid_dist = calculate_metrics(x, x_reconstructed)
         batch_support = get_batch_support(x, x_reconstructed)  # Based on descriptor values
 
         # Compute loss
-        recon_loss, kl_div = loss_fn(x, x_reconstructed, z_mean, z_log_var)
+        recon_loss, kl_div = loss_fn(x, x_reconstructed, z_mean, z_log_var, transform_matrix)
         loss = recon_loss + beta * kl_div
 
         # Backpropagation
@@ -171,14 +171,14 @@ def test(model: torch.nn.Module, dataloader: torch.utils.data.DataLoader, loss_f
             x = grid_data.to(DEVICE)
 
             # Forward pass
-            x_reconstructed, z, z_mean, z_log_var = model(x)
+            x_reconstructed, z, z_mean, z_log_var, transform_matrix = model(x)
 
             # Get metrics
             accuracy, recall, precision, f1_score, euclid_dist = calculate_metrics(x, x_reconstructed)
             batch_support = get_batch_support(x, x_reconstructed)  # Based on descriptor values
 
             # Compute loss
-            recon_loss, kl_div = loss_fn(x, x_reconstructed, z_mean, z_log_var)
+            recon_loss, kl_div = loss_fn(x, x_reconstructed, z_mean, z_log_var, transform_matrix)
             loss = recon_loss + beta * kl_div
 
             # Update metrics

@@ -3,6 +3,7 @@ from torch.utils.data import DataLoader
 from sklearn.decomposition import PCA
 from sklearn.cluster import KMeans
 from sklearn.metrics import silhouette_score
+from sklearn.preprocessing import StandardScaler
 # Suppresses pycharm warning for umap not being in requirements, umap is part of umap-learn package
 # noinspection PyPackageRequirements
 import umap
@@ -34,13 +35,24 @@ def sample_latent_space(model: VAE, dataloader: DataLoader) -> torch.Tensor:
     with torch.no_grad():
         for _, grid_data in dataloader:
             x = grid_data.to(DEVICE)
-            z_mean, z_log_var = model.encoder(x)
+            z_mean, z_log_var, _ = model.encoder(x)
             z = model.sampling(z_mean, z_log_var)
             latent_vectors.append(z.cpu())
 
     latent_vectors = torch.cat(latent_vectors)
 
     return latent_vectors
+
+
+def normalise_latent(latent_vector: torch.Tensor) -> torch.Tensor:
+    # Normalise
+    scaler = StandardScaler()
+    normalised_latent = scaler.fit_transform(latent_vector.numpy())
+
+    # Convert back to tensor
+    normalised_latent_t = torch.from_numpy(normalised_latent)
+
+    return normalised_latent_t
 
 
 def train_pca(latent_vectors: torch.Tensor, n_components: int = 2) -> PCA:
@@ -224,21 +236,25 @@ def analyse_latent_space(model, train_dataloader: DataLoader, val_dataloader: Da
     train_latent = sample_latent_space(model, train_dataloader)
     val_latent = sample_latent_space(model, val_dataloader)
 
+    # Normalise latent vectors
+    train_latent_norm = normalise_latent(train_latent)
+    val_latent_norm = normalise_latent(val_latent)
+
     # Train PCA and UMAP
-    pca_reducer = train_pca(train_latent)
-    umap_reducer = train_umap(train_latent)
+    pca_reducer = train_pca(train_latent_norm)
+    umap_reducer = train_umap(train_latent_norm)
 
     # Reduce latent space using PCA and UMAP
-    val_pca_data = transform_latent_space(pca_reducer, val_latent)
-    val_umap_data = transform_latent_space(umap_reducer, val_latent)
+    val_pca_data = transform_latent_space(pca_reducer, val_latent_norm)
+    val_umap_data = transform_latent_space(umap_reducer, val_latent_norm)
 
     if find_k:
         # Elbow method to find k
         print("Performing elbow method to find optimal k...")
         if title:
-            find_optimal_k(val_latent, title=title, filename=filename)
+            find_optimal_k(val_latent_norm, title=title, filename=filename)
         else:
-            find_optimal_k(val_latent, filename=filename)
+            find_optimal_k(val_latent_norm, filename=filename)
 
         return None
     else:
@@ -264,7 +280,7 @@ def analyse_latent_space(model, train_dataloader: DataLoader, val_dataloader: Da
         print(f"Silhouette score (UMAP): {umap_silhouette:.4f}\n")
 
         # Calculate Euclidean pairwise distance
-        distances, mean_dist, std_dist = calculate_pairwise_distances(val_latent)
+        distances, mean_dist, std_dist = calculate_pairwise_distances(val_latent_norm)
         print(f"Unique distances:\n{distances.unique()}\n")
         print(f"Max distance: {distances.max():.4f}")
         print(f"Mean pairwise distance: {mean_dist:.4f}, Standard deviation: {std_dist:.4f}")
