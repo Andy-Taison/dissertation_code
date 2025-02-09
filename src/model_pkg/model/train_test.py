@@ -80,7 +80,7 @@ def train(model: torch.nn.Module, dataloader: torch.utils.data.DataLoader, loss_
         total_distance += euclid_dist
         desc_loss_total += desc_loss.item()
         coor_loss_total += coor_loss.item()
-        duplicate_pad_penalty_total += duplicate_pad_penalty.item()
+        duplicate_pad_penalty_total += duplicate_pad_penalty
         transform_reg_total += transform_reg.item()
 
         # Update count
@@ -212,7 +212,7 @@ def test(model: torch.nn.Module, dataloader: torch.utils.data.DataLoader, loss_f
             total_distance += euclid_dist
             desc_loss_total += desc_loss.item()
             coor_loss_total += coor_loss.item()
-            duplicate_pad_penalty_total += duplicate_pad_penalty.item()
+            duplicate_pad_penalty_total += duplicate_pad_penalty
             transform_reg_total += transform_reg.item()
 
             # Update count

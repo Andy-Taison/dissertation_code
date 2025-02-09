@@ -7,7 +7,7 @@ import torch.nn as nn
 from ..config import NUM_CLASSES, COORDINATE_DIMENSIONS, DEVICE
 
 
-def duplicate_and_padded_penalty(x: torch.Tensor, x_reconstructed: torch.Tensor) -> torch.Tensor:
+def duplicate_and_padded_penalty(x: torch.Tensor, x_reconstructed: torch.Tensor) -> float:
     """
     Calculates a penalty for not having the correct number of padded voxels (identified via original descriptor values).
     A further penalty is calculated for duplicate coordinates in the reconstructed tensor.
@@ -84,7 +84,7 @@ class VaeLoss:
         self.dup_pad_penalty_scale = dup_pad_penalty_scale
         self.lambda_reg = lambda_reg
 
-    def __call__(self, x: torch.Tensor, x_reconstructed: torch.Tensor, z_mean: torch.Tensor, z_log_var: torch.Tensor, transform_matrix: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
+    def __call__(self, x: torch.Tensor, x_reconstructed: torch.Tensor, z_mean: torch.Tensor, z_log_var: torch.Tensor, transform_matrix: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, float, torch.Tensor]:
         """
         Calculates VAE loss (reconstruction loss + beta * KL divergence)
         Reconstruction loss and KL divergence are returned individually as tensors.
