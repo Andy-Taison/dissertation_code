@@ -10,7 +10,7 @@ Focus initially should be on getting baseline on different architectural changes
 Also want to trial using schedulers adjusting patience and factor.
 Maybe trial different early stopping patience.
 """
-from torch.utils.data import TensorDataset, DataLoader
+from torch.utils.data import DataLoader
 import torch.optim as optim
 from pathlib import Path
 import time
@@ -33,19 +33,22 @@ def create_grid() -> list[dict]:
     - 'lr'
     - 'decay'
     - 'beta' - higher values lead to a more constrained latent space, lower values lead to a more flexible latent space representation (and focuses on reconstruction loss)
+    - alphas - balances descriptor loss and coordinate loss, High emphasises descriptor accuracy, lower focuses on coordinate reconstruction
+    - dup_pad_penalty_scales - adjusts the penalty applied for incorrect number of padded voxels in comparison to the original and duplicates
+    - lambda_regs - adjusts the regularisation term for the transformation matrix
 
     Other tunable parameters not included here include:
     - K value used for KMeans clustering model
     - n_components used in PCA
     - n_components used in UMAP
     - n_neighbors used in UMAP
-    - loss_f1_tradeoff value used in 'search_grid_history' (and 'get_best_tradeoff_score')
+    - loss_f1_tradeoff value used in 'search_grid_history' (and 'get_best_tradeoff_score') using the formula (loss_f1_tradeoff x_best loss + (1 - loss_f1_tradeoff) x (1 - best_f1_avg))
 
     :return: Grid of training configurations
     """
     print("Creating grid...")
     batch_sizes = [64]  # [32, 64]  # Possibly trial 16, and 128 later
-    latent_dims = [4, 8, 16]  # Possibly trial 16 later
+    latent_dims = [8, 16]  # Possibly trial 16 later
     # Applied to coordinate loss, Cross entropy loss used for descriptor loss
     loss_functions = ["mse"]  # Possibly later trail "smoothL1", bce expects probabilities in range [0,1], otherwise use bcewithlogitsloss as internally applies sigmoid
     optimizer = [
@@ -57,9 +60,9 @@ def create_grid() -> list[dict]:
     ]
     learning_rates = [1e-3]  # [1e-4, 1e-3]  # Later potentially trial 5e-4, 5e-3, and 1e-2 for fine-tuning
     weight_decay = [0]  # [0, 1e-4]  # Possibly later trial 1e-2
-    betas = [0.1, 0.5, 1]  # [0.1, 1]  # Possibly trial 0.5, 2, and 4 later
-    alphas = [0.3]
-    dup_pad_penalty_scales = [0.1]
+    betas = [0.1, 1]  # [0.1, 1]  # Possibly trial 0.5, 2, and 4 later
+    alphas = [0.3, 0.5]
+    dup_pad_penalty_scales = [0.1, 0.2]
     lambda_regs = [0.001]
 
     grid = [
@@ -80,7 +83,7 @@ def create_grid() -> list[dict]:
     return grid
 
 
-def train_grid_search(train_ds: VoxelDataset, val_ds: TensorDataset, model_architecture_name: str, clear_history_list: bool = False, history_list_filename: str = "grid_search_list", prune_old_checkpoints: bool = True):
+def train_grid_search(train_ds: VoxelDataset, val_ds: VoxelDataset, model_architecture_name: str, clear_history_list: bool = False, history_list_filename: str = "grid_search_list", prune_old_checkpoints: bool = True):
     """
     Conducts training for grid search.
     Grid is created based on 'create_grid' function.
@@ -126,7 +129,7 @@ def train_grid_search(train_ds: VoxelDataset, val_ds: TensorDataset, model_archi
             start_timer = time.perf_counter()
 
             # Assign unique name containing test information
-            model_name = f"{model_architecture_name}_bs{setup['batch_size']}_ld{setup['latent_dim']}_{setup['loss']}_{setup['optimizer']['model_name']}_lr{setup['lr']}_wd{setup['decay']}_be{setup['beta']}_a{setup['alpha']}_dupd{setup['dup_pad']}_lam{setup['lambda_reg']}"
+            model_name = f"{model_architecture_name}_bs{setup['batch_size']}_ld{setup['latent_dim']}_{setup['loss']}_{setup['optimizer']['model_name']}_lr{setup['lr']}_wd{setup['decay']}_be{setup['beta']}_a{setup['alpha']}_dup{setup['dup_pad']}_lam{setup['lambda_reg']}"
 
             # Check if history path is already in file
             if f"{model_name}_history.pth" in completed_histories:
@@ -210,6 +213,7 @@ def search_grid_history(loss_f1_tradeoff: float = 0.7, history_list_filename: st
 
     # Grid search
     for filename in history_filenames:
+
         history = TrainingHistory.load_history(filename)
 
         epoch, score = get_best_tradeoff_score(history.val['recon'], history.val['kl'], history.val['beta'], history.val['f1_weighted_avg'], loss_f1_tradeoff)

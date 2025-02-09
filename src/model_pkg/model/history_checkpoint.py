@@ -2,9 +2,11 @@
 Includes checkpointing functions to save models, optimizers and schedulers.
 TrainingHistory class used to track and save training history. It also calls checkpoint_model function.
 """
+import pathlib
 
 import torch
-from pathlib import Path
+from pathlib import Path, PosixPath, WindowsPath  # For patching torch.load when saved on one machine and loaded on a different
+import platform  # For patching torch.load when saved on one machine and loaded on a different
 import re
 from ..config import DEVICE, NUM_CLASSES, MODEL_CHECKPOINT_DIR, HISTORY_DIR, PATIENCE, EPOCHS
 from ..metrics.losses import VaeLoss
@@ -472,7 +474,24 @@ class TrainingHistory:
             raise FileNotFoundError(f"No file found at {filepath}")
 
         # Load history dictionary
-        history_dict = torch.load(filepath, weights_only=False, map_location=DEVICE)
+        try:
+            # Attempt normal load
+            history_dict = torch.load(filepath, weights_only=False, map_location=DEVICE)
+        except NotImplementedError as e:
+            # Get current OS
+            current_os = platform.system()
+
+            # Patch path
+            if 'PosixPath' in str(e) and current_os == 'Windows':
+                # For Windows
+                pathlib.PosixPath = WindowsPath
+            elif 'WindowsPath' in str(e) and current_os != 'Windows':
+                # For Linux/macOS
+                pathlib.WindowsPath = PosixPath
+            else:
+                raise e
+            # Retry loading the file after patching
+            history_dict = torch.load(filepath, weights_only=False, map_location=DEVICE)
 
         # Initialise a skeleton object
         history_obj = cls.__new__(cls)  # Bypass __init__
@@ -587,7 +606,23 @@ def load_model_checkpoint(source: Path | str | TrainingHistory, load: str = "upd
         raise FileNotFoundError(f"Checkpoint file '{checkpoint_path.name}' does not exist in '{checkpoint_path.parent}'.")
 
     print(f"Loading model and optimizer checkpoint from '{checkpoint_path}'...")
-    checkpoint = torch.load(checkpoint_path, weights_only=False, map_location=DEVICE)  # map_location prevents errors when checkpoint was saved with GPU, but loaded with CPU
+    try:
+        checkpoint = torch.load(checkpoint_path, weights_only=False, map_location=DEVICE)  # map_location prevents errors when checkpoint was saved with GPU, but loaded with CPU
+    except NotImplementedError as e:
+        # Get current OS
+        current_os = platform.system()
+
+        # Patch path
+        if 'PosixPath' in str(e) and current_os == 'Windows':
+            # For Windows
+            pathlib.PosixPath = WindowsPath
+        elif 'WindowsPath' in str(e) and current_os != 'Windows':
+            # For Linux/macOS
+            pathlib.WindowsPath = PosixPath
+        else:
+            raise e
+        # Retry loading the file after patching
+        checkpoint = torch.load(checkpoint_path, weights_only=False, map_location=DEVICE)
 
     # Restore model
     model_class = getattr(model_module, checkpoint['model_class'])  # Convert stored string class to class object

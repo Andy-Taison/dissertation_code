@@ -99,24 +99,17 @@ class VaeLoss:
 
         Beta is applied in train/test loops for tracking purposes.
 
-        Transformation matrix learnt in VAE applied to input, helping to make the network invariant to geometric
-        variations e.g. rotation, translation and scaling.
-
         Lambda reg scales the transformation regularising term which is used to encourage orthogonality.
 
         :param x: Input tensor with shape (batch_size, *input_dim)
         :param x_reconstructed: Decoder output with shape (batch_size, *input_dim)
         :param z_mean: Latent space mean with shape (batch_size, latent_dim)
         :param z_log_var: Log variance of latent space with shape (batch_size, latent_dim)
-        :param transform_matrix: Transformation matrix to apply to input coordinates
+        :param transform_matrix: Transformation matrix used to calculate regularisation term to encourage orthogonality
         :return: Reconstruction loss with mean reduction, KL divergence
         """
-        # Applies TNet transformation to input coordinates
-        input_coord = x[:, :, :COORDINATE_DIMENSIONS]
-        input_coord_transformed = torch.bmm(input_coord, transform_matrix)
-
         # Reconstruction loss for coordinates and descriptors
-        coor_loss = self.recon_loss_fn(x_reconstructed[:, :, :COORDINATE_DIMENSIONS], input_coord_transformed)  # For [x, y, z]
+        coor_loss = self.recon_loss_fn(x_reconstructed[:, :, :COORDINATE_DIMENSIONS], x[:, :, :COORDINATE_DIMENSIONS])  # For [x, y, z]
         desc_loss = self.desc_loss_fn(
             x_reconstructed[:, :, COORDINATE_DIMENSIONS:].view(-1, NUM_CLASSES),
             x[:, :, COORDINATE_DIMENSIONS:].argmax(dim=-1).view(-1))  # For one-hot descriptor values, internally applies softmax

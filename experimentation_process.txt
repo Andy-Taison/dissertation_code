@@ -161,11 +161,12 @@ Better reconstruction loss and KL div, though probably because its predicting ze
 Potentially may be too heavily regularised by beta 0.1.
 Model with best F1 score used beta 0.5, whereas the best performing model used beta 0.1.
 Clustering seems more structured latent space distributions, suggesting the architectur does help improve the model.
-Increased training configurations:
+
+* Increased training configurations:
 latent_dims = [4, 8, 16] 
 betas = [0.1, 0.5, 1]
 
-* Added batch normalisation in an attempt to stabilise training.
+Added batch normalisation in an attempt to stabilise training.
 
 batch_norm model:
 Encoder: 10 layers (9 trainable)
@@ -217,3 +218,23 @@ Added penalty and scaling terms to grid search parameters (though using fixed fo
 Have set alpha to 0.3 (slight more focus on coordinate reconstructions than descriptor values)
 dup_pad_penalty_scale to 0.1 (for duplicate/padding penalties - my very quick tests showed that 0.01 may be too small)
 lambda_reg to 0.001 (regularising term for transform matrix)
+
+Transformation matrix seems to be overly aggressive and collapsing structure into near 2D and disregarding spatial information and some voxels.
+Voxels are getting lost in the transformation process, though the voxel types appear to match what is present.
+The reconstructed visualisation further looses voxels and does not always match what was present in the transformed matrix.
+
+* Removed application of transformation to original input in the loss function. Thought is that potential double transformation (in the encoder and in the loss) is 
+increasing errors, and potentially allowing the network to learn to cheat by adjusting the transformation matrix.
+Changed grid search configurations used (16 configurations):
+batch_sizes = [64]
+    latent_dims = [8, 16]
+    loss_functions = ["mse"]
+    optimizer = [
+        {"type": optim.Adam, "params": {}, "model_name": "adam"}
+    ]
+    learning_rates = [1e-3]
+    weight_decay = [0]
+    betas = [0.1, 1]
+    alphas = [0.3, 0.5]
+    dup_pad_penalty_scales = [0.1, 0.2]
+    lambda_regs = [0.001]

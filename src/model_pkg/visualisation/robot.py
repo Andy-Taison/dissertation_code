@@ -119,9 +119,10 @@ def visualise_robot(grid_data: torch.Tensor, title: str = None, filename: str | 
         plt.close(fig)
 
 
-def compare_reconstructed(model: torch.nn.Module, dataloader: torch.utils.data.DataLoader, num_sample: int, filename: str | Path = "recon_comparison", skip_loader_samples: int = 0, transform_original = False):
+def compare_reconstructed(model: torch.nn.Module, dataloader: torch.utils.data.DataLoader, num_sample: int, filename: str | Path = "recon_comparison", skip_loader_samples: int = 0):
     """
     Plots original robot and reconstructed robot visualisations side by side.
+    When test_transform is True, uses model to obtain transformation matrix, and visualises original and transformed original.
 
     :param model: Model to use to reconstruct robot
     :param dataloader: Dataloader to use to get samples from
@@ -162,28 +163,31 @@ def compare_reconstructed(model: torch.nn.Module, dataloader: torch.utils.data.D
     with torch.no_grad():
         for i, robot_id in enumerate(ids):
             # Create subplots
-            fig, axes = plt.subplots(1, 2, figsize=(12, 6), subplot_kw={'projection': '3d'})
+            fig, axes = plt.subplots(1, 3, figsize=(12, 6), subplot_kw={'projection': '3d'})
             fig.subplots_adjust(top=0.85, hspace=0.3)  # Adjust spacing between main title and subplot titles
-            fig.suptitle(f"Comparison of Original and Reconstructed Robot, ID: {robot_id}")
+            fig.suptitle(f"Comparison of Original, Transformed and Reconstructed Robot, ID: {robot_id}")
 
-            original_grid = grid_data[i]
+            orig_gird = grid_data[i]
 
-            # Forward pass and convert to dense grid
-            x_reconstructed, _, _, _, transform_matrix = model(grid_data[i].unsqueeze(0))
-            dense_grid_recon = sparse_to_dense(x_reconstructed.squeeze(0))
+            # Forward pass
+            recon_grid, _, _, _, transform_matrix = model(orig_gird.unsqueeze(0))
 
             # Transform original coordinates
-            if transform_original:
-                original_grid[:, :, :COORDINATE_DIMENSIONS] = torch.bmm(original_grid[:, :, :COORDINATE_DIMENSIONS], transform_matrix)
+            transformed_grid_batched = orig_gird.unsqueeze(0).clone()
+            transformed_grid_batched[:, :, :COORDINATE_DIMENSIONS] = torch.bmm(transformed_grid_batched[:, :, :COORDINATE_DIMENSIONS], transform_matrix)
 
-            # Convert original to dense grid
-            dense_grid_orig = sparse_to_dense(original_grid)
+            # Convert to dense grid
+            left_grid_dense = sparse_to_dense(orig_gird)
+            middle_grid_dense = sparse_to_dense(transformed_grid_batched.squeeze(0))
+            right_grid_dense = sparse_to_dense(recon_grid.squeeze(0))
 
-            visualise_robot(dense_grid_orig.unsqueeze(0).cpu(), title="Original", ax=axes[0])
-            visualise_robot(dense_grid_recon.cpu(), title="Reconstructed", ax=axes[1])
+            # Testing transform matrix
+            visualise_robot(left_grid_dense.unsqueeze(0).cpu(), title="Original", ax=axes[0])
+            visualise_robot(middle_grid_dense.unsqueeze(0).cpu(), title="Transformed Original", ax=axes[1])
+            visualise_robot(right_grid_dense.unsqueeze(0).cpu(), title="Reconstructed", ax=axes[2])
 
             # Add common legend
-            fig.legend(handles=legend_elements, loc='upper center', bbox_to_anchor=(0.5, 0.9), ncol=4)
+            fig.legend(handles=legend_elements, loc='upper center', bbox_to_anchor=(0.5, 0.945), ncol=4)
 
             # Adjust layout
             plt.tight_layout()

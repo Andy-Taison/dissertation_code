@@ -92,8 +92,9 @@ def sparse_to_dense(sparse_data: torch.Tensor, grid_size: int = 11) -> torch.Ten
     dense_grid = torch.zeros(grid_size, grid_size, grid_size, dtype=torch.int64)
 
     # Extract coordinates and descriptor values
-    coor = (sparse_data[:, :3] * (grid_size - 1)).round().long()  # Scale normalised coordinates back to grid indices
-    descriptors = sparse_data[:, 3:].argmax(dim=1)  # Convert one-hot encoding back to descriptor values
+    coor = (sparse_data[:, :COORDINATE_DIMENSIONS] * (grid_size - 1)).round().long()  # Scale normalised coordinates back to grid indices
+    coor = torch.clamp(coor, min=0, max=grid_size - 1)  # Clamp values to range [0, 10] to avoid errors if not normalised correctly
+    descriptors = sparse_data[:, COORDINATE_DIMENSIONS:].argmax(dim=1)  # Convert one-hot encoding back to descriptor values
 
     for i in range(sparse_data.shape[0]):
         x, y, z = coor[i]
