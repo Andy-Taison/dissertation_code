@@ -191,7 +191,9 @@ class TrainingHistory:
             'f1_weighted_avg': [],  # Average F1 score per epoch, weighted by descriptor value support
             'beta': [],  # Beta applied to KL divergence per epoch
             'lr': [],  # Learning rate used by optimizer per epoch
-            'training_time': []  # Training loop time in seconds
+            'training_time': [],  # Training loop time in seconds
+            'desc_loss': [],  # Average descriptor loss per epoch
+            'coor_loss': []  # Average coordinate loss per epoch
         }
 
         # No learning rate required for validation due to not using optimizer
@@ -207,7 +209,9 @@ class TrainingHistory:
             'f1_classes': torch.empty(0, NUM_CLASSES, device=DEVICE),
             'f1_weighted_avg': [],  # Average F1 score per epoch, weighted by descriptor value support
             'beta': [],  # Beta applied to KL divergence per epoch
-            'training_time': []  # Validation loop time in seconds
+            'training_time': [],  # Validation loop time in seconds
+            'desc_loss': [],  # Average descriptor loss per epoch
+            'coor_loss': []  # Average coordinate loss per epoch
         }
 
     def check_and_save_model_improvement(self, val_epoch_metrics: dict, epoch: int, model: torch.nn.Module, optimizer: torch.optim.Optimizer, scheduler: torch.optim.lr_scheduler.LRScheduler = None) -> bool:
@@ -303,6 +307,8 @@ class TrainingHistory:
         history['f1_weighted_avg'].append(epoch_metrics['weighted_f1'])
         history['beta'].append(epoch_metrics['beta'])
         history['training_time'].append(epoch_metrics['training_time'])
+        history['desc_loss'].append(epoch_metrics['desc_loss'])
+        history['coor_loss'].append(epoch_metrics['coor_loss'])
         if 'lr' in history:
             history['lr'].append(epoch_metrics['lr'])
         if 'patience' in history:
@@ -539,6 +545,8 @@ class TrainingHistory:
             f"\t- Coordinate Euclidean Distance: {self.train['coor_euclid'][-1]:.4f}" if self.train['coor_euclid'] else "\t- Coordinate Euclidean Distance: None",
             f"\t- Reconstruction Loss, Averaged Across Batches: {self.train['recon'][-1] * 100:.4f}" if self.train['recon'] else "\t- Reconstruction Loss: None",
             f"\t- KL Divergence, Averaged Across Batches: {self.train['kl'][-1] * 100:.4f}" if self.train['kl'] else "\t- KL Divergence: None",
+            f"\t- Descriptor Loss, Averaged Across Batches: {self.train['desc_loss'][-1]}" if self.train['desc_loss'] else "\t- Descriptor Loss: None",
+            f"\t- Coordinate Loss, Averaged Across Batches: {self.train['coor_loss'][-1]}" if self.train['coor_loss'] else "\t- Coordinate Loss: None",
             f"\t- Beta: {self.train['beta'][-1]}",
             f"\t- Accuracy: {self.train['accuracy'][-1]:.4f}" if self.train['accuracy'] else "\t- Accuracy: None",
             f"\t- Weighted F1: {self.train['f1_weighted_avg'][-1]:.4f}" if self.train['f1_weighted_avg'] else "\t- Weighted F1: None",
@@ -549,6 +557,8 @@ class TrainingHistory:
             f"\t- Coordinate Euclidean Distance: {self.val['coor_euclid'][-1]:.4f}" if self.val['coor_euclid'] else "\t- Coordinate Euclidean Distance: None",
             f"\t- Reconstruction Loss, Averaged Across Batches: {self.val['recon'][-1] * 100:.4f}" if self.val['recon'] else "\t- Reconstruction Loss: None",
             f"\t- KL Divergence, Averaged Across Batches: {self.val['kl'][-1] * 100:.4f}" if self.val['kl'] else "\t- KL Divergence: None",
+            f"\t- Descriptor Loss, Averaged Across Batches: {self.val['desc_loss'][-1]}" if self.val['desc_loss'] else "\t- Descriptor Loss: None",
+            f"\t- Coordinate Loss, Averaged Across Batches: {self.val['coor_loss'][-1]}" if self.val['coor_loss'] else "\t- Coordinate Loss: None",
             f"\t- Beta: {self.val['beta'][-1]}",
             f"\t- Accuracy: {self.val['accuracy'][-1]:.4f}" if self.val['accuracy'] else "\t- Accuracy: None",
             f"\t- Weighted F1: {self.val['f1_weighted_avg'][-1]:.4f}" if self.val['f1_weighted_avg'] else "\t- Weighted F1: None",

@@ -60,9 +60,9 @@ def create_grid() -> list[dict]:
     ]
     learning_rates = [1e-3]  # [1e-4, 1e-3]  # Later potentially trial 5e-4, 5e-3, and 1e-2 for fine-tuning
     weight_decay = [0]  # [0, 1e-4]  # Possibly later trial 1e-2
-    betas = [0.1, 1]  # [0.1, 1]  # Possibly trial 0.5, 2, and 4 later
-    alphas = [0.3, 0.5]
-    dup_pad_penalty_scales = [0.1, 0.2]
+    betas = [0.05, 0.1]  # [0.1, 1]  # Possibly trial 0.5, 2, and 4 later
+    alphas = [0.7]  # High emphasises descriptor accuracy, lower focuses on coordinate reconstruction
+    dup_pad_penalty_scales = [1]  # Scales penalty (penalty for abs different number of padded voxels to original, plus penalty for duplicate non-padded voxels)
     lambda_regs = [0.001]
 
     grid = [

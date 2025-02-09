@@ -238,3 +238,32 @@ batch_sizes = [64]
     alphas = [0.3, 0.5]
     dup_pad_penalty_scales = [0.1, 0.2]
     lambda_regs = [0.001]
+	
+Transformed input (now only applied for visualisation purposes and not in the loss) looks much closer to the original input, 
+it is slightly moving some voxels, but assume this should be expected.
+
+Reconstructed output still only reconstructing a single voxel,
+seems to mainly prefer a similar location/coordinate (though it does slightly vary this sometimes, but not much). 
+Also seems to prefer blue (wheels), though it does vary this sometimes, and the samples visualised all contain at least 50% blue (wheels).
+
+Looking at the best performing model plots, 
+accuracy increases up until around epoch 9, when it seems to flatline (mostly) at around 37%. 
+F1 does similar. 
+Reconstruction loss (which includes descriptor loss, coordinate loss (scaled by alpha), plus the duplicate penalty and the transform_reg regularising term, 
+continually comes down but very very slowly.
+
+Model may be over regularising, so should maybe trial lower beta values and higher alpha values to increase influence of recon loss and descriptor accuracy.
+Not enough voxels are being predicted, so maybe should increase duplicate/padding penalty.
+Trialing strong dup penalty, alpha scaling, and lower beta:
+batch_sizes = [64]
+    latent_dims = [8, 16]
+    loss_functions = ["mse"]
+    optimizer = [
+        {"type": optim.Adam, "params": {}, "model_name": "adam"}
+    ]
+    learning_rates = [1e-3]
+    weight_decay = [0]
+    betas = [0.05, 0.1]
+    alphas = [0.7]
+    dup_pad_penalty_scales = [1]
+    lambda_regs = [0.001]

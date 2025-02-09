@@ -84,10 +84,11 @@ class VaeLoss:
         self.dup_pad_penalty_scale = dup_pad_penalty_scale
         self.lambda_reg = lambda_reg
 
-    def __call__(self, x: torch.Tensor, x_reconstructed: torch.Tensor, z_mean: torch.Tensor, z_log_var: torch.Tensor, transform_matrix: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
+    def __call__(self, x: torch.Tensor, x_reconstructed: torch.Tensor, z_mean: torch.Tensor, z_log_var: torch.Tensor, transform_matrix: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
         """
         Calculates VAE loss (reconstruction loss + beta * KL divergence)
         Reconstruction loss and KL divergence are returned individually as tensors.
+        Reconstruction loss is the sum of coordinate loss and descriptor loss (scaled by alpha), with duplication penalty and transformation regulariser.
 
         Reconstruction loss is the sum of coordinate loss and descriptor loss, scaled by alpha with a transformation regularisation term added.
         When alpha is high, it emphasises descriptor accuracy, lower focuses on coordinate reconstruction.
@@ -106,7 +107,7 @@ class VaeLoss:
         :param z_mean: Latent space mean with shape (batch_size, latent_dim)
         :param z_log_var: Log variance of latent space with shape (batch_size, latent_dim)
         :param transform_matrix: Transformation matrix used to calculate regularisation term to encourage orthogonality
-        :return: Reconstruction loss with mean reduction, KL divergence
+        :return: Reconstruction loss with mean reduction, KL divergence, desc_loss (applied to recon loss), coor_loss (applied to recon loss)
         """
         # Reconstruction loss for coordinates and descriptors
         coor_loss = self.recon_loss_fn(x_reconstructed[:, :, :COORDINATE_DIMENSIONS], x[:, :, :COORDINATE_DIMENSIONS])  # For [x, y, z]
@@ -129,4 +130,4 @@ class VaeLoss:
 
         kl_div = -0.5 * torch.sum(1 + z_log_var - z_mean.pow(2) - z_log_var.exp()) / x.shape[0]  # Averaged across batch size
 
-        return recon_loss, kl_div
+        return recon_loss, kl_div, desc_loss, coor_loss

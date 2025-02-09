@@ -252,8 +252,6 @@ def plot_metrics_vs_epochs(training_histories: TrainingHistory | list[TrainingHi
     colour_idx = 0
     primary_axis_labels = set()
     secondary_axis_labels = set()
-    plotted_on_primary = set()
-    plotted_on_secondary = set()
 
     # Markers and styles
     markers = ["None", "v", "x", "D", "o"]
