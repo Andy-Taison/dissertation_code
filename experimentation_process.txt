@@ -292,3 +292,33 @@ alphas = [0.1]
 dup_pad_penalty_scales = [1] 
 lambda_regs = [0.001]
 
+None of the models trained to completion, most trained to around 30 epochs. 
+Unsurprisingly the best model using the tradeoff score, was the only one that ran past 50 (ran to 70 epochs), 
+and was the model using latent_dim=12, learning rate=5e-4, weight_decay=0
+
+It managed to reconstruct up to 3 voxels, and varied the type (blue and green) though did not match the original. 
+The position was slightly varied, but mostly remained fixed. 
+
+The total loss was mostly flat until around epoch 50 when it came down, 
+before rising again around epoch 55. 
+Beta scaled KL div constantly increased. 
+Coordinate loss and descriptor loss both came down, though not a great deal. 
+Dup/pad penalty reduced around epoch 50 and increased around epoch 55 same as the loss.
+
+* Patience increased to 20
+Added a fixed scaling to the coordinate loss to bring it into a similar range as descriptor loss (x10)
+Trialing another small learning rate, some other small betas, and alphas.
+Hoping the coordinate loss will decrease better, and more coordinates explored.
+
+batch_sizes = [64] 
+latent_dims = [8, 12, 16]
+loss_functions = ["mse"]
+optimizer = [
+	{"type": optim.Adam, "params": {}, "model_name": "adam"}
+]
+learning_rates = [1e-3, 5e-4, 1e-4]
+weight_decay = [0, 1e-5, 1e-4]
+betas = [0.01, 0.02, 0.05]
+alphas = [0.1, 0.2, 0.3]  
+dup_pad_penalty_scales = [1] 
+lambda_regs = [0.001]

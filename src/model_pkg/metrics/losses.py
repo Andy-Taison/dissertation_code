@@ -126,7 +126,8 @@ class VaeLoss:
 
         # Combine coordinate loss, descriptor loss, with duplicate penalty, alpha balancing term and transformation regularising term
         # High alpha emphasises descriptor accuracy, lower focuses on coordinate reconstruction
-        recon_loss = self.alpha * desc_loss + (1 - self.alpha) * coor_loss + duplicate_pad_penalty + transform_reg
+        coor_scale = 10
+        recon_loss = self.alpha * desc_loss + (1 - self.alpha) * (coor_scale * coor_loss) + duplicate_pad_penalty + transform_reg
 
         kl_div = -0.5 * torch.sum(1 + z_log_var - z_mean.pow(2) - z_log_var.exp()) / x.shape[0]  # Averaged across batch size
 
