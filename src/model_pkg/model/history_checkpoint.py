@@ -193,7 +193,9 @@ class TrainingHistory:
             'lr': [],  # Learning rate used by optimizer per epoch
             'training_time': [],  # Training loop time in seconds
             'desc_loss': [],  # Average descriptor loss per epoch
-            'coor_loss': []  # Average coordinate loss per epoch
+            'coor_loss': [],  # Average coordinate loss per epoch
+            'dup_pad_avg': [],  # Average duplicate and padded penalty per epoch
+            'transform_reg_avg': []  # Average transformation regularising term per epoch
         }
 
         # No learning rate required for validation due to not using optimizer
@@ -211,7 +213,9 @@ class TrainingHistory:
             'beta': [],  # Beta applied to KL divergence per epoch
             'training_time': [],  # Validation loop time in seconds
             'desc_loss': [],  # Average descriptor loss per epoch
-            'coor_loss': []  # Average coordinate loss per epoch
+            'coor_loss': [],  # Average coordinate loss per epoch
+            'dup_pad_avg': [],  # Average duplicate and padded penalty per epoch
+            'transform_reg_avg': []  # Average transformation regularising term per epoch
         }
 
     def check_and_save_model_improvement(self, val_epoch_metrics: dict, epoch: int, model: torch.nn.Module, optimizer: torch.optim.Optimizer, scheduler: torch.optim.lr_scheduler.LRScheduler = None) -> bool:
@@ -309,6 +313,8 @@ class TrainingHistory:
         history['training_time'].append(epoch_metrics['training_time'])
         history['desc_loss'].append(epoch_metrics['desc_loss'])
         history['coor_loss'].append(epoch_metrics['coor_loss'])
+        history['dup_pad_avg'].append(epoch_metrics['dup_pad_avg'])
+        history['transform_reg_avg'].append(epoch_metrics['transform_reg_avg'])
         if 'lr' in history:
             history['lr'].append(epoch_metrics['lr'])
         if 'patience' in history:

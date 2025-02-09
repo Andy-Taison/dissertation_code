@@ -24,8 +24,8 @@ PLOT_DIR = BASE_DIR / "plots"  # Path to store generated plots
 # Training configurations
 BATCH_SIZE = 64  # Not used in main package, intended to be used when calling the train_val function without using grid search
 LEARNING_RATE = 0.001  # Not used in main package, intended to be used when calling the train_val function without using grid search
-EPOCHS = 30  # 100  # Maximum number of epochs to run (for dataset size, ideal will be between 50-200), used in grid search, history checkpoint
-PATIENCE = 5  # 16  # How many epochs to run before stopping with no improvement in F1 score or loss (reconstruction + beta * KL), used in history checkpoint
+EPOCHS = 150  # Maximum number of epochs to run (for dataset size, ideal will be between 50-200), used in grid search, history checkpoint
+PATIENCE = 10  # 16  # How many epochs to run before stopping with no improvement in F1 score or loss (reconstruction + beta * KL), used in history checkpoint
 SCHEDULER_PATIENCE = 5  # How many epochs to run with no improvement to loss (reconstruction + beta * KL) before scheduler (if using) adjusts learning rate. Lower value is more aggressive.
 NUM_CLASSES = 5  # Descriptor values including 0, used in dataset, losses, metrics, train test, and history checkpoint
 
