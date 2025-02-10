@@ -280,7 +280,7 @@ def test(model: torch.nn.Module, dataloader: torch.utils.data.DataLoader, loss_f
     }
 
 
-def train_val(model: torch.nn.Module, train_dataloader: torch.utils.data.DataLoader, val_dataloader: torch.utils.data.DataLoader, loss_fn, optimizer: torch.optim.Optimizer, epochs: int, beta: int = 1, training_history: TrainingHistory = None, scheduler: torch.optim.lr_scheduler.ReduceLROnPlateau = None, prune_old_checkpoints: bool = True) -> TrainingHistory:
+def train_val(model: torch.nn.Module, train_dataloader: torch.utils.data.DataLoader, val_dataloader: torch.utils.data.DataLoader, loss_fn, optimizer: torch.optim.Optimizer, epochs: int, beta: [int | float] = 1, training_history: TrainingHistory = None, scheduler: torch.optim.lr_scheduler.ReduceLROnPlateau = None, prune_old_checkpoints: bool = True) -> TrainingHistory:
     """
     Train and validate dataloader objects should use the same batch size (train dataloader batch size used for history tracking).
     Training continues from last_updated_model if training_history provided.
@@ -319,7 +319,7 @@ def train_val(model: torch.nn.Module, train_dataloader: torch.utils.data.DataLoa
             raise ValueError(f"Training history optimizer: {training_history.optim} does not match passed optimizer: {optimizer.__class__.__name__}.")
         if training_history.loss_fn != loss_fn.loss_name:
             raise ValueError(f"Training history loss function: {training_history.loss_fn} does not match passed loss function: {loss_fn.loss_name}.")
-        if training_history.model_architecture != [(name, module) for name, module in model.named_modules()]:
+        if len(training_history.model_architecture) != len([(name, module) for name, module in model.named_modules()]):
             raise ValueError(f"Training history model architecture does not match passed model architecture.\nTraining history architecture:\n{training_history.model_architecture}")
         if training_history.scheduler is not None:
             if scheduler is None:

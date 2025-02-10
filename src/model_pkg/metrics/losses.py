@@ -5,48 +5,80 @@ Defines loss functions
 import torch
 import torch.nn as nn
 from ..config import NUM_CLASSES, COORDINATE_DIMENSIONS, DEVICE
+import torch.nn.functional as F
 
 
-def duplicate_and_padded_penalty(x: torch.Tensor, x_reconstructed: torch.Tensor) -> float:
+def padded_voxel_penalty(orig_descriptors: torch.Tensor, recon_descriptors: torch.Tensor) -> torch.Tensor:
     """
-    Calculates a penalty for not having the correct number of padded voxels (identified via original descriptor values).
-    A further penalty is calculated for duplicate coordinates in the reconstructed tensor.
-    Penalty is averaged across the batch.
+    Calculates penalty for the number of padded voxels differing from original input.
+    Calculated in a differentiable way to help the model learn.
 
-    :param x: Original input tensor with shape (batch_size, num_voxels, features)
-    :param x_reconstructed: Reconstructed tensor with shape (batch_size, num_voxels, features)
-    :return: Average penalty per batch
+    :param orig_descriptors: Original batched one-hot descriptors
+    :param recon_descriptors: Reconstructed batched logits
+    :return: Penalty
     """
-    coords_recon = x_reconstructed[:, :, :COORDINATE_DIMENSIONS]
-    descriptors_orig = x[:, :, COORDINATE_DIMENSIONS:]
-    batch_size, num_voxels, _ = coords_recon.shape
+    # Class probabilities - softmax is differentiable
+    orig_probs = F.softmax(orig_descriptors, dim=-1)
+    recon_probs = F.softmax(recon_descriptors, dim=-1)
 
-    # Descriptors are raw logits, argmax used to get predicted class
-    descriptors_recon = x_reconstructed[:, :, COORDINATE_DIMENSIONS:].argmax(dim=-1)
+    # Probability of padded voxel
+    orig_padded_prob = orig_probs[:, :, 0]
+    recon_padded_prob = recon_probs[:, :, 0]
 
-    penalty = 0.0
+    # Difference in expected number of padded voxels
+    penalty = torch.abs(orig_padded_prob.sum(dim=1) - recon_padded_prob.sum(dim=1)).mean()
 
-    for orig_desc, recon_desc, recon_coords in zip(descriptors_orig, descriptors_recon, coords_recon):
-        # Count padded voxels
-        num_padded_orig = (orig_desc.argmax(dim=-1) == 0).sum().item()
-        num_padded_recon = (recon_desc == 0).sum().item()
+    return penalty
 
-        # Penalty for different number of padded voxels
-        padded_penalty = abs(num_padded_recon - num_padded_orig)
 
-        # Filter out padded voxels from reconstructed coordinates
-        non_padded_coords = recon_coords[recon_desc != 0]
+def coordinate_matching_loss(x: torch.Tensor, x_reconstructed: torch.Tensor) -> torch.Tensor:
+    """
+    Calculates a penalty based on pairwise distance to original coordinates.
+    Creates competition between points to avoid clustering around a single original point.
+    Masks out coordinates marked as padded voxels by the descriptor values to not include in the calculation.
 
-        # Penalty for duplicate coordinates
-        unique_coords = torch.unique(non_padded_coords, dim=0)
-        redundant = non_padded_coords.size(0) - unique_coords.size(0)
+    :param x: Original input
+    :param x_reconstructed: Reconstructed
+    :return: Penalty
+    """
+    total_penalty = torch.tensor(0.0, device=DEVICE)
 
-        # Total penalty for sample
-        total_sample_penalty = redundant + padded_penalty
-        penalty += total_sample_penalty
+    orig_coords = x[:, :, :COORDINATE_DIMENSIONS]
+    recon_coords = x_reconstructed[:, :, :COORDINATE_DIMENSIONS]
 
-    # Average penalty across batch
-    return penalty / batch_size
+    # Masks for non-padded voxels
+    orig_mask = (x[:, :, COORDINATE_DIMENSIONS:].argmax(dim=-1) != 0)  # Shape: (batch_size, num_voxels)
+    recon_mask = (x_reconstructed[:, :, COORDINATE_DIMENSIONS:].argmax(dim=-1) != 0)
+
+    for orig, recon, o_mask, r_mask in zip(orig_coords, recon_coords, orig_mask, recon_mask):
+        # Skip if no non-padded voxels
+        if o_mask.sum() == 0 or r_mask.sum() == 0:
+            continue
+
+        # Pairwise distance matrix between all original and reconstructed coordinates
+        dist_matrix = torch.cdist(recon, orig, p=2)
+
+        # Apply masks to ignore padded voxels
+        dist_matrix[~r_mask, :] = float('inf')  # Mask padded rows (reconstructed)
+        dist_matrix[:, ~o_mask] = float('inf')  # Mask padded columns (original)
+
+        # Gets probability of the closest point, softmin is differentiable
+        neighbour_weights = F.softmin(dist_matrix * 100, dim=1)  # Scaling distance encourages model to focus on a single point
+        neighbour_weights = torch.nan_to_num(neighbour_weights)  # Replace nan with 0
+
+        # Normalise probability weights to create competition to avoid clustering around a single point
+        competitive_weights = neighbour_weights / (neighbour_weights.sum(dim=0, keepdim=True) + 1e-8)  # Avoid division by 0
+        competitive_weights = torch.nan_to_num(competitive_weights)  # Replace nan with 0
+
+        # Calculate penalty (averaged over sample voxels)
+        dist_matrix[torch.isinf(dist_matrix)] = 0.0  # Avoid multiplication with 'inf'
+        penalty = (competitive_weights * dist_matrix).sum() / dist_matrix.size(0)
+
+        total_penalty += penalty
+
+    batch_penalty = total_penalty / x.size(0)  # Averaged over batch
+
+    return batch_penalty
 
 
 class VaeLoss:
@@ -109,6 +141,9 @@ class VaeLoss:
         :param transform_matrix: Transformation matrix used to calculate regularisation term to encourage orthogonality
         :return: Reconstruction loss with mean reduction, KL divergence, desc_loss (applied to recon loss), coor_loss (applied to recon loss), scaled duplicate_pad_penalty, transform_reg
         """
+        pad_penalty = padded_voxel_penalty(x[:, :, COORDINATE_DIMENSIONS:], x_reconstructed[:, :, COORDINATE_DIMENSIONS:])
+        coor_match_loss = coordinate_matching_loss(x, x_reconstructed)
+
         # Reconstruction loss for coordinates and descriptors
         coor_loss = self.recon_loss_fn(x_reconstructed[:, :, :COORDINATE_DIMENSIONS], x[:, :, :COORDINATE_DIMENSIONS])  # For [x, y, z]
         desc_loss = self.desc_loss_fn(

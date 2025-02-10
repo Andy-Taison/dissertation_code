@@ -29,7 +29,8 @@ PATIENCE = 20  # 16  # How many epochs to run before stopping with no improvemen
 SCHEDULER_PATIENCE = 5  # How many epochs to run with no improvement to loss (reconstruction + beta * KL) before scheduler (if using) adjusts learning rate. Lower value is more aggressive.
 NUM_CLASSES = 5  # Descriptor values including 0, used in dataset, losses, metrics, train test, and history checkpoint
 
-# VAE configurations
+# VAE and dataset configurations
+EXPANDED_GRID_SIZE = 11  # Assumed square/cube
 INPUT_DIM = (8, 8)  # Used in grid search
 COORDINATE_DIMENSIONS = 3
 MAX_VOXELS = 8  # Maximum number of voxels for any robot in the full dataset - if this changes, review deconvolutional layers in model decoder

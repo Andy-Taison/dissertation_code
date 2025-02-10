@@ -16,7 +16,7 @@ from torch.utils.data import DataLoader, Subset
 def run():
     print("Starting VAE pipeline...\n")
 
-    grid_search_model_name = "coord_scale_toy"
+    grid_search_model_name = "loss_penalties_toy"
     combine_and_save = False  # When false, will load processed files
     use_toy_set = True  # Use 20% of full dataset or full dataset, does not use test set
     testing = False  # 128 samples for train and val sets for quick run testing
@@ -60,17 +60,17 @@ def run():
     # Create datasets and dataloaders
     print("\nTraining dataset:")
     summarise_dataset(train_data)
-    train_ds = VoxelDataset(train_data, max_voxels=config.MAX_VOXELS)
+    train_ds = VoxelDataset(train_data, max_voxels=config.MAX_VOXELS, grid_size=config.EXPANDED_GRID_SIZE)
     train_loader = DataLoader(train_ds, batch_size=config.BATCH_SIZE, shuffle=True)
 
     print("Validation dataset:")
     summarise_dataset(val_data)
-    val_ds = VoxelDataset(val_data, max_voxels=config.MAX_VOXELS)
+    val_ds = VoxelDataset(val_data, max_voxels=config.MAX_VOXELS, grid_size=config.EXPANDED_GRID_SIZE)
     val_loader = DataLoader(val_ds, batch_size=config.BATCH_SIZE, shuffle=False)
     if test_data is not None:
         print("Test dataset:")
         summarise_dataset(test_data)  # type: ignore
-        test_ds = VoxelDataset(test_data, max_voxels=config.MAX_VOXELS)
+        test_ds = VoxelDataset(test_data, max_voxels=config.MAX_VOXELS, grid_size=config.EXPANDED_GRID_SIZE)
         test_loader = DataLoader(test_ds, batch_size=config.BATCH_SIZE, shuffle=False)
         print(f"Preprocessed datasets loaded: train ({len(train_ds)}), val ({len(val_ds)}), and test ({len(test_ds)}) sets.\n")
     else:
@@ -129,8 +129,25 @@ def run():
         train_grid_search(subset_train_ds, subset_val_ds, "test", clear_history_list=False)  # type: ignore
     else:
         # Grid search training
-        # train_grid_search(train_ds, val_ds, grid_search_model_name, clear_history_list=False)
-        pass
+        train_grid_search(train_ds, val_ds, grid_search_model_name, clear_history_list=False)
+        #-----------------------------------------
+        # TESTING
+        """
+        best_history = TrainingHistory.load_history("best_performing_coord_scale_toy_bs64_ld16_mse_adam_lr0.0005_wd1e-05_be0.01_a0.2_dup1_lam0.001_epoch_20.pth")
+        best_epoch = 20
+        alt_name = f"testing_{best_history.model_name}_epoch_{best_epoch}"
+        best_history.save_history(alt_name)
+        if best_epoch < best_history.epochs_run:
+            best_history.rollback(best_epoch)
+        best_model, best_optimizer, _, epochs_run = load_model_checkpoint(best_history)
+        criterion = VaeLoss("mse", alpha=0.2, dup_pad_penalty_scale=1, lambda_reg=0.001)
+        history = train_val(best_model, train_loader, val_loader, criterion, best_optimizer, 21, beta=0.01, training_history=best_history,
+                            prune_old_checkpoints=False)
+        # generate_plots(history, alt_name)
+        test_model, _, _, epochs_run = load_model_checkpoint(history)
+        compare_reconstructed(test_model, val_loader, 2, filename=f"comparison_{alt_name}", skip_loader_samples=1)
+        """
+        #-----------------------------------------------
 
     # Grid search using balanced loss and F1 to score
     print("Starting gridsearch for best trade-off performance model...")
@@ -164,7 +181,7 @@ def run():
         print()
     except (FileNotFoundError, ValueError) as e:
         print(f"{e} Cannot perform latent analysis for {alt_name}.")
-
+        
     # Grid search using only loss to score
     print("Starting gridsearch for best loss model...")
     best_loss_history, best_loss_score, best_loss_epoch = search_grid_history(loss_f1_tradeoff=1)

@@ -353,3 +353,20 @@ but the raw loss and so it is still shown in a low range (around 0.1-0.14) compa
 desc_loss (1.2-1.6) is the raw values, but that doesn't have a scaling.
 Adjusted this in the code, so future plots will show the adjusted losses.
 Not showing alpha scaled however.
+
+Inspecting the reconstructed output closer, the coordinates are not duplicates, but are very close. 
+Meaning when the sparse grid is converted back to a dense one for visualisations, the coordinates are collapsing to duplicates.
+The way the coordinate loss is calculated also assumes a 1-to-1 correspondence, which is not the case due to shuffling.
+Further to this, the way the duplicate and pad penalty is calculated and applied is non differentiable and so the model isn't learning directly.
+
+* Changed how padding penalty is calculated and applied so it is now differentiable so the model can learn.
+Now taking the mean absolute sum of the expected padded voxels. Using softmax as this is differentiable.
+
+Added a matching loss, loosely inspired by chamfer distance.
+Calculates pairwise distance from reconstructed coordinates to original coordinates (rows represent reconstructed, columns are original).
+Masks out padded voxels (based on descriptor designation) to ignore the coordinates in the penalty calculation.
+Applies softmin (differentiable) to work out nearest neighbour probability - also scales the distance matrix to encourage points to focus on a single point.
+Normalises probabilities across the rows (vertically) to create competition and encourage points to not cluster around the same original point.
+Averages for the batch.
+
+ 

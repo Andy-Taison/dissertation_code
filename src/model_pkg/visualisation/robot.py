@@ -88,6 +88,13 @@ def visualise_robot(grid_data: torch.Tensor, title: str = None, filename: str | 
     ax.set_ylim(0, 11.99)
     ax.set_zlim(0, 11.99)
 
+    # Set equal aspect ratios for all axes
+    ax.set_box_aspect([1, 1, 1])
+
+    ax.set_xlabel('X-axis')
+    ax.set_ylabel('Y-axis')
+    ax.set_zlabel('Z-axis')
+
     # Set title
     if title:
         ax.set_title(title, pad=20)

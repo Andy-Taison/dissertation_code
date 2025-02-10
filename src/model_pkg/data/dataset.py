@@ -7,27 +7,30 @@ import torch
 import torch.utils.data
 from torch.utils.data import Dataset
 import torch.nn.functional as F
-from ..config import NUM_CLASSES, COORDINATE_DIMENSIONS
+from ..config import NUM_CLASSES, COORDINATE_DIMENSIONS, DEVICE
 
 
 class VoxelDataset(Dataset):
-    def __init__(self, dataframe: pd.DataFrame, max_voxels=8, shuffle_voxels=True):
+    def __init__(self, dataframe: pd.DataFrame, max_voxels=8, grid_size: int = 11, shuffle_voxels=True):
         """
         Dataset for robot voxel data and ID.
 
         :param dataframe: Dataframe representing 3D grid data (last 1331 columns), Robot ID should be in the first column
+        :param max_voxels: Maximum number of voxels in entire dataset
+        :param grid_size: Size of output grid along each dimension - assumed square
         """
         print("Initialising Dataset...")
-        grids = torch.tensor(dataframe.iloc[:, -1331:].values, dtype=torch.float32)
+        grids = torch.tensor(dataframe.iloc[:, -(grid_size**3):].values, dtype=torch.float32)
         # Verify grid data has 1331 columns (11x11x11)
-        assert grids.shape[1] == 11 * 11 * 11, "Grid data does not have the correct number of elements (1331)."
+        assert grids.shape[1] == grid_size * grid_size * grid_size, "Grid data does not have the correct number of elements (1331)."
 
         # Reshape grids into [batch_size, 11, 11, 11]
-        self.grid_data = grids.view(-1, 11, 11, 11)
+        self.grid_data = grids.view(-1, grid_size, grid_size, grid_size)
         self.robot_ids = torch.tensor(dataframe.iloc[:, 0].values, dtype=torch.long)
         self.max_voxels = max_voxels
         self.coordinate_dim = COORDINATE_DIMENSIONS
         self.shuffle_voxels = shuffle_voxels
+        self.grid_size = grid_size
 
         print("Dataset created.\n")
 
@@ -56,7 +59,7 @@ class VoxelDataset(Dataset):
         non_zero_values = grid[non_zero_indices]
 
         # Normalise coordinates
-        normalised_coords = torch.stack(non_zero_indices, dim=1) / 10  # range [0, 1]
+        normalised_coords = torch.stack(non_zero_indices, dim=1) / (self.grid_size - 1)  # range [0, 1]
 
         # One-hot encode descriptor values
         one_hot_values = F.one_hot(non_zero_values.long(), num_classes=NUM_CLASSES)
@@ -68,8 +71,8 @@ class VoxelDataset(Dataset):
 
         # Pad to fixed shape (max_voxels, NUM_CLASSES + 3)
         if num_voxels < self.max_voxels:
-            padding = torch.zeros(self.max_voxels - num_voxels, NUM_CLASSES + 3, dtype=torch.int64)
-            padding[:, 3] = 1  # One-hot encoding for 0 descriptor (empty space) padding
+            padding = torch.zeros(self.max_voxels - num_voxels, COORDINATE_DIMENSIONS + NUM_CLASSES, dtype=torch.int64)
+            padding[:, COORDINATE_DIMENSIONS] = 1  # One-hot encoding for 0 descriptor (empty space) padding
             sparse_data = torch.cat([sparse_data, padding], dim=0)
 
         # Shuffle order to avoid learning position bias
@@ -89,11 +92,12 @@ def sparse_to_dense(sparse_data: torch.Tensor, grid_size: int = 11) -> torch.Ten
     :param grid_size: Size of output grid along each dimension
     :return: Dense voxel grid
     """
-    dense_grid = torch.zeros(grid_size, grid_size, grid_size, dtype=torch.int64)
+    dense_grid = torch.zeros(grid_size, grid_size, grid_size, dtype=torch.int64).to(DEVICE)
 
     # Extract coordinates and descriptor values
-    coor = (sparse_data[:, :COORDINATE_DIMENSIONS] * (grid_size - 1)).round().long()  # Scale normalised coordinates back to grid indices
-    coor = torch.clamp(coor, min=0, max=grid_size - 1)  # Clamp values to range [0, 10] to avoid errors if not normalised correctly
+    coor = sparse_data[:, :COORDINATE_DIMENSIONS] * (grid_size - 1)
+    coor_rounded = coor.round().long()  # Scale normalised coordinates back to grid indices
+    coor = torch.clamp(coor_rounded, min=0, max=grid_size - 1)  # Clamp values to range [0, 10] to avoid errors if not normalised correctly
     descriptors = sparse_data[:, COORDINATE_DIMENSIONS:].argmax(dim=1)  # Convert one-hot encoding back to descriptor values
 
     for i in range(sparse_data.shape[0]):
