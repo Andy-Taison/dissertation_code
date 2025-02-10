@@ -116,7 +116,7 @@ class VaeLoss:
             x[:, :, COORDINATE_DIMENSIONS:].argmax(dim=-1).view(-1))  # For one-hot descriptor values, internally applies softmax
 
         # Calculate a penalty for duplicate coordinates and padded voxels
-        duplicate_pad_penalty = duplicate_and_padded_penalty(x, x_reconstructed) * self.dup_pad_penalty_scale
+        duplicate_pad_penalty_adjusted = duplicate_and_padded_penalty(x, x_reconstructed) * self.dup_pad_penalty_scale
 
         # Regularisation term to encourage orthogonality - based on https://medium.com/@itberrios6/point-net-for-classification-968ca64c57a9
         batch_size = transform_matrix.size(0)
@@ -126,9 +126,9 @@ class VaeLoss:
 
         # Combine coordinate loss, descriptor loss, with duplicate penalty, alpha balancing term and transformation regularising term
         # High alpha emphasises descriptor accuracy, lower focuses on coordinate reconstruction
-        coor_scale = 10
-        recon_loss = self.alpha * desc_loss + (1 - self.alpha) * (coor_scale * coor_loss) + duplicate_pad_penalty + transform_reg
+        coor_loss_adjusted = coor_loss * 10
+        recon_loss = self.alpha * desc_loss + (1 - self.alpha) * coor_loss_adjusted + duplicate_pad_penalty_adjusted + transform_reg
 
         kl_div = -0.5 * torch.sum(1 + z_log_var - z_mean.pow(2) - z_log_var.exp()) / x.shape[0]  # Averaged across batch size
 
-        return recon_loss, kl_div, desc_loss, coor_loss, duplicate_pad_penalty, transform_reg
+        return recon_loss, kl_div, desc_loss, coor_loss_adjusted, duplicate_pad_penalty_adjusted, transform_reg

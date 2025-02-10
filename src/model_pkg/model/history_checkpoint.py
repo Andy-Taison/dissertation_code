@@ -8,7 +8,7 @@ import torch
 from pathlib import Path, PosixPath, WindowsPath  # For patching torch.load when saved on one machine and loaded on a different
 import platform  # For patching torch.load when saved on one machine and loaded on a different
 import re
-from ..config import DEVICE, NUM_CLASSES, MODEL_CHECKPOINT_DIR, HISTORY_DIR, PATIENCE, EPOCHS
+from ..config import DEVICE, NUM_CLASSES, MODEL_CHECKPOINT_DIR, HISTORY_DIR, PATIENCE, EPOCHS, BASE_DIR
 from ..metrics.losses import VaeLoss
 from . import model as model_module  # Used for reconstructing model in load_model_checkpoint
 
@@ -615,6 +615,25 @@ def load_model_checkpoint(source: Path | str | TrainingHistory, load: str = "upd
     else:
         print("Attempting to load model from provided path...")
         checkpoint_path = Path(source)
+
+    # Resolve paths for comparison to check if set correctly
+    checkpoint_path = checkpoint_path.resolve()
+    base_dir = BASE_DIR.resolve()
+
+    # Replace with BASE_DIR if it doesn't match
+    try:
+        # Path correct
+        checkpoint_path.relative_to(base_dir)
+    except ValueError:
+        # If not, find 'outputs' in path
+        if "outputs" in checkpoint_path.parts:
+            outputs_index = checkpoint_path.parts.index("outputs")
+            # Get relative path starting from 'outputs'
+            relative_path = Path(*checkpoint_path.parts[outputs_index:])
+            # Rebuild path under BASE_DIR
+            checkpoint_path = BASE_DIR / relative_path
+        else:
+            raise ValueError("'outputs' directory not found in the checkpoint path.")
 
     if not checkpoint_path.parent.exists():
         raise FileNotFoundError(f"Directory {checkpoint_path.parent} not found.")

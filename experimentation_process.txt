@@ -322,3 +322,34 @@ betas = [0.01, 0.02, 0.05]
 alphas = [0.1, 0.2, 0.3]  
 dup_pad_penalty_scales = [1] 
 lambda_regs = [0.001]
+
+The best model found (tradeoff), plus the best loss model (which was the same model), used:
+latent_dims = [16]
+learning_rates = [5e-4] 
+weight_decay = [1e-5] 
+betas = [0.01]
+alphas = [0.2]
+
+Whilst the best F1 model used:
+latent_dims = [12] 
+learning_rates = [1e-4]
+weight_decay = [0]
+betas = [0.01]
+alphas = [0.3]    
+
+The reconstructed robots all had blue (wheels) only except for one of the samples from the F1 model.
+All models also only had around 2 or 3 voxels reconstructed, though it constructed them in various ways, but they tended to remain in a specific corner of the matrix (3D space).
+
+Coordinate loss takes a sharp drop around epoch 10, but then flatlines. 
+Descriptor loss took a sharp drop around epoch 5, then drops slowly until around epoch 30, and then flatlines.
+Duplicate pad penalty sharply drops until around epoch 20, and then rises again before an oscillating flatline.
+Reconstruction loss (which includes all of the above losses and penalties drops, and then flatlines in a similar way.
+Beta scaled KL divergence steadily increases.
+F1 steadily increases until around epoch 40 before flatlining.
+Accuracy does similar.
+
+Realised that in the plots coordinate loss is not the fixed scaled (adjusted) coordinate loss, 
+but the raw loss and so it is still shown in a low range (around 0.1-0.14) compared to dup pad (around 0.6-1.2) which is scaled in the plots. 
+desc_loss (1.2-1.6) is the raw values, but that doesn't have a scaling.
+Adjusted this in the code, so future plots will show the adjusted losses.
+Not showing alpha scaled however.

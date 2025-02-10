@@ -11,7 +11,7 @@ Coordinate metrics
 def euclidean_distance(x: torch.Tensor, x_reconstructed: torch.Tensor) -> float:
     """
     Calculates the average Euclidean distance between original input coordinates and reconstructed coordinates.
-    Note this does NOT apply the transformation matrix (which may be necessary).
+    Note this does NOT apply the transformation matrix.
 
     :param x: Input tensor with shape (batch_size, *input_dim)
     :param x_reconstructed: Reconstructed input with shape (batch_size, *input_dim)
