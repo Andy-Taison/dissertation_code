@@ -1,0 +1,2281 @@
+Job started...
+Loading Anaconda module...
+Module loaded.
+Initialising Conda...
+Conda initialised.
+Activating virtual environment...
+Environment activated.
+Running script...
+Using cuda device
+
+Starting VAE pipeline...
+
+Loading train, validation and test set from: 'toy_sets'...
+Datasets loaded.
+
+Training dataset:
+Dataset Summary:
+--------------------------------------------------
+Dimensions: 3781 rows x 1331 columns
+
+Overall Class Counts:
+0    5006854
+1      11045
+2       5420
+3       4874
+4       4318
+
+Proportion of Each Class (%):
+0    99.49
+1     0.22
+2     0.11
+3     0.10
+4     0.09
+
+Average Zeros Per Row: 1324.21
+Maximum Non-zero Values in a Row: 8
+Minimum Non-zero values in a Row: 1
+Average Non-Zero Classes Per Row: 6.79
+Rows with Only Zero Values: 0 (0.00%)
+Rows with Exactly 1 Non-Zero Value: 36 (0.95%)
+Rows with Multiple Non-Zero Values: 3745 (99.05%)
+Unique Rows: 3781 (100.00)%
+
+Initialising Dataset...
+Dataset created.
+
+Validation dataset:
+Dataset Summary:
+--------------------------------------------------
+Dimensions: 541 rows x 1331 columns
+
+Overall Class Counts:
+0    716445
+1      1550
+2       748
+3       702
+4       626
+
+Proportion of Each Class (%):
+0    99.50
+1     0.22
+2     0.10
+3     0.10
+4     0.09
+
+Average Zeros Per Row: 1324.30
+Maximum Non-zero Values in a Row: 8
+Minimum Non-zero values in a Row: 1
+Average Non-Zero Classes Per Row: 6.70
+Rows with Only Zero Values: 0 (0.00%)
+Rows with Exactly 1 Non-Zero Value: 4 (0.74%)
+Rows with Multiple Non-Zero Values: 537 (99.26%)
+Unique Rows: 541 (100.00)%
+
+Initialising Dataset...
+Dataset created.
+
+Preprocessed datasets loaded: train (3781) and val (541) sets.
+
+robot_ids batch shape: torch.Size([64]), sample ID: 201854
+grid_data batch shape: torch.Size([64, 8, 8]), grid data sample shape: torch.Size([8, 8])
+
+Model summary:
+===================================================================================================================
+Layer (type:depth-idx)                   Input Shape               Output Shape              Param #
+===================================================================================================================
+VAE                                      [1, 8, 8]                 [1, 8, 8]                 --
+├─Encoder: 1-1                           [1, 8, 8]                 [1, 2]                    --
+│    └─TNet: 2-1                         [1, 8, 3]                 [1, 3, 3]                 --
+│    │    └─Sequential: 3-1              [1, 3]                    [1, 9]                    9,737
+│    └─Sequential: 2-2                   [1, 3, 8]                 [1, 1024, 8]              --
+│    │    └─Conv1d: 3-2                  [1, 3, 8]                 [1, 64, 8]                256
+│    │    └─BatchNorm1d: 3-3             [1, 64, 8]                [1, 64, 8]                128
+│    │    └─LeakyReLU: 3-4               [1, 64, 8]                [1, 64, 8]                --
+│    │    └─Conv1d: 3-5                  [1, 64, 8]                [1, 128, 8]               8,320
+│    │    └─BatchNorm1d: 3-6             [1, 128, 8]               [1, 128, 8]               256
+│    │    └─LeakyReLU: 3-7               [1, 128, 8]               [1, 128, 8]               --
+│    │    └─Conv1d: 3-8                  [1, 128, 8]               [1, 1024, 8]              132,096
+│    │    └─BatchNorm1d: 3-9             [1, 1024, 8]              [1, 1024, 8]              2,048
+│    │    └─LeakyReLU: 3-10              [1, 1024, 8]              [1, 1024, 8]              --
+│    └─Sequential: 2-3                   [1, 5, 8]                 [1, 128, 8]               --
+│    │    └─Conv1d: 3-11                 [1, 5, 8]                 [1, 64, 8]                384
+│    │    └─BatchNorm1d: 3-12            [1, 64, 8]                [1, 64, 8]                128
+│    │    └─LeakyReLU: 3-13              [1, 64, 8]                [1, 64, 8]                --
+│    │    └─Conv1d: 3-14                 [1, 64, 8]                [1, 128, 8]               8,320
+│    │    └─BatchNorm1d: 3-15            [1, 128, 8]               [1, 128, 8]               256
+│    │    └─LeakyReLU: 3-16              [1, 128, 8]               [1, 128, 8]               --
+│    └─AdaptiveAvgPool1d: 2-4            [1, 1024, 8]              [1, 1024, 1]              --
+│    └─AdaptiveAvgPool1d: 2-5            [1, 128, 8]               [1, 128, 1]               --
+│    └─Sequential: 2-6                   [1, 2176]                 [1, 256]                  --
+│    │    └─Linear: 3-17                 [1, 2176]                 [1, 1024]                 2,229,248
+│    │    └─LeakyReLU: 3-18              [1, 1024]                 [1, 1024]                 --
+│    │    └─Linear: 3-19                 [1, 1024]                 [1, 512]                  524,800
+│    │    └─LeakyReLU: 3-20              [1, 512]                  [1, 512]                  --
+│    │    └─Linear: 3-21                 [1, 512]                  [1, 256]                  131,328
+│    │    └─LeakyReLU: 3-22              [1, 256]                  [1, 256]                  --
+│    └─Linear: 2-7                       [1, 256]                  [1, 2]                    514
+│    └─Linear: 2-8                       [1, 256]                  [1, 2]                    514
+├─Sample: 1-2                            [1, 2]                    [1, 2]                    --
+├─Decoder: 1-3                           [1, 2]                    [1, 8, 8]                 --
+│    └─Sequential: 2-9                   [1, 2]                    [1, 256]                  --
+│    │    └─Linear: 3-23                 [1, 2]                    [1, 256]                  768
+│    │    └─LeakyReLU: 3-24              [1, 256]                  [1, 256]                  --
+│    └─Sequential: 2-10                  [1, 256, 1]               [1, 3, 8]                 --
+│    │    └─ConvTranspose1d: 3-25        [1, 256, 1]               [1, 512, 2]               262,656
+│    │    └─BatchNorm1d: 3-26            [1, 512, 2]               [1, 512, 2]               1,024
+│    │    └─LeakyReLU: 3-27              [1, 512, 2]               [1, 512, 2]               --
+│    │    └─ConvTranspose1d: 3-28        [1, 512, 2]               [1, 1024, 4]              1,049,600
+│    │    └─BatchNorm1d: 3-29            [1, 1024, 4]              [1, 1024, 4]              2,048
+│    │    └─LeakyReLU: 3-30              [1, 1024, 4]              [1, 1024, 4]              --
+│    │    └─ConvTranspose1d: 3-31        [1, 1024, 4]              [1, 256, 8]               524,544
+│    │    └─BatchNorm1d: 3-32            [1, 256, 8]               [1, 256, 8]               512
+│    │    └─LeakyReLU: 3-33              [1, 256, 8]               [1, 256, 8]               --
+│    │    └─ConvTranspose1d: 3-34        [1, 256, 8]               [1, 3, 8]                 771
+│    └─Sequential: 2-11                  [1, 256, 1]               [1, 5, 8]                 --
+│    │    └─ConvTranspose1d: 3-35        [1, 256, 1]               [1, 512, 2]               262,656
+│    │    └─BatchNorm1d: 3-36            [1, 512, 2]               [1, 512, 2]               1,024
+│    │    └─LeakyReLU: 3-37              [1, 512, 2]               [1, 512, 2]               --
+│    │    └─ConvTranspose1d: 3-38        [1, 512, 2]               [1, 128, 4]               131,200
+│    │    └─BatchNorm1d: 3-39            [1, 128, 4]               [1, 128, 4]               256
+│    │    └─LeakyReLU: 3-40              [1, 128, 4]               [1, 128, 4]               --
+│    │    └─ConvTranspose1d: 3-41        [1, 128, 4]               [1, 64, 8]                16,448
+│    │    └─BatchNorm1d: 3-42            [1, 64, 8]                [1, 64, 8]                128
+│    │    └─LeakyReLU: 3-43              [1, 64, 8]                [1, 64, 8]                --
+│    │    └─ConvTranspose1d: 3-44        [1, 64, 8]                [1, 5, 8]                 325
+│    └─Sequential: 2-12                  [1, 8, 3]                 [1, 8, 3]                 --
+│    │    └─Linear: 3-45                 [1, 8, 3]                 [1, 8, 3]                 12
+│    │    └─LeakyReLU: 3-46              [1, 8, 3]                 [1, 8, 3]                 --
+│    └─Sequential: 2-13                  [1, 8, 5]                 [1, 8, 5]                 --
+│    │    └─Linear: 3-47                 [1, 8, 5]                 [1, 8, 5]                 30
+│    │    └─LeakyReLU: 3-48              [1, 8, 5]                 [1, 8, 5]                 --
+│    └─Sequential: 2-14                  [1, 8, 8]                 [1, 8, 8]                 --
+│    │    └─Linear: 3-49                 [1, 8, 8]                 [1, 8, 8]                 72
+│    │    └─LeakyReLU: 3-50              [1, 8, 8]                 [1, 8, 8]                 --
+===================================================================================================================
+Total params: 5,302,407
+Trainable params: 5,302,407
+Non-trainable params: 0
+Total mult-adds (M): 14.21
+===================================================================================================================
+Input size (MB): 0.00
+Forward/backward pass size (MB): 0.35
+Params size (MB): 21.21
+Estimated Total Size (MB): 21.56
+===================================================================================================================
+
+Model parameters:
+Parameter: encoder.tnet.fc.0.weight, Requires Grad: True
+Parameter: encoder.tnet.fc.0.bias, Requires Grad: True
+Parameter: encoder.tnet.fc.2.weight, Requires Grad: True
+Parameter: encoder.tnet.fc.2.bias, Requires Grad: True
+Parameter: encoder.tnet.fc.4.weight, Requires Grad: True
+Parameter: encoder.tnet.fc.4.bias, Requires Grad: True
+Parameter: encoder.spatial_mlp.0.weight, Requires Grad: True
+Parameter: encoder.spatial_mlp.0.bias, Requires Grad: True
+Parameter: encoder.spatial_mlp.1.weight, Requires Grad: True
+Parameter: encoder.spatial_mlp.1.bias, Requires Grad: True
+Parameter: encoder.spatial_mlp.3.weight, Requires Grad: True
+Parameter: encoder.spatial_mlp.3.bias, Requires Grad: True
+Parameter: encoder.spatial_mlp.4.weight, Requires Grad: True
+Parameter: encoder.spatial_mlp.4.bias, Requires Grad: True
+Parameter: encoder.spatial_mlp.6.weight, Requires Grad: True
+Parameter: encoder.spatial_mlp.6.bias, Requires Grad: True
+Parameter: encoder.spatial_mlp.7.weight, Requires Grad: True
+Parameter: encoder.spatial_mlp.7.bias, Requires Grad: True
+Parameter: encoder.descriptor_mlp.0.weight, Requires Grad: True
+Parameter: encoder.descriptor_mlp.0.bias, Requires Grad: True
+Parameter: encoder.descriptor_mlp.1.weight, Requires Grad: True
+Parameter: encoder.descriptor_mlp.1.bias, Requires Grad: True
+Parameter: encoder.descriptor_mlp.3.weight, Requires Grad: True
+Parameter: encoder.descriptor_mlp.3.bias, Requires Grad: True
+Parameter: encoder.descriptor_mlp.4.weight, Requires Grad: True
+Parameter: encoder.descriptor_mlp.4.bias, Requires Grad: True
+Parameter: encoder.fc.0.weight, Requires Grad: True
+Parameter: encoder.fc.0.bias, Requires Grad: True
+Parameter: encoder.fc.2.weight, Requires Grad: True
+Parameter: encoder.fc.2.bias, Requires Grad: True
+Parameter: encoder.fc.4.weight, Requires Grad: True
+Parameter: encoder.fc.4.bias, Requires Grad: True
+Parameter: encoder.z_mean_fc.weight, Requires Grad: True
+Parameter: encoder.z_mean_fc.bias, Requires Grad: True
+Parameter: encoder.z_log_var_fc.weight, Requires Grad: True
+Parameter: encoder.z_log_var_fc.bias, Requires Grad: True
+Parameter: decoder.fc.0.weight, Requires Grad: True
+Parameter: decoder.fc.0.bias, Requires Grad: True
+Parameter: decoder.coord_deconv.0.weight, Requires Grad: True
+Parameter: decoder.coord_deconv.0.bias, Requires Grad: True
+Parameter: decoder.coord_deconv.1.weight, Requires Grad: True
+Parameter: decoder.coord_deconv.1.bias, Requires Grad: True
+Parameter: decoder.coord_deconv.3.weight, Requires Grad: True
+Parameter: decoder.coord_deconv.3.bias, Requires Grad: True
+Parameter: decoder.coord_deconv.4.weight, Requires Grad: True
+Parameter: decoder.coord_deconv.4.bias, Requires Grad: True
+Parameter: decoder.coord_deconv.6.weight, Requires Grad: True
+Parameter: decoder.coord_deconv.6.bias, Requires Grad: True
+Parameter: decoder.coord_deconv.7.weight, Requires Grad: True
+Parameter: decoder.coord_deconv.7.bias, Requires Grad: True
+Parameter: decoder.coord_deconv.9.weight, Requires Grad: True
+Parameter: decoder.coord_deconv.9.bias, Requires Grad: True
+Parameter: decoder.coord_fc.0.weight, Requires Grad: True
+Parameter: decoder.coord_fc.0.bias, Requires Grad: True
+Parameter: decoder.desc_deconv.0.weight, Requires Grad: True
+Parameter: decoder.desc_deconv.0.bias, Requires Grad: True
+Parameter: decoder.desc_deconv.1.weight, Requires Grad: True
+Parameter: decoder.desc_deconv.1.bias, Requires Grad: True
+Parameter: decoder.desc_deconv.3.weight, Requires Grad: True
+Parameter: decoder.desc_deconv.3.bias, Requires Grad: True
+Parameter: decoder.desc_deconv.4.weight, Requires Grad: True
+Parameter: decoder.desc_deconv.4.bias, Requires Grad: True
+Parameter: decoder.desc_deconv.6.weight, Requires Grad: True
+Parameter: decoder.desc_deconv.6.bias, Requires Grad: True
+Parameter: decoder.desc_deconv.7.weight, Requires Grad: True
+Parameter: decoder.desc_deconv.7.bias, Requires Grad: True
+Parameter: decoder.desc_deconv.9.weight, Requires Grad: True
+Parameter: decoder.desc_deconv.9.bias, Requires Grad: True
+Parameter: decoder.desc_fc.0.weight, Requires Grad: True
+Parameter: decoder.desc_fc.0.bias, Requires Grad: True
+Parameter: decoder.combined_fc.0.weight, Requires Grad: True
+Parameter: decoder.combined_fc.0.bias, Requires Grad: True
+
+**************************************************
+Starting grid search training...
+Creating grid...
+Skipping configuration, already completed: 'loss_penalties_toy_bs64_ld16_adam_lr1e-05_wd1e-05_be0.02_co1.5_de1.5_pd0.1_cl0.4_tr0.001'
+Attempting to load best total loss model...
+Loading model and optimizer checkpoint from '/mnt/scratch/users/40538519/outputs/model_checkpoints/loss_penalties_toy_bs64_ld16_adam_lr1e-05_wd1e-05_be0.02_co1.5_de1.5_pd0.1_cl0.4_tr0.001/best_loss_epoch_148.pth'...
+Checkpoint loaded.
+
+Latent analysis metrics:
+Silhouette score (PCA): 0.3295
+Silhouette score (UMAP): 0.3928
+
+Unique distances:
+tensor([0.0000e+00, 9.7656e-04, 1.3811e-03,  ..., 1.0636e+01, 1.0673e+01,
+        1.0772e+01])
+
+Max distance: 10.7724
+Mean pairwise distance: 5.5562, Standard deviation: 1.1129
+
+File not found. Saving to new file...
+Saved to 'metrics_table.csv'
+Skipping configuration, already completed: 'loss_penalties_toy_bs64_ld16_adam_lr1e-05_wd1e-05_be0.03_co2_de2_pd0.3_cl0.2_tr0.001'
+Attempting to load best total loss model...
+Loading model and optimizer checkpoint from '/mnt/scratch/users/40538519/outputs/model_checkpoints/loss_penalties_toy_bs64_ld16_adam_lr1e-05_wd1e-05_be0.03_co2_de2_pd0.3_cl0.2_tr0.001/best_loss_epoch_149.pth'...
+Checkpoint loaded.
+
+Latent analysis metrics:
+Silhouette score (PCA): 0.3290
+Silhouette score (UMAP): 0.3909
+
+Unique distances:
+tensor([0.0000e+00, 9.7656e-04, 1.3811e-03,  ..., 1.0158e+01, 1.0356e+01,
+        1.0433e+01])
+
+Max distance: 10.4334
+Mean pairwise distance: 5.6408, Standard deviation: 1.0825
+
+Data appended to existing file. Sorting and saving...
+Saved to 'metrics_table.csv'
+Skipping configuration, already completed: 'loss_penalties_toy_bs64_ld16_adam_lr1e-05_wd1e-05_be0.03_co3_de2_pd0.5_cl0.1_tr0.001'
+Attempting to load best total loss model...
+Loading model and optimizer checkpoint from '/mnt/scratch/users/40538519/outputs/model_checkpoints/loss_penalties_toy_bs64_ld16_adam_lr1e-05_wd1e-05_be0.03_co3_de2_pd0.5_cl0.1_tr0.001/best_loss_epoch_119.pth'...
+Checkpoint loaded.
+
+Latent analysis metrics:
+Silhouette score (PCA): 0.3028
+Silhouette score (UMAP): 0.3461
+
+Unique distances:
+tensor([0.0000e+00, 9.7656e-04, 1.3811e-03,  ..., 1.0428e+01, 1.0464e+01,
+        1.0690e+01])
+
+Max distance: 10.6904
+Mean pairwise distance: 5.4583, Standard deviation: 1.1134
+
+Data appended to existing file. Sorting and saving...
+Saved to 'metrics_table.csv'
+Skipping configuration, already completed: 'loss_penalties_toy_bs64_ld16_adam_lr1e-05_wd1e-05_be0.05_co4_de1.5_pd0.7_cl0.3_tr0.001'
+Attempting to load best total loss model...
+Loading model and optimizer checkpoint from '/mnt/scratch/users/40538519/outputs/model_checkpoints/loss_penalties_toy_bs64_ld16_adam_lr1e-05_wd1e-05_be0.05_co4_de1.5_pd0.7_cl0.3_tr0.001/best_loss_epoch_148.pth'...
+Checkpoint loaded.
+
+Latent analysis metrics:
+Silhouette score (PCA): 0.3445
+Silhouette score (UMAP): 0.3986
+
+Unique distances:
+tensor([0.0000e+00, 9.7656e-04, 1.3811e-03,  ..., 1.0241e+01, 1.0597e+01,
+        1.1346e+01])
+
+Max distance: 11.3463
+Mean pairwise distance: 5.5656, Standard deviation: 1.0575
+
+Data appended to existing file. Sorting and saving...
+Saved to 'metrics_table.csv'
+Skipping configuration, already completed: 'loss_penalties_toy_bs64_ld16_adam_lr1e-05_wd1e-05_be0.02_co1.5_de2_pd0.5_cl0.5_tr0.001'
+Attempting to load best total loss model...
+Loading model and optimizer checkpoint from '/mnt/scratch/users/40538519/outputs/model_checkpoints/loss_penalties_toy_bs64_ld16_adam_lr1e-05_wd1e-05_be0.02_co1.5_de2_pd0.5_cl0.5_tr0.001/best_loss_epoch_149.pth'...
+Checkpoint loaded.
+
+Latent analysis metrics:
+Silhouette score (PCA): 0.3298
+Silhouette score (UMAP): 0.3864
+
+Unique distances:
+tensor([0.0000e+00, 6.9053e-04, 9.7656e-04,  ..., 1.0493e+01, 1.0586e+01,
+        1.0764e+01])
+
+Max distance: 10.7644
+Mean pairwise distance: 5.4887, Standard deviation: 1.0992
+
+Data appended to existing file. Sorting and saving...
+Saved to 'metrics_table.csv'
+Skipping configuration, already completed: 'loss_penalties_toy_bs64_ld16_adam_lr1e-05_wd1e-05_be0.05_co2_de1.5_pd0.3_cl0.4_tr0.001'
+Attempting to load best total loss model...
+Loading model and optimizer checkpoint from '/mnt/scratch/users/40538519/outputs/model_checkpoints/loss_penalties_toy_bs64_ld16_adam_lr1e-05_wd1e-05_be0.05_co2_de1.5_pd0.3_cl0.4_tr0.001/best_loss_epoch_150.pth'...
+Checkpoint loaded.
+
+Latent analysis metrics:
+Silhouette score (PCA): 0.3305
+Silhouette score (UMAP): 0.3952
+
+Unique distances:
+tensor([0.0000e+00, 9.7656e-04, 1.3811e-03,  ..., 1.0758e+01, 1.0848e+01,
+        1.0848e+01])
+
+Max distance: 10.8483
+Mean pairwise distance: 5.5158, Standard deviation: 1.1450
+
+Data appended to existing file. Sorting and saving...
+Saved to 'metrics_table.csv'
+Skipping configuration, already completed: 'loss_penalties_toy_bs64_ld16_adam_lr1e-05_wd1e-05_be0.03_co3_de1.5_pd0.1_cl0.2_tr0.001'
+Attempting to load best total loss model...
+Loading model and optimizer checkpoint from '/mnt/scratch/users/40538519/outputs/model_checkpoints/loss_penalties_toy_bs64_ld16_adam_lr1e-05_wd1e-05_be0.03_co3_de1.5_pd0.1_cl0.2_tr0.001/best_loss_epoch_148.pth'...
+Checkpoint loaded.
+
+Latent analysis metrics:
+Silhouette score (PCA): 0.3286
+Silhouette score (UMAP): 0.4207
+
+Unique distances:
+tensor([0.0000e+00, 9.7656e-04, 1.3811e-03,  ..., 1.0295e+01, 1.0524e+01,
+        1.0706e+01])
+
+Max distance: 10.7057
+Mean pairwise distance: 5.5209, Standard deviation: 1.0746
+
+Data appended to existing file. Sorting and saving...
+Saved to 'metrics_table.csv'
+Skipping configuration, already completed: 'loss_penalties_toy_bs64_ld16_adam_lr1e-05_wd1e-05_be0.05_co4_de2_pd0.7_cl0.3_tr0.001'
+Attempting to load best total loss model...
+Loading model and optimizer checkpoint from '/mnt/scratch/users/40538519/outputs/model_checkpoints/loss_penalties_toy_bs64_ld16_adam_lr1e-05_wd1e-05_be0.05_co4_de2_pd0.7_cl0.3_tr0.001/best_loss_epoch_150.pth'...
+Checkpoint loaded.
+
+Latent analysis metrics:
+Silhouette score (PCA): 0.3396
+Silhouette score (UMAP): 0.3619
+
+Unique distances:
+tensor([0.0000e+00, 9.7656e-04, 1.3811e-03,  ..., 1.0493e+01, 1.0542e+01,
+        1.0695e+01])
+
+Max distance: 10.6945
+Mean pairwise distance: 5.5335, Standard deviation: 1.0721
+
+Data appended to existing file. Sorting and saving...
+Saved to 'metrics_table.csv'
+Skipping configuration, already completed: 'loss_penalties_toy_bs64_ld16_adam_lr1e-05_wd1e-05_be0.02_co1.5_de1.5_pd0.3_cl0.5_tr0.001'
+Attempting to load best total loss model...
+Loading model and optimizer checkpoint from '/mnt/scratch/users/40538519/outputs/model_checkpoints/loss_penalties_toy_bs64_ld16_adam_lr1e-05_wd1e-05_be0.02_co1.5_de1.5_pd0.3_cl0.5_tr0.001/best_loss_epoch_150.pth'...
+Checkpoint loaded.
+
+Latent analysis metrics:
+Silhouette score (PCA): 0.3444
+Silhouette score (UMAP): 0.3901
+
+Unique distances:
+tensor([0.0000e+00, 9.7656e-04, 1.3811e-03,  ..., 1.1384e+01, 1.1488e+01,
+        1.1795e+01])
+
+Max distance: 11.7947
+Mean pairwise distance: 5.3752, Standard deviation: 1.1835
+
+Data appended to existing file. Sorting and saving...
+Saved to 'metrics_table.csv'
+Skipping configuration, already completed: 'loss_penalties_toy_bs64_ld16_adam_lr1e-05_wd1e-05_be0.03_co2_de2_pd0.5_cl0.4_tr0.001'
+Attempting to load best total loss model...
+Loading model and optimizer checkpoint from '/mnt/scratch/users/40538519/outputs/model_checkpoints/loss_penalties_toy_bs64_ld16_adam_lr1e-05_wd1e-05_be0.03_co2_de2_pd0.5_cl0.4_tr0.001/best_loss_epoch_150.pth'...
+Checkpoint loaded.
+
+Latent analysis metrics:
+Silhouette score (PCA): 0.3082
+Silhouette score (UMAP): 0.3704
+
+Unique distances:
+tensor([0.0000e+00, 9.7656e-04, 1.3811e-03,  ..., 9.8632e+00, 9.8837e+00,
+        1.0060e+01])
+
+Max distance: 10.0598
+Mean pairwise distance: 5.4129, Standard deviation: 1.0431
+
+Data appended to existing file. Sorting and saving...
+Saved to 'metrics_table.csv'
+Skipping configuration, already completed: 'loss_penalties_toy_bs64_ld16_adam_lr1e-05_wd1e-05_be0.05_co3_de2_pd0.1_cl0.3_tr0.001'
+Attempting to load best total loss model...
+Loading model and optimizer checkpoint from '/mnt/scratch/users/40538519/outputs/model_checkpoints/loss_penalties_toy_bs64_ld16_adam_lr1e-05_wd1e-05_be0.05_co3_de2_pd0.1_cl0.3_tr0.001/best_loss_epoch_11.pth'...
+Checkpoint loaded.
+
+Latent analysis metrics:
+Silhouette score (PCA): 0.3142
+Silhouette score (UMAP): 0.3859
+
+Unique distances:
+tensor([0.0000e+00, 9.7656e-04, 1.3811e-03,  ..., 1.0146e+01, 1.0146e+01,
+        1.0160e+01])
+
+Max distance: 10.1602
+Mean pairwise distance: 5.6384, Standard deviation: 1.0438
+
+Data appended to existing file. Sorting and saving...
+Saved to 'metrics_table.csv'
+Skipping configuration, already completed: 'loss_penalties_toy_bs64_ld16_adam_lr1e-05_wd1e-05_be0.03_co4_de1.5_pd0.7_cl0.2_tr0.001'
+Attempting to load best total loss model...
+Loading model and optimizer checkpoint from '/mnt/scratch/users/40538519/outputs/model_checkpoints/loss_penalties_toy_bs64_ld16_adam_lr1e-05_wd1e-05_be0.03_co4_de1.5_pd0.7_cl0.2_tr0.001/best_loss_epoch_150.pth'...
+Checkpoint loaded.
+
+Latent analysis metrics:
+Silhouette score (PCA): 0.3448
+Silhouette score (UMAP): 0.4007
+
+Unique distances:
+tensor([0.0000e+00, 9.7656e-04, 1.3811e-03,  ..., 1.0343e+01, 1.0352e+01,
+        1.0383e+01])
+
+Max distance: 10.3826
+Mean pairwise distance: 5.5876, Standard deviation: 1.0469
+
+Data appended to existing file. Sorting and saving...
+Saved to 'metrics_table.csv'
+Skipping configuration, already completed: 'loss_penalties_toy_bs64_ld16_adam_lr1e-05_wd1e-05_be0.02_co1.5_de2_pd0.5_cl0.4_tr0.001'
+Attempting to load best total loss model...
+Loading model and optimizer checkpoint from '/mnt/scratch/users/40538519/outputs/model_checkpoints/loss_penalties_toy_bs64_ld16_adam_lr1e-05_wd1e-05_be0.02_co1.5_de2_pd0.5_cl0.4_tr0.001/best_loss_epoch_150.pth'...
+Checkpoint loaded.
+
+Latent analysis metrics:
+Silhouette score (PCA): 0.3591
+Silhouette score (UMAP): 0.3811
+
+Unique distances:
+tensor([0.0000e+00, 6.9053e-04, 9.7656e-04,  ..., 1.1358e+01, 1.1451e+01,
+        1.1575e+01])
+
+Max distance: 11.5751
+Mean pairwise distance: 5.4827, Standard deviation: 1.2397
+
+Data appended to existing file. Sorting and saving...
+Saved to 'metrics_table.csv'
+Skipping configuration, already completed: 'loss_penalties_toy_bs64_ld16_adam_lr1e-05_wd1e-05_be0.03_co2_de1.5_pd0.3_cl0.1_tr0.001'
+Attempting to load best total loss model...
+Loading model and optimizer checkpoint from '/mnt/scratch/users/40538519/outputs/model_checkpoints/loss_penalties_toy_bs64_ld16_adam_lr1e-05_wd1e-05_be0.03_co2_de1.5_pd0.3_cl0.1_tr0.001/best_loss_epoch_146.pth'...
+Checkpoint loaded.
+
+Latent analysis metrics:
+Silhouette score (PCA): 0.3227
+Silhouette score (UMAP): 0.3889
+
+Unique distances:
+tensor([0.0000e+00, 9.7656e-04, 1.3811e-03,  ..., 1.0245e+01, 1.0460e+01,
+        1.0530e+01])
+
+Max distance: 10.5300
+Mean pairwise distance: 5.4883, Standard deviation: 1.0997
+
+Data appended to existing file. Sorting and saving...
+Saved to 'metrics_table.csv'
+Skipping configuration, already completed: 'loss_penalties_toy_bs64_ld16_adam_lr1e-05_wd1e-05_be0.05_co3_de2_pd0.7_cl0.5_tr0.001'
+Attempting to load best total loss model...
+Loading model and optimizer checkpoint from '/mnt/scratch/users/40538519/outputs/model_checkpoints/loss_penalties_toy_bs64_ld16_adam_lr1e-05_wd1e-05_be0.05_co3_de2_pd0.7_cl0.5_tr0.001/best_loss_epoch_18.pth'...
+Checkpoint loaded.
+
+Latent analysis metrics:
+Silhouette score (PCA): 0.3155
+Silhouette score (UMAP): 0.4034
+
+Unique distances:
+tensor([0.0000e+00, 9.7656e-04, 1.3811e-03,  ..., 1.0723e+01, 1.0994e+01,
+        1.0997e+01])
+
+Max distance: 10.9966
+Mean pairwise distance: 5.5189, Standard deviation: 1.0134
+
+Data appended to existing file. Sorting and saving...
+Saved to 'metrics_table.csv'
+Skipping configuration, already completed: 'loss_penalties_toy_bs64_ld16_adam_lr1e-05_wd1e-05_be0.02_co4_de1.5_pd0.1_cl0.2_tr0.001'
+Attempting to load best total loss model...
+Loading model and optimizer checkpoint from '/mnt/scratch/users/40538519/outputs/model_checkpoints/loss_penalties_toy_bs64_ld16_adam_lr1e-05_wd1e-05_be0.02_co4_de1.5_pd0.1_cl0.2_tr0.001/best_loss_epoch_4.pth'...
+Checkpoint loaded.
+
+Latent analysis metrics:
+Silhouette score (PCA): 0.3017
+Silhouette score (UMAP): 0.3870
+
+Unique distances:
+tensor([0.0000e+00, 9.7656e-04, 1.3811e-03,  ..., 1.0072e+01, 1.0163e+01,
+        1.0196e+01])
+
+Max distance: 10.1959
+Mean pairwise distance: 5.5324, Standard deviation: 0.9927
+
+Data appended to existing file. Sorting and saving...
+Saved to 'metrics_table.csv'
+Skipping configuration, already completed: 'loss_penalties_toy_bs64_ld16_adam_lr1e-05_wd1e-05_be0.03_co1.5_de2_pd0.3_cl0.4_tr0.001'
+Attempting to load best total loss model...
+Loading model and optimizer checkpoint from '/mnt/scratch/users/40538519/outputs/model_checkpoints/loss_penalties_toy_bs64_ld16_adam_lr1e-05_wd1e-05_be0.03_co1.5_de2_pd0.3_cl0.4_tr0.001/best_loss_epoch_34.pth'...
+Checkpoint loaded.
+
+Latent analysis metrics:
+Silhouette score (PCA): 0.3160
+Silhouette score (UMAP): 0.3602
+
+Unique distances:
+tensor([0.0000e+00, 9.7656e-04, 1.3811e-03,  ..., 9.7731e+00, 9.9160e+00,
+        1.0286e+01])
+
+Max distance: 10.2858
+Mean pairwise distance: 5.5937, Standard deviation: 1.0334
+
+Data appended to existing file. Sorting and saving...
+Saved to 'metrics_table.csv'
+Skipping configuration, already completed: 'loss_penalties_toy_bs64_ld16_adam_lr1e-05_wd1e-05_be0.05_co2_de1.5_pd0.5_cl0.3_tr0.001'
+Attempting to load best total loss model...
+Loading model and optimizer checkpoint from '/mnt/scratch/users/40538519/outputs/model_checkpoints/loss_penalties_toy_bs64_ld16_adam_lr1e-05_wd1e-05_be0.05_co2_de1.5_pd0.5_cl0.3_tr0.001/best_loss_epoch_150.pth'...
+Checkpoint loaded.
+
+Latent analysis metrics:
+Silhouette score (PCA): 0.3280
+Silhouette score (UMAP): 0.3897
+
+Unique distances:
+tensor([0.0000e+00, 9.7656e-04, 1.3811e-03,  ..., 1.0421e+01, 1.0660e+01,
+        1.0800e+01])
+
+Max distance: 10.8003
+Mean pairwise distance: 5.5430, Standard deviation: 1.0927
+
+Data appended to existing file. Sorting and saving...
+Saved to 'metrics_table.csv'
+Skipping configuration, already completed: 'loss_penalties_toy_bs64_ld16_adam_lr1e-05_wd1e-05_be0.02_co3_de2_pd0.1_cl0.5_tr0.001'
+Attempting to load best total loss model...
+Loading model and optimizer checkpoint from '/mnt/scratch/users/40538519/outputs/model_checkpoints/loss_penalties_toy_bs64_ld16_adam_lr1e-05_wd1e-05_be0.02_co3_de2_pd0.1_cl0.5_tr0.001/best_loss_epoch_148.pth'...
+Checkpoint loaded.
+
+Latent analysis metrics:
+Silhouette score (PCA): 0.3338
+Silhouette score (UMAP): 0.3593
+
+Unique distances:
+tensor([0.0000e+00, 9.7656e-04, 1.3811e-03,  ..., 1.1379e+01, 1.1426e+01,
+        1.1475e+01])
+
+Max distance: 11.4748
+Mean pairwise distance: 5.6097, Standard deviation: 1.1233
+
+Data appended to existing file. Sorting and saving...
+Saved to 'metrics_table.csv'
+Skipping configuration, already completed: 'loss_penalties_toy_bs64_ld16_adam_lr1e-05_wd1e-05_be0.03_co4_de1.5_pd0.7_cl0.1_tr0.001'
+Attempting to load best total loss model...
+Loading model and optimizer checkpoint from '/mnt/scratch/users/40538519/outputs/model_checkpoints/loss_penalties_toy_bs64_ld16_adam_lr1e-05_wd1e-05_be0.03_co4_de1.5_pd0.7_cl0.1_tr0.001/best_loss_epoch_150.pth'...
+Checkpoint loaded.
+
+Latent analysis metrics:
+Silhouette score (PCA): 0.3577
+Silhouette score (UMAP): 0.4377
+
+Unique distances:
+tensor([0.0000e+00, 9.7656e-04, 1.3811e-03,  ..., 1.0103e+01, 1.0227e+01,
+        1.0565e+01])
+
+Max distance: 10.5646
+Mean pairwise distance: 5.4602, Standard deviation: 1.0837
+
+Data appended to existing file. Sorting and saving...
+Saved to 'metrics_table.csv'
+
+Grid search training complete!
+**************************************************
+
+Starting gridsearch for best trade-off performance model...
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+Searching grid...
+
+Best Configuration tradeoff score: 3.0101 at epoch: 150
+Training History Summary for Model: 'loss_penalties_toy_bs64_ld16_adam_lr1e-05_wd1e-05_be0.02_co1.5_de1.5_pd0.1_cl0.4_tr0.001'
+Model Directory: '/users/40538519/sharedscratch/outputs/model_checkpoints/loss_penalties_toy_bs64_ld16_adam_lr1e-05_wd1e-05_be0.02_co1.5_de1.5_pd0.1_cl0.4_tr0.001'
+--------------------------------------------------
+Epochs Run: 150
+Last Updated Model: 'final_model_epoch_150.pth'
+
+Epochs Without Improvement: 0
+Last Improved Model: 'best_f1_avg_epoch_150.pth'
+
+Batch Size: 64
+Optimizer: Adam
+Weight Decay: 1e-05
+Scheduler: None
+
+Best Validation Loss: 397.6162
+Best Validation Loss Model: 'best_loss_epoch_148.pth'
+Best Validation Weighted F1: 0.2546
+Best Validation Weighted F1 Model: 'best_f1_avg_epoch_150.pth'
+--------------------------------------------------
+Training Metrics (Last Epoch):
+	- Coordinate Euclidean Distance: 0.6952
+	- Reconstruction Loss, Averaged Across Batches: 388.5301
+	- KL Divergence, Averaged Across Batches: 236.5742
+	- Descriptor Loss, Averaged Across Batches: 0.6495679140090942
+	- Coordinate Loss, Averaged Across Batches: 1.7976165890693665
+	- Beta: 0.02
+	- Accuracy: 0.2448
+	- Weighted F1: 0.2526
+	- Learning Rate: 1e-05
+	- Average Training Time: 00:00:10
+--------------------------------------------------
+Validation Metrics (Last Epoch):
+	- Coordinate Euclidean Distance: 0.6972
+	- Reconstruction Loss, Averaged Across Batches: 393.5487
+	- KL Divergence, Averaged Across Batches: 225.6222
+	- Descriptor Loss, Averaged Across Batches: 0.6771582629945543
+	- Coordinate Loss, Averaged Across Batches: 1.804092804590861
+	- Beta: 0.02
+	- Accuracy: 0.2499
+	- Weighted F1: 0.2546
+	- Average Validation Time: 00:00:01
+--------------------------------------------------
+Model Architecture Used:
+Latent Dim: 16
+
+- '':
+VAE(
+  (encoder): Encoder(
+    (tnet): TNet(
+      (fc): Sequential(
+        (0): Linear(in_features=3, out_features=64, bias=True)
+        (1): LeakyReLU(negative_slope=0.01)
+        (2): Linear(in_features=64, out_features=128, bias=True)
+        (3): LeakyReLU(negative_slope=0.01)
+        (4): Linear(in_features=128, out_features=9, bias=True)
+      )
+    )
+    (spatial_mlp): Sequential(
+      (0): Conv1d(3, 64, kernel_size=(1,), stride=(1,))
+      (1): BatchNorm1d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      (2): LeakyReLU(negative_slope=0.01)
+      (3): Conv1d(64, 128, kernel_size=(1,), stride=(1,))
+      (4): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      (5): LeakyReLU(negative_slope=0.01)
+      (6): Conv1d(128, 1024, kernel_size=(1,), stride=(1,))
+      (7): BatchNorm1d(1024, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      (8): LeakyReLU(negative_slope=0.01)
+    )
+    (descriptor_mlp): Sequential(
+      (0): Conv1d(5, 64, kernel_size=(1,), stride=(1,))
+      (1): BatchNorm1d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      (2): LeakyReLU(negative_slope=0.01)
+      (3): Conv1d(64, 128, kernel_size=(1,), stride=(1,))
+      (4): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      (5): LeakyReLU(negative_slope=0.01)
+    )
+    (global_pool): AdaptiveAvgPool1d(output_size=1)
+    (fc): Sequential(
+      (0): Linear(in_features=2176, out_features=1024, bias=True)
+      (1): LeakyReLU(negative_slope=0.01)
+      (2): Linear(in_features=1024, out_features=512, bias=True)
+      (3): LeakyReLU(negative_slope=0.01)
+      (4): Linear(in_features=512, out_features=256, bias=True)
+      (5): LeakyReLU(negative_slope=0.01)
+    )
+    (z_mean_fc): Linear(in_features=256, out_features=16, bias=True)
+    (z_log_var_fc): Linear(in_features=256, out_features=16, bias=True)
+  )
+  (sampling): Sample()
+  (decoder): Decoder(
+    (fc): Sequential(
+      (0): Linear(in_features=16, out_features=256, bias=True)
+      (1): LeakyReLU(negative_slope=0.01)
+    )
+    (coord_deconv): Sequential(
+      (0): ConvTranspose1d(256, 512, kernel_size=(2,), stride=(1,))
+      (1): BatchNorm1d(512, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      (2): LeakyReLU(negative_slope=0.01)
+      (3): ConvTranspose1d(512, 1024, kernel_size=(2,), stride=(2,))
+      (4): BatchNorm1d(1024, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      (5): LeakyReLU(negative_slope=0.01)
+      (6): ConvTranspose1d(1024, 256, kernel_size=(2,), stride=(2,))
+      (7): BatchNorm1d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      (8): LeakyReLU(negative_slope=0.01)
+      (9): ConvTranspose1d(256, 3, kernel_size=(1,), stride=(1,))
+    )
+    (coord_fc): Sequential(
+      (0): Linear(in_features=3, out_features=3, bias=True)
+      (1): LeakyReLU(negative_slope=0.01)
+    )
+    (desc_deconv): Sequential(
+      (0): ConvTranspose1d(256, 512, kernel_size=(2,), stride=(1,))
+      (1): BatchNorm1d(512, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      (2): LeakyReLU(negative_slope=0.01)
+      (3): ConvTranspose1d(512, 128, kernel_size=(2,), stride=(2,))
+      (4): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      (5): LeakyReLU(negative_slope=0.01)
+      (6): ConvTranspose1d(128, 64, kernel_size=(2,), stride=(2,))
+      (7): BatchNorm1d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      (8): LeakyReLU(negative_slope=0.01)
+      (9): ConvTranspose1d(64, 5, kernel_size=(1,), stride=(1,))
+    )
+    (desc_fc): Sequential(
+      (0): Linear(in_features=5, out_features=5, bias=True)
+      (1): LeakyReLU(negative_slope=0.01)
+    )
+    (combined_fc): Sequential(
+      (0): Linear(in_features=8, out_features=8, bias=True)
+      (1): LeakyReLU(negative_slope=0.01)
+    )
+  )
+)
+
+- 'encoder':
+Encoder(
+  (tnet): TNet(
+    (fc): Sequential(
+      (0): Linear(in_features=3, out_features=64, bias=True)
+      (1): LeakyReLU(negative_slope=0.01)
+      (2): Linear(in_features=64, out_features=128, bias=True)
+      (3): LeakyReLU(negative_slope=0.01)
+      (4): Linear(in_features=128, out_features=9, bias=True)
+    )
+  )
+  (spatial_mlp): Sequential(
+    (0): Conv1d(3, 64, kernel_size=(1,), stride=(1,))
+    (1): BatchNorm1d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+    (2): LeakyReLU(negative_slope=0.01)
+    (3): Conv1d(64, 128, kernel_size=(1,), stride=(1,))
+    (4): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+    (5): LeakyReLU(negative_slope=0.01)
+    (6): Conv1d(128, 1024, kernel_size=(1,), stride=(1,))
+    (7): BatchNorm1d(1024, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+    (8): LeakyReLU(negative_slope=0.01)
+  )
+  (descriptor_mlp): Sequential(
+    (0): Conv1d(5, 64, kernel_size=(1,), stride=(1,))
+    (1): BatchNorm1d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+    (2): LeakyReLU(negative_slope=0.01)
+    (3): Conv1d(64, 128, kernel_size=(1,), stride=(1,))
+    (4): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+    (5): LeakyReLU(negative_slope=0.01)
+  )
+  (global_pool): AdaptiveAvgPool1d(output_size=1)
+  (fc): Sequential(
+    (0): Linear(in_features=2176, out_features=1024, bias=True)
+    (1): LeakyReLU(negative_slope=0.01)
+    (2): Linear(in_features=1024, out_features=512, bias=True)
+    (3): LeakyReLU(negative_slope=0.01)
+    (4): Linear(in_features=512, out_features=256, bias=True)
+    (5): LeakyReLU(negative_slope=0.01)
+  )
+  (z_mean_fc): Linear(in_features=256, out_features=16, bias=True)
+  (z_log_var_fc): Linear(in_features=256, out_features=16, bias=True)
+)
+
+- 'encoder.tnet':
+TNet(
+  (fc): Sequential(
+    (0): Linear(in_features=3, out_features=64, bias=True)
+    (1): LeakyReLU(negative_slope=0.01)
+    (2): Linear(in_features=64, out_features=128, bias=True)
+    (3): LeakyReLU(negative_slope=0.01)
+    (4): Linear(in_features=128, out_features=9, bias=True)
+  )
+)
+
+- 'encoder.tnet.fc':
+Sequential(
+  (0): Linear(in_features=3, out_features=64, bias=True)
+  (1): LeakyReLU(negative_slope=0.01)
+  (2): Linear(in_features=64, out_features=128, bias=True)
+  (3): LeakyReLU(negative_slope=0.01)
+  (4): Linear(in_features=128, out_features=9, bias=True)
+)
+
+- 'encoder.tnet.fc.0':
+Linear(in_features=3, out_features=64, bias=True)
+
+- 'encoder.tnet.fc.1':
+LeakyReLU(negative_slope=0.01)
+
+- 'encoder.tnet.fc.2':
+Linear(in_features=64, out_features=128, bias=True)
+
+- 'encoder.tnet.fc.3':
+LeakyReLU(negative_slope=0.01)
+
+- 'encoder.tnet.fc.4':
+Linear(in_features=128, out_features=9, bias=True)
+
+- 'encoder.spatial_mlp':
+Sequential(
+  (0): Conv1d(3, 64, kernel_size=(1,), stride=(1,))
+  (1): BatchNorm1d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+  (2): LeakyReLU(negative_slope=0.01)
+  (3): Conv1d(64, 128, kernel_size=(1,), stride=(1,))
+  (4): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+  (5): LeakyReLU(negative_slope=0.01)
+  (6): Conv1d(128, 1024, kernel_size=(1,), stride=(1,))
+  (7): BatchNorm1d(1024, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+  (8): LeakyReLU(negative_slope=0.01)
+)
+
+- 'encoder.spatial_mlp.0':
+Conv1d(3, 64, kernel_size=(1,), stride=(1,))
+
+- 'encoder.spatial_mlp.1':
+BatchNorm1d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+
+- 'encoder.spatial_mlp.2':
+LeakyReLU(negative_slope=0.01)
+
+- 'encoder.spatial_mlp.3':
+Conv1d(64, 128, kernel_size=(1,), stride=(1,))
+
+- 'encoder.spatial_mlp.4':
+BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+
+- 'encoder.spatial_mlp.5':
+LeakyReLU(negative_slope=0.01)
+
+- 'encoder.spatial_mlp.6':
+Conv1d(128, 1024, kernel_size=(1,), stride=(1,))
+
+- 'encoder.spatial_mlp.7':
+BatchNorm1d(1024, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+
+- 'encoder.spatial_mlp.8':
+LeakyReLU(negative_slope=0.01)
+
+- 'encoder.descriptor_mlp':
+Sequential(
+  (0): Conv1d(5, 64, kernel_size=(1,), stride=(1,))
+  (1): BatchNorm1d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+  (2): LeakyReLU(negative_slope=0.01)
+  (3): Conv1d(64, 128, kernel_size=(1,), stride=(1,))
+  (4): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+  (5): LeakyReLU(negative_slope=0.01)
+)
+
+- 'encoder.descriptor_mlp.0':
+Conv1d(5, 64, kernel_size=(1,), stride=(1,))
+
+- 'encoder.descriptor_mlp.1':
+BatchNorm1d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+
+- 'encoder.descriptor_mlp.2':
+LeakyReLU(negative_slope=0.01)
+
+- 'encoder.descriptor_mlp.3':
+Conv1d(64, 128, kernel_size=(1,), stride=(1,))
+
+- 'encoder.descriptor_mlp.4':
+BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+
+- 'encoder.descriptor_mlp.5':
+LeakyReLU(negative_slope=0.01)
+
+- 'encoder.global_pool':
+AdaptiveAvgPool1d(output_size=1)
+
+- 'encoder.fc':
+Sequential(
+  (0): Linear(in_features=2176, out_features=1024, bias=True)
+  (1): LeakyReLU(negative_slope=0.01)
+  (2): Linear(in_features=1024, out_features=512, bias=True)
+  (3): LeakyReLU(negative_slope=0.01)
+  (4): Linear(in_features=512, out_features=256, bias=True)
+  (5): LeakyReLU(negative_slope=0.01)
+)
+
+- 'encoder.fc.0':
+Linear(in_features=2176, out_features=1024, bias=True)
+
+- 'encoder.fc.1':
+LeakyReLU(negative_slope=0.01)
+
+- 'encoder.fc.2':
+Linear(in_features=1024, out_features=512, bias=True)
+
+- 'encoder.fc.3':
+LeakyReLU(negative_slope=0.01)
+
+- 'encoder.fc.4':
+Linear(in_features=512, out_features=256, bias=True)
+
+- 'encoder.fc.5':
+LeakyReLU(negative_slope=0.01)
+
+- 'encoder.z_mean_fc':
+Linear(in_features=256, out_features=16, bias=True)
+
+- 'encoder.z_log_var_fc':
+Linear(in_features=256, out_features=16, bias=True)
+
+- 'sampling':
+Sample()
+
+- 'decoder':
+Decoder(
+  (fc): Sequential(
+    (0): Linear(in_features=16, out_features=256, bias=True)
+    (1): LeakyReLU(negative_slope=0.01)
+  )
+  (coord_deconv): Sequential(
+    (0): ConvTranspose1d(256, 512, kernel_size=(2,), stride=(1,))
+    (1): BatchNorm1d(512, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+    (2): LeakyReLU(negative_slope=0.01)
+    (3): ConvTranspose1d(512, 1024, kernel_size=(2,), stride=(2,))
+    (4): BatchNorm1d(1024, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+    (5): LeakyReLU(negative_slope=0.01)
+    (6): ConvTranspose1d(1024, 256, kernel_size=(2,), stride=(2,))
+    (7): BatchNorm1d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+    (8): LeakyReLU(negative_slope=0.01)
+    (9): ConvTranspose1d(256, 3, kernel_size=(1,), stride=(1,))
+  )
+  (coord_fc): Sequential(
+    (0): Linear(in_features=3, out_features=3, bias=True)
+    (1): LeakyReLU(negative_slope=0.01)
+  )
+  (desc_deconv): Sequential(
+    (0): ConvTranspose1d(256, 512, kernel_size=(2,), stride=(1,))
+    (1): BatchNorm1d(512, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+    (2): LeakyReLU(negative_slope=0.01)
+    (3): ConvTranspose1d(512, 128, kernel_size=(2,), stride=(2,))
+    (4): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+    (5): LeakyReLU(negative_slope=0.01)
+    (6): ConvTranspose1d(128, 64, kernel_size=(2,), stride=(2,))
+    (7): BatchNorm1d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+    (8): LeakyReLU(negative_slope=0.01)
+    (9): ConvTranspose1d(64, 5, kernel_size=(1,), stride=(1,))
+  )
+  (desc_fc): Sequential(
+    (0): Linear(in_features=5, out_features=5, bias=True)
+    (1): LeakyReLU(negative_slope=0.01)
+  )
+  (combined_fc): Sequential(
+    (0): Linear(in_features=8, out_features=8, bias=True)
+    (1): LeakyReLU(negative_slope=0.01)
+  )
+)
+
+- 'decoder.fc':
+Sequential(
+  (0): Linear(in_features=16, out_features=256, bias=True)
+  (1): LeakyReLU(negative_slope=0.01)
+)
+
+- 'decoder.fc.0':
+Linear(in_features=16, out_features=256, bias=True)
+
+- 'decoder.fc.1':
+LeakyReLU(negative_slope=0.01)
+
+- 'decoder.coord_deconv':
+Sequential(
+  (0): ConvTranspose1d(256, 512, kernel_size=(2,), stride=(1,))
+  (1): BatchNorm1d(512, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+  (2): LeakyReLU(negative_slope=0.01)
+  (3): ConvTranspose1d(512, 1024, kernel_size=(2,), stride=(2,))
+  (4): BatchNorm1d(1024, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+  (5): LeakyReLU(negative_slope=0.01)
+  (6): ConvTranspose1d(1024, 256, kernel_size=(2,), stride=(2,))
+  (7): BatchNorm1d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+  (8): LeakyReLU(negative_slope=0.01)
+  (9): ConvTranspose1d(256, 3, kernel_size=(1,), stride=(1,))
+)
+
+- 'decoder.coord_deconv.0':
+ConvTranspose1d(256, 512, kernel_size=(2,), stride=(1,))
+
+- 'decoder.coord_deconv.1':
+BatchNorm1d(512, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+
+- 'decoder.coord_deconv.2':
+LeakyReLU(negative_slope=0.01)
+
+- 'decoder.coord_deconv.3':
+ConvTranspose1d(512, 1024, kernel_size=(2,), stride=(2,))
+
+- 'decoder.coord_deconv.4':
+BatchNorm1d(1024, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+
+- 'decoder.coord_deconv.5':
+LeakyReLU(negative_slope=0.01)
+
+- 'decoder.coord_deconv.6':
+ConvTranspose1d(1024, 256, kernel_size=(2,), stride=(2,))
+
+- 'decoder.coord_deconv.7':
+BatchNorm1d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+
+- 'decoder.coord_deconv.8':
+LeakyReLU(negative_slope=0.01)
+
+- 'decoder.coord_deconv.9':
+ConvTranspose1d(256, 3, kernel_size=(1,), stride=(1,))
+
+- 'decoder.coord_fc':
+Sequential(
+  (0): Linear(in_features=3, out_features=3, bias=True)
+  (1): LeakyReLU(negative_slope=0.01)
+)
+
+- 'decoder.coord_fc.0':
+Linear(in_features=3, out_features=3, bias=True)
+
+- 'decoder.coord_fc.1':
+LeakyReLU(negative_slope=0.01)
+
+- 'decoder.desc_deconv':
+Sequential(
+  (0): ConvTranspose1d(256, 512, kernel_size=(2,), stride=(1,))
+  (1): BatchNorm1d(512, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+  (2): LeakyReLU(negative_slope=0.01)
+  (3): ConvTranspose1d(512, 128, kernel_size=(2,), stride=(2,))
+  (4): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+  (5): LeakyReLU(negative_slope=0.01)
+  (6): ConvTranspose1d(128, 64, kernel_size=(2,), stride=(2,))
+  (7): BatchNorm1d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+  (8): LeakyReLU(negative_slope=0.01)
+  (9): ConvTranspose1d(64, 5, kernel_size=(1,), stride=(1,))
+)
+
+- 'decoder.desc_deconv.0':
+ConvTranspose1d(256, 512, kernel_size=(2,), stride=(1,))
+
+- 'decoder.desc_deconv.1':
+BatchNorm1d(512, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+
+- 'decoder.desc_deconv.2':
+LeakyReLU(negative_slope=0.01)
+
+- 'decoder.desc_deconv.3':
+ConvTranspose1d(512, 128, kernel_size=(2,), stride=(2,))
+
+- 'decoder.desc_deconv.4':
+BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+
+- 'decoder.desc_deconv.5':
+LeakyReLU(negative_slope=0.01)
+
+- 'decoder.desc_deconv.6':
+ConvTranspose1d(128, 64, kernel_size=(2,), stride=(2,))
+
+- 'decoder.desc_deconv.7':
+BatchNorm1d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+
+- 'decoder.desc_deconv.8':
+LeakyReLU(negative_slope=0.01)
+
+- 'decoder.desc_deconv.9':
+ConvTranspose1d(64, 5, kernel_size=(1,), stride=(1,))
+
+- 'decoder.desc_fc':
+Sequential(
+  (0): Linear(in_features=5, out_features=5, bias=True)
+  (1): LeakyReLU(negative_slope=0.01)
+)
+
+- 'decoder.desc_fc.0':
+Linear(in_features=5, out_features=5, bias=True)
+
+- 'decoder.desc_fc.1':
+LeakyReLU(negative_slope=0.01)
+
+- 'decoder.combined_fc':
+Sequential(
+  (0): Linear(in_features=8, out_features=8, bias=True)
+  (1): LeakyReLU(negative_slope=0.01)
+)
+
+- 'decoder.combined_fc.0':
+Linear(in_features=8, out_features=8, bias=True)
+
+- 'decoder.combined_fc.1':
+LeakyReLU(negative_slope=0.01)
+--------------------------------------------------
+Search complete!
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+Alternative history filename updated: 'best_performing_loss_penalties_toy_bs64_ld16_adam_lr1e-05_wd1e-05_be0.02_co1.5_de1.5_pd0.1_cl0.4_tr0.001_epoch_150'
+Saving to alternative history filename: 'best_performing_loss_penalties_toy_bs64_ld16_adam_lr1e-05_wd1e-05_be0.02_co1.5_de1.5_pd0.1_cl0.4_tr0.001_epoch_150.pth'...
+History saved to 'metric_history/best_performing_loss_penalties_toy_bs64_ld16_adam_lr1e-05_wd1e-05_be0.02_co1.5_de1.5_pd0.1_cl0.4_tr0.001_epoch_150.pth'
+
+Plot saved to 'best_performing_loss_penalties_toy_bs64_ld16_adam_lr1e-05_wd1e-05_be0.02_co1.5_de1.5_pd0.1_cl0.4_tr0.001_epoch_150_recon-beta_kl_vs_epochs.png'
+Plot saved to 'best_performing_loss_penalties_toy_bs64_ld16_adam_lr1e-05_wd1e-05_be0.02_co1.5_de1.5_pd0.1_cl0.4_tr0.001_epoch_150_f1_vs_epochs.png'
+Plot saved to 'best_performing_loss_penalties_toy_bs64_ld16_adam_lr1e-05_wd1e-05_be0.02_co1.5_de1.5_pd0.1_cl0.4_tr0.001_epoch_150_total_loss_vs_epochs.png'
+Plot saved to 'best_performing_loss_penalties_toy_bs64_ld16_adam_lr1e-05_wd1e-05_be0.02_co1.5_de1.5_pd0.1_cl0.4_tr0.001_epoch_150_acc_vs_epochs.png'
+Plot saved to 'best_performing_loss_penalties_toy_bs64_ld16_adam_lr1e-05_wd1e-05_be0.02_co1.5_de1.5_pd0.1_cl0.4_tr0.001_epoch_150_raw_recon_loss_parts_vs_epochs.png'
+Plot saved to 'best_performing_loss_penalties_toy_bs64_ld16_adam_lr1e-05_wd1e-05_be0.02_co1.5_de1.5_pd0.1_cl0.4_tr0.001_epoch_150_scaled_recon_loss_parts_vs_epochs.png'
+Plot saved to 'best_performing_loss_penalties_toy_bs64_ld16_adam_lr1e-05_wd1e-05_be0.02_co1.5_de1.5_pd0.1_cl0.4_tr0.001_epoch_150_kl_vs_recon.png'
+Plot saved to 'best_performing_loss_penalties_toy_bs64_ld16_adam_lr1e-05_wd1e-05_be0.02_co1.5_de1.5_pd0.1_cl0.4_tr0.001_epoch_150_beta_kl_vs_recon.png'
+Plot saved to 'best_performing_loss_penalties_toy_bs64_ld16_adam_lr1e-05_wd1e-05_be0.02_co1.5_de1.5_pd0.1_cl0.4_tr0.001_epoch_150_total_loss_vs_f1.png'
+
+Attempting to load last updated model...
+Loading model and optimizer checkpoint from '/mnt/scratch/users/40538519/outputs/model_checkpoints/loss_penalties_toy_bs64_ld16_adam_lr1e-05_wd1e-05_be0.02_co1.5_de1.5_pd0.1_cl0.4_tr0.001/final_model_epoch_150.pth'...
+Checkpoint loaded.
+
+Plotting latent space using PCA and UMAP with K=5...
+Plot saved to 'best_performing_loss_penalties_toy_bs64_ld16_adam_lr1e-05_wd1e-05_be0.02_co1.5_de1.5_pd0.1_cl0.4_tr0.001_epoch_150_pca.png'
+Plot saved to 'best_performing_loss_penalties_toy_bs64_ld16_adam_lr1e-05_wd1e-05_be0.02_co1.5_de1.5_pd0.1_cl0.4_tr0.001_epoch_150_umap.png'
+Latent analysis metrics:
+Silhouette score (PCA): 0.3332
+Silhouette score (UMAP): 0.3933
+
+Unique distances:
+tensor([0.0000e+00, 9.7656e-04, 1.3811e-03,  ..., 1.0668e+01, 1.0972e+01,
+        1.1368e+01])
+
+Max distance: 11.3680
+Mean pairwise distance: 5.5554, Standard deviation: 1.1485
+
+Alternative history filename updated: 'best_performing_loss_penalties_toy_bs64_ld16_adam_lr1e-05_wd1e-05_be0.02_co1.5_de1.5_pd0.1_cl0.4_tr0.001_epoch_150'
+Saving to alternative history filename: 'best_performing_loss_penalties_toy_bs64_ld16_adam_lr1e-05_wd1e-05_be0.02_co1.5_de1.5_pd0.1_cl0.4_tr0.001_epoch_150.pth'...
+History saved to 'metric_history/best_performing_loss_penalties_toy_bs64_ld16_adam_lr1e-05_wd1e-05_be0.02_co1.5_de1.5_pd0.1_cl0.4_tr0.001_epoch_150.pth'
+
+Getting samples for comparison visualisations...
+Robot comparison visualisation plot saved to 'comparison_best_performing_loss_penalties_toy_bs64_ld16_adam_lr1e-05_wd1e-05_be0.02_co1.5_de1.5_pd0.1_cl0.4_tr0.001_epoch_150_101482.png'
+Robot comparison visualisation plot saved to 'comparison_best_performing_loss_penalties_toy_bs64_ld16_adam_lr1e-05_wd1e-05_be0.02_co1.5_de1.5_pd0.1_cl0.4_tr0.001_epoch_150_220597.png'
+Robot comparison visualisation plot saved to 'comparison_best_performing_loss_penalties_toy_bs64_ld16_adam_lr1e-05_wd1e-05_be0.02_co1.5_de1.5_pd0.1_cl0.4_tr0.001_epoch_150_70987.png'
+Robot comparison visualisation plot saved to 'comparison_best_performing_loss_penalties_toy_bs64_ld16_adam_lr1e-05_wd1e-05_be0.02_co1.5_de1.5_pd0.1_cl0.4_tr0.001_epoch_150_8936.png'
+Robot comparison visualisation plot saved to 'comparison_best_performing_loss_penalties_toy_bs64_ld16_adam_lr1e-05_wd1e-05_be0.02_co1.5_de1.5_pd0.1_cl0.4_tr0.001_epoch_150_2421.png'
+
+Starting gridsearch for best loss model...
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+Searching grid...
+
+Best Configuration tradeoff score: 3.9762 at epoch: 148
+Training History Summary for Model: 'loss_penalties_toy_bs64_ld16_adam_lr1e-05_wd1e-05_be0.02_co1.5_de1.5_pd0.1_cl0.4_tr0.001'
+Model Directory: '/users/40538519/sharedscratch/outputs/model_checkpoints/loss_penalties_toy_bs64_ld16_adam_lr1e-05_wd1e-05_be0.02_co1.5_de1.5_pd0.1_cl0.4_tr0.001'
+--------------------------------------------------
+Epochs Run: 150
+Last Updated Model: 'final_model_epoch_150.pth'
+
+Epochs Without Improvement: 0
+Last Improved Model: 'best_f1_avg_epoch_150.pth'
+
+Batch Size: 64
+Optimizer: Adam
+Weight Decay: 1e-05
+Scheduler: None
+
+Best Validation Loss: 397.6162
+Best Validation Loss Model: 'best_loss_epoch_148.pth'
+Best Validation Weighted F1: 0.2546
+Best Validation Weighted F1 Model: 'best_f1_avg_epoch_150.pth'
+--------------------------------------------------
+Training Metrics (Last Epoch):
+	- Coordinate Euclidean Distance: 0.6952
+	- Reconstruction Loss, Averaged Across Batches: 388.5301
+	- KL Divergence, Averaged Across Batches: 236.5742
+	- Descriptor Loss, Averaged Across Batches: 0.6495679140090942
+	- Coordinate Loss, Averaged Across Batches: 1.7976165890693665
+	- Beta: 0.02
+	- Accuracy: 0.2448
+	- Weighted F1: 0.2526
+	- Learning Rate: 1e-05
+	- Average Training Time: 00:00:10
+--------------------------------------------------
+Validation Metrics (Last Epoch):
+	- Coordinate Euclidean Distance: 0.6972
+	- Reconstruction Loss, Averaged Across Batches: 393.5487
+	- KL Divergence, Averaged Across Batches: 225.6222
+	- Descriptor Loss, Averaged Across Batches: 0.6771582629945543
+	- Coordinate Loss, Averaged Across Batches: 1.804092804590861
+	- Beta: 0.02
+	- Accuracy: 0.2499
+	- Weighted F1: 0.2546
+	- Average Validation Time: 00:00:01
+--------------------------------------------------
+Model Architecture Used:
+Latent Dim: 16
+
+- '':
+VAE(
+  (encoder): Encoder(
+    (tnet): TNet(
+      (fc): Sequential(
+        (0): Linear(in_features=3, out_features=64, bias=True)
+        (1): LeakyReLU(negative_slope=0.01)
+        (2): Linear(in_features=64, out_features=128, bias=True)
+        (3): LeakyReLU(negative_slope=0.01)
+        (4): Linear(in_features=128, out_features=9, bias=True)
+      )
+    )
+    (spatial_mlp): Sequential(
+      (0): Conv1d(3, 64, kernel_size=(1,), stride=(1,))
+      (1): BatchNorm1d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      (2): LeakyReLU(negative_slope=0.01)
+      (3): Conv1d(64, 128, kernel_size=(1,), stride=(1,))
+      (4): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      (5): LeakyReLU(negative_slope=0.01)
+      (6): Conv1d(128, 1024, kernel_size=(1,), stride=(1,))
+      (7): BatchNorm1d(1024, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      (8): LeakyReLU(negative_slope=0.01)
+    )
+    (descriptor_mlp): Sequential(
+      (0): Conv1d(5, 64, kernel_size=(1,), stride=(1,))
+      (1): BatchNorm1d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      (2): LeakyReLU(negative_slope=0.01)
+      (3): Conv1d(64, 128, kernel_size=(1,), stride=(1,))
+      (4): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      (5): LeakyReLU(negative_slope=0.01)
+    )
+    (global_pool): AdaptiveAvgPool1d(output_size=1)
+    (fc): Sequential(
+      (0): Linear(in_features=2176, out_features=1024, bias=True)
+      (1): LeakyReLU(negative_slope=0.01)
+      (2): Linear(in_features=1024, out_features=512, bias=True)
+      (3): LeakyReLU(negative_slope=0.01)
+      (4): Linear(in_features=512, out_features=256, bias=True)
+      (5): LeakyReLU(negative_slope=0.01)
+    )
+    (z_mean_fc): Linear(in_features=256, out_features=16, bias=True)
+    (z_log_var_fc): Linear(in_features=256, out_features=16, bias=True)
+  )
+  (sampling): Sample()
+  (decoder): Decoder(
+    (fc): Sequential(
+      (0): Linear(in_features=16, out_features=256, bias=True)
+      (1): LeakyReLU(negative_slope=0.01)
+    )
+    (coord_deconv): Sequential(
+      (0): ConvTranspose1d(256, 512, kernel_size=(2,), stride=(1,))
+      (1): BatchNorm1d(512, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      (2): LeakyReLU(negative_slope=0.01)
+      (3): ConvTranspose1d(512, 1024, kernel_size=(2,), stride=(2,))
+      (4): BatchNorm1d(1024, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      (5): LeakyReLU(negative_slope=0.01)
+      (6): ConvTranspose1d(1024, 256, kernel_size=(2,), stride=(2,))
+      (7): BatchNorm1d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      (8): LeakyReLU(negative_slope=0.01)
+      (9): ConvTranspose1d(256, 3, kernel_size=(1,), stride=(1,))
+    )
+    (coord_fc): Sequential(
+      (0): Linear(in_features=3, out_features=3, bias=True)
+      (1): LeakyReLU(negative_slope=0.01)
+    )
+    (desc_deconv): Sequential(
+      (0): ConvTranspose1d(256, 512, kernel_size=(2,), stride=(1,))
+      (1): BatchNorm1d(512, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      (2): LeakyReLU(negative_slope=0.01)
+      (3): ConvTranspose1d(512, 128, kernel_size=(2,), stride=(2,))
+      (4): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      (5): LeakyReLU(negative_slope=0.01)
+      (6): ConvTranspose1d(128, 64, kernel_size=(2,), stride=(2,))
+      (7): BatchNorm1d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      (8): LeakyReLU(negative_slope=0.01)
+      (9): ConvTranspose1d(64, 5, kernel_size=(1,), stride=(1,))
+    )
+    (desc_fc): Sequential(
+      (0): Linear(in_features=5, out_features=5, bias=True)
+      (1): LeakyReLU(negative_slope=0.01)
+    )
+    (combined_fc): Sequential(
+      (0): Linear(in_features=8, out_features=8, bias=True)
+      (1): LeakyReLU(negative_slope=0.01)
+    )
+  )
+)
+
+- 'encoder':
+Encoder(
+  (tnet): TNet(
+    (fc): Sequential(
+      (0): Linear(in_features=3, out_features=64, bias=True)
+      (1): LeakyReLU(negative_slope=0.01)
+      (2): Linear(in_features=64, out_features=128, bias=True)
+      (3): LeakyReLU(negative_slope=0.01)
+      (4): Linear(in_features=128, out_features=9, bias=True)
+    )
+  )
+  (spatial_mlp): Sequential(
+    (0): Conv1d(3, 64, kernel_size=(1,), stride=(1,))
+    (1): BatchNorm1d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+    (2): LeakyReLU(negative_slope=0.01)
+    (3): Conv1d(64, 128, kernel_size=(1,), stride=(1,))
+    (4): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+    (5): LeakyReLU(negative_slope=0.01)
+    (6): Conv1d(128, 1024, kernel_size=(1,), stride=(1,))
+    (7): BatchNorm1d(1024, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+    (8): LeakyReLU(negative_slope=0.01)
+  )
+  (descriptor_mlp): Sequential(
+    (0): Conv1d(5, 64, kernel_size=(1,), stride=(1,))
+    (1): BatchNorm1d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+    (2): LeakyReLU(negative_slope=0.01)
+    (3): Conv1d(64, 128, kernel_size=(1,), stride=(1,))
+    (4): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+    (5): LeakyReLU(negative_slope=0.01)
+  )
+  (global_pool): AdaptiveAvgPool1d(output_size=1)
+  (fc): Sequential(
+    (0): Linear(in_features=2176, out_features=1024, bias=True)
+    (1): LeakyReLU(negative_slope=0.01)
+    (2): Linear(in_features=1024, out_features=512, bias=True)
+    (3): LeakyReLU(negative_slope=0.01)
+    (4): Linear(in_features=512, out_features=256, bias=True)
+    (5): LeakyReLU(negative_slope=0.01)
+  )
+  (z_mean_fc): Linear(in_features=256, out_features=16, bias=True)
+  (z_log_var_fc): Linear(in_features=256, out_features=16, bias=True)
+)
+
+- 'encoder.tnet':
+TNet(
+  (fc): Sequential(
+    (0): Linear(in_features=3, out_features=64, bias=True)
+    (1): LeakyReLU(negative_slope=0.01)
+    (2): Linear(in_features=64, out_features=128, bias=True)
+    (3): LeakyReLU(negative_slope=0.01)
+    (4): Linear(in_features=128, out_features=9, bias=True)
+  )
+)
+
+- 'encoder.tnet.fc':
+Sequential(
+  (0): Linear(in_features=3, out_features=64, bias=True)
+  (1): LeakyReLU(negative_slope=0.01)
+  (2): Linear(in_features=64, out_features=128, bias=True)
+  (3): LeakyReLU(negative_slope=0.01)
+  (4): Linear(in_features=128, out_features=9, bias=True)
+)
+
+- 'encoder.tnet.fc.0':
+Linear(in_features=3, out_features=64, bias=True)
+
+- 'encoder.tnet.fc.1':
+LeakyReLU(negative_slope=0.01)
+
+- 'encoder.tnet.fc.2':
+Linear(in_features=64, out_features=128, bias=True)
+
+- 'encoder.tnet.fc.3':
+LeakyReLU(negative_slope=0.01)
+
+- 'encoder.tnet.fc.4':
+Linear(in_features=128, out_features=9, bias=True)
+
+- 'encoder.spatial_mlp':
+Sequential(
+  (0): Conv1d(3, 64, kernel_size=(1,), stride=(1,))
+  (1): BatchNorm1d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+  (2): LeakyReLU(negative_slope=0.01)
+  (3): Conv1d(64, 128, kernel_size=(1,), stride=(1,))
+  (4): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+  (5): LeakyReLU(negative_slope=0.01)
+  (6): Conv1d(128, 1024, kernel_size=(1,), stride=(1,))
+  (7): BatchNorm1d(1024, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+  (8): LeakyReLU(negative_slope=0.01)
+)
+
+- 'encoder.spatial_mlp.0':
+Conv1d(3, 64, kernel_size=(1,), stride=(1,))
+
+- 'encoder.spatial_mlp.1':
+BatchNorm1d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+
+- 'encoder.spatial_mlp.2':
+LeakyReLU(negative_slope=0.01)
+
+- 'encoder.spatial_mlp.3':
+Conv1d(64, 128, kernel_size=(1,), stride=(1,))
+
+- 'encoder.spatial_mlp.4':
+BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+
+- 'encoder.spatial_mlp.5':
+LeakyReLU(negative_slope=0.01)
+
+- 'encoder.spatial_mlp.6':
+Conv1d(128, 1024, kernel_size=(1,), stride=(1,))
+
+- 'encoder.spatial_mlp.7':
+BatchNorm1d(1024, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+
+- 'encoder.spatial_mlp.8':
+LeakyReLU(negative_slope=0.01)
+
+- 'encoder.descriptor_mlp':
+Sequential(
+  (0): Conv1d(5, 64, kernel_size=(1,), stride=(1,))
+  (1): BatchNorm1d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+  (2): LeakyReLU(negative_slope=0.01)
+  (3): Conv1d(64, 128, kernel_size=(1,), stride=(1,))
+  (4): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+  (5): LeakyReLU(negative_slope=0.01)
+)
+
+- 'encoder.descriptor_mlp.0':
+Conv1d(5, 64, kernel_size=(1,), stride=(1,))
+
+- 'encoder.descriptor_mlp.1':
+BatchNorm1d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+
+- 'encoder.descriptor_mlp.2':
+LeakyReLU(negative_slope=0.01)
+
+- 'encoder.descriptor_mlp.3':
+Conv1d(64, 128, kernel_size=(1,), stride=(1,))
+
+- 'encoder.descriptor_mlp.4':
+BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+
+- 'encoder.descriptor_mlp.5':
+LeakyReLU(negative_slope=0.01)
+
+- 'encoder.global_pool':
+AdaptiveAvgPool1d(output_size=1)
+
+- 'encoder.fc':
+Sequential(
+  (0): Linear(in_features=2176, out_features=1024, bias=True)
+  (1): LeakyReLU(negative_slope=0.01)
+  (2): Linear(in_features=1024, out_features=512, bias=True)
+  (3): LeakyReLU(negative_slope=0.01)
+  (4): Linear(in_features=512, out_features=256, bias=True)
+  (5): LeakyReLU(negative_slope=0.01)
+)
+
+- 'encoder.fc.0':
+Linear(in_features=2176, out_features=1024, bias=True)
+
+- 'encoder.fc.1':
+LeakyReLU(negative_slope=0.01)
+
+- 'encoder.fc.2':
+Linear(in_features=1024, out_features=512, bias=True)
+
+- 'encoder.fc.3':
+LeakyReLU(negative_slope=0.01)
+
+- 'encoder.fc.4':
+Linear(in_features=512, out_features=256, bias=True)
+
+- 'encoder.fc.5':
+LeakyReLU(negative_slope=0.01)
+
+- 'encoder.z_mean_fc':
+Linear(in_features=256, out_features=16, bias=True)
+
+- 'encoder.z_log_var_fc':
+Linear(in_features=256, out_features=16, bias=True)
+
+- 'sampling':
+Sample()
+
+- 'decoder':
+Decoder(
+  (fc): Sequential(
+    (0): Linear(in_features=16, out_features=256, bias=True)
+    (1): LeakyReLU(negative_slope=0.01)
+  )
+  (coord_deconv): Sequential(
+    (0): ConvTranspose1d(256, 512, kernel_size=(2,), stride=(1,))
+    (1): BatchNorm1d(512, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+    (2): LeakyReLU(negative_slope=0.01)
+    (3): ConvTranspose1d(512, 1024, kernel_size=(2,), stride=(2,))
+    (4): BatchNorm1d(1024, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+    (5): LeakyReLU(negative_slope=0.01)
+    (6): ConvTranspose1d(1024, 256, kernel_size=(2,), stride=(2,))
+    (7): BatchNorm1d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+    (8): LeakyReLU(negative_slope=0.01)
+    (9): ConvTranspose1d(256, 3, kernel_size=(1,), stride=(1,))
+  )
+  (coord_fc): Sequential(
+    (0): Linear(in_features=3, out_features=3, bias=True)
+    (1): LeakyReLU(negative_slope=0.01)
+  )
+  (desc_deconv): Sequential(
+    (0): ConvTranspose1d(256, 512, kernel_size=(2,), stride=(1,))
+    (1): BatchNorm1d(512, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+    (2): LeakyReLU(negative_slope=0.01)
+    (3): ConvTranspose1d(512, 128, kernel_size=(2,), stride=(2,))
+    (4): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+    (5): LeakyReLU(negative_slope=0.01)
+    (6): ConvTranspose1d(128, 64, kernel_size=(2,), stride=(2,))
+    (7): BatchNorm1d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+    (8): LeakyReLU(negative_slope=0.01)
+    (9): ConvTranspose1d(64, 5, kernel_size=(1,), stride=(1,))
+  )
+  (desc_fc): Sequential(
+    (0): Linear(in_features=5, out_features=5, bias=True)
+    (1): LeakyReLU(negative_slope=0.01)
+  )
+  (combined_fc): Sequential(
+    (0): Linear(in_features=8, out_features=8, bias=True)
+    (1): LeakyReLU(negative_slope=0.01)
+  )
+)
+
+- 'decoder.fc':
+Sequential(
+  (0): Linear(in_features=16, out_features=256, bias=True)
+  (1): LeakyReLU(negative_slope=0.01)
+)
+
+- 'decoder.fc.0':
+Linear(in_features=16, out_features=256, bias=True)
+
+- 'decoder.fc.1':
+LeakyReLU(negative_slope=0.01)
+
+- 'decoder.coord_deconv':
+Sequential(
+  (0): ConvTranspose1d(256, 512, kernel_size=(2,), stride=(1,))
+  (1): BatchNorm1d(512, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+  (2): LeakyReLU(negative_slope=0.01)
+  (3): ConvTranspose1d(512, 1024, kernel_size=(2,), stride=(2,))
+  (4): BatchNorm1d(1024, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+  (5): LeakyReLU(negative_slope=0.01)
+  (6): ConvTranspose1d(1024, 256, kernel_size=(2,), stride=(2,))
+  (7): BatchNorm1d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+  (8): LeakyReLU(negative_slope=0.01)
+  (9): ConvTranspose1d(256, 3, kernel_size=(1,), stride=(1,))
+)
+
+- 'decoder.coord_deconv.0':
+ConvTranspose1d(256, 512, kernel_size=(2,), stride=(1,))
+
+- 'decoder.coord_deconv.1':
+BatchNorm1d(512, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+
+- 'decoder.coord_deconv.2':
+LeakyReLU(negative_slope=0.01)
+
+- 'decoder.coord_deconv.3':
+ConvTranspose1d(512, 1024, kernel_size=(2,), stride=(2,))
+
+- 'decoder.coord_deconv.4':
+BatchNorm1d(1024, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+
+- 'decoder.coord_deconv.5':
+LeakyReLU(negative_slope=0.01)
+
+- 'decoder.coord_deconv.6':
+ConvTranspose1d(1024, 256, kernel_size=(2,), stride=(2,))
+
+- 'decoder.coord_deconv.7':
+BatchNorm1d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+
+- 'decoder.coord_deconv.8':
+LeakyReLU(negative_slope=0.01)
+
+- 'decoder.coord_deconv.9':
+ConvTranspose1d(256, 3, kernel_size=(1,), stride=(1,))
+
+- 'decoder.coord_fc':
+Sequential(
+  (0): Linear(in_features=3, out_features=3, bias=True)
+  (1): LeakyReLU(negative_slope=0.01)
+)
+
+- 'decoder.coord_fc.0':
+Linear(in_features=3, out_features=3, bias=True)
+
+- 'decoder.coord_fc.1':
+LeakyReLU(negative_slope=0.01)
+
+- 'decoder.desc_deconv':
+Sequential(
+  (0): ConvTranspose1d(256, 512, kernel_size=(2,), stride=(1,))
+  (1): BatchNorm1d(512, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+  (2): LeakyReLU(negative_slope=0.01)
+  (3): ConvTranspose1d(512, 128, kernel_size=(2,), stride=(2,))
+  (4): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+  (5): LeakyReLU(negative_slope=0.01)
+  (6): ConvTranspose1d(128, 64, kernel_size=(2,), stride=(2,))
+  (7): BatchNorm1d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+  (8): LeakyReLU(negative_slope=0.01)
+  (9): ConvTranspose1d(64, 5, kernel_size=(1,), stride=(1,))
+)
+
+- 'decoder.desc_deconv.0':
+ConvTranspose1d(256, 512, kernel_size=(2,), stride=(1,))
+
+- 'decoder.desc_deconv.1':
+BatchNorm1d(512, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+
+- 'decoder.desc_deconv.2':
+LeakyReLU(negative_slope=0.01)
+
+- 'decoder.desc_deconv.3':
+ConvTranspose1d(512, 128, kernel_size=(2,), stride=(2,))
+
+- 'decoder.desc_deconv.4':
+BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+
+- 'decoder.desc_deconv.5':
+LeakyReLU(negative_slope=0.01)
+
+- 'decoder.desc_deconv.6':
+ConvTranspose1d(128, 64, kernel_size=(2,), stride=(2,))
+
+- 'decoder.desc_deconv.7':
+BatchNorm1d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+
+- 'decoder.desc_deconv.8':
+LeakyReLU(negative_slope=0.01)
+
+- 'decoder.desc_deconv.9':
+ConvTranspose1d(64, 5, kernel_size=(1,), stride=(1,))
+
+- 'decoder.desc_fc':
+Sequential(
+  (0): Linear(in_features=5, out_features=5, bias=True)
+  (1): LeakyReLU(negative_slope=0.01)
+)
+
+- 'decoder.desc_fc.0':
+Linear(in_features=5, out_features=5, bias=True)
+
+- 'decoder.desc_fc.1':
+LeakyReLU(negative_slope=0.01)
+
+- 'decoder.combined_fc':
+Sequential(
+  (0): Linear(in_features=8, out_features=8, bias=True)
+  (1): LeakyReLU(negative_slope=0.01)
+)
+
+- 'decoder.combined_fc.0':
+Linear(in_features=8, out_features=8, bias=True)
+
+- 'decoder.combined_fc.1':
+LeakyReLU(negative_slope=0.01)
+--------------------------------------------------
+Search complete!
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+Alternative history filename updated: 'best_loss_loss_penalties_toy_bs64_ld16_adam_lr1e-05_wd1e-05_be0.02_co1.5_de1.5_pd0.1_cl0.4_tr0.001_epoch_148'
+Saving to alternative history filename: 'best_loss_loss_penalties_toy_bs64_ld16_adam_lr1e-05_wd1e-05_be0.02_co1.5_de1.5_pd0.1_cl0.4_tr0.001_epoch_148.pth'...
+History saved to 'metric_history/best_loss_loss_penalties_toy_bs64_ld16_adam_lr1e-05_wd1e-05_be0.02_co1.5_de1.5_pd0.1_cl0.4_tr0.001_epoch_148.pth'
+
+Plot saved to 'best_loss_loss_penalties_toy_bs64_ld16_adam_lr1e-05_wd1e-05_be0.02_co1.5_de1.5_pd0.1_cl0.4_tr0.001_epoch_148_recon-beta_kl_vs_epochs.png'
+Plot saved to 'best_loss_loss_penalties_toy_bs64_ld16_adam_lr1e-05_wd1e-05_be0.02_co1.5_de1.5_pd0.1_cl0.4_tr0.001_epoch_148_f1_vs_epochs.png'
+Plot saved to 'best_loss_loss_penalties_toy_bs64_ld16_adam_lr1e-05_wd1e-05_be0.02_co1.5_de1.5_pd0.1_cl0.4_tr0.001_epoch_148_total_loss_vs_epochs.png'
+Plot saved to 'best_loss_loss_penalties_toy_bs64_ld16_adam_lr1e-05_wd1e-05_be0.02_co1.5_de1.5_pd0.1_cl0.4_tr0.001_epoch_148_acc_vs_epochs.png'
+Plot saved to 'best_loss_loss_penalties_toy_bs64_ld16_adam_lr1e-05_wd1e-05_be0.02_co1.5_de1.5_pd0.1_cl0.4_tr0.001_epoch_148_raw_recon_loss_parts_vs_epochs.png'
+Plot saved to 'best_loss_loss_penalties_toy_bs64_ld16_adam_lr1e-05_wd1e-05_be0.02_co1.5_de1.5_pd0.1_cl0.4_tr0.001_epoch_148_scaled_recon_loss_parts_vs_epochs.png'
+Plot saved to 'best_loss_loss_penalties_toy_bs64_ld16_adam_lr1e-05_wd1e-05_be0.02_co1.5_de1.5_pd0.1_cl0.4_tr0.001_epoch_148_kl_vs_recon.png'
+Plot saved to 'best_loss_loss_penalties_toy_bs64_ld16_adam_lr1e-05_wd1e-05_be0.02_co1.5_de1.5_pd0.1_cl0.4_tr0.001_epoch_148_beta_kl_vs_recon.png'
+Plot saved to 'best_loss_loss_penalties_toy_bs64_ld16_adam_lr1e-05_wd1e-05_be0.02_co1.5_de1.5_pd0.1_cl0.4_tr0.001_epoch_148_total_loss_vs_f1.png'
+
+Resetting history to epoch 148...
+
+Best weighted F1 average model checkpoint for epoch 145 does not exist.
+
+TrainingHistory rolled back to epoch 148. Updated attributes:
+	- Last updated model: 'best_loss_epoch_148.pth'
+	- Last improved model: 'best_loss_epoch_148.pth' Epoch: 148
+	- Best loss: 3.9762, Model: 'best_loss_epoch_148.pth' Epoch: 148
+	- Best F1 average: 0.2493, Model: 'None' Epoch: 145
+
+Attempting to load last updated model...
+Loading model and optimizer checkpoint from '/mnt/scratch/users/40538519/outputs/model_checkpoints/loss_penalties_toy_bs64_ld16_adam_lr1e-05_wd1e-05_be0.02_co1.5_de1.5_pd0.1_cl0.4_tr0.001/best_loss_epoch_148.pth'...
+Checkpoint loaded.
+
+Plotting latent space using PCA and UMAP with K=5...
+Plot saved to 'best_loss_loss_penalties_toy_bs64_ld16_adam_lr1e-05_wd1e-05_be0.02_co1.5_de1.5_pd0.1_cl0.4_tr0.001_epoch_148_pca.png'
+Plot saved to 'best_loss_loss_penalties_toy_bs64_ld16_adam_lr1e-05_wd1e-05_be0.02_co1.5_de1.5_pd0.1_cl0.4_tr0.001_epoch_148_umap.png'
+Latent analysis metrics:
+Silhouette score (PCA): 0.3252
+Silhouette score (UMAP): 0.4055
+
+Unique distances:
+tensor([0.0000e+00, 6.9053e-04, 9.7656e-04,  ..., 1.0200e+01, 1.0287e+01,
+        1.0334e+01])
+
+Max distance: 10.3335
+Mean pairwise distance: 5.4932, Standard deviation: 1.1022
+
+Alternative history filename updated: 'best_loss_loss_penalties_toy_bs64_ld16_adam_lr1e-05_wd1e-05_be0.02_co1.5_de1.5_pd0.1_cl0.4_tr0.001_epoch_148'
+Saving to alternative history filename: 'best_loss_loss_penalties_toy_bs64_ld16_adam_lr1e-05_wd1e-05_be0.02_co1.5_de1.5_pd0.1_cl0.4_tr0.001_epoch_148.pth'...
+History saved to 'metric_history/best_loss_loss_penalties_toy_bs64_ld16_adam_lr1e-05_wd1e-05_be0.02_co1.5_de1.5_pd0.1_cl0.4_tr0.001_epoch_148.pth'
+
+Getting samples for comparison visualisations...
+Robot comparison visualisation plot saved to 'comparison_best_loss_loss_penalties_toy_bs64_ld16_adam_lr1e-05_wd1e-05_be0.02_co1.5_de1.5_pd0.1_cl0.4_tr0.001_epoch_148_101482.png'
+Robot comparison visualisation plot saved to 'comparison_best_loss_loss_penalties_toy_bs64_ld16_adam_lr1e-05_wd1e-05_be0.02_co1.5_de1.5_pd0.1_cl0.4_tr0.001_epoch_148_220597.png'
+Robot comparison visualisation plot saved to 'comparison_best_loss_loss_penalties_toy_bs64_ld16_adam_lr1e-05_wd1e-05_be0.02_co1.5_de1.5_pd0.1_cl0.4_tr0.001_epoch_148_70987.png'
+Robot comparison visualisation plot saved to 'comparison_best_loss_loss_penalties_toy_bs64_ld16_adam_lr1e-05_wd1e-05_be0.02_co1.5_de1.5_pd0.1_cl0.4_tr0.001_epoch_148_8936.png'
+Robot comparison visualisation plot saved to 'comparison_best_loss_loss_penalties_toy_bs64_ld16_adam_lr1e-05_wd1e-05_be0.02_co1.5_de1.5_pd0.1_cl0.4_tr0.001_epoch_148_2421.png'
+
+Starting gridsearch for best weighted F1 model...
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+Searching grid...
+
+Best Configuration tradeoff score: 0.5856 at epoch: 139
+Training History Summary for Model: 'loss_penalties_toy_bs64_ld16_adam_lr1e-05_wd1e-05_be0.03_co3_de1.5_pd0.1_cl0.2_tr0.001'
+Model Directory: '/users/40538519/sharedscratch/outputs/model_checkpoints/loss_penalties_toy_bs64_ld16_adam_lr1e-05_wd1e-05_be0.03_co3_de1.5_pd0.1_cl0.2_tr0.001'
+--------------------------------------------------
+Epochs Run: 150
+Last Updated Model: 'final_model_epoch_150.pth'
+
+Epochs Without Improvement: 2
+Last Improved Model: 'best_loss_epoch_148.pth'
+
+Batch Size: 64
+Optimizer: Adam
+Weight Decay: 1e-05
+Scheduler: None
+
+Best Validation Loss: 704.6181
+Best Validation Loss Model: 'best_loss_epoch_148.pth'
+Best Validation Weighted F1: 0.4144
+Best Validation Weighted F1 Model: 'best_f1_avg_epoch_139.pth'
+--------------------------------------------------
+Training Metrics (Last Epoch):
+	- Coordinate Euclidean Distance: 0.8268
+	- Reconstruction Loss, Averaged Across Batches: 686.1254
+	- KL Divergence, Averaged Across Batches: 343.7289
+	- Descriptor Loss, Averaged Across Batches: 1.2147210756937663
+	- Coordinate Loss, Averaged Across Batches: 1.6584994614124298
+	- Beta: 0.03
+	- Accuracy: 0.3677
+	- Weighted F1: 0.4038
+	- Learning Rate: 1e-05
+	- Average Training Time: 00:00:10
+--------------------------------------------------
+Validation Metrics (Last Epoch):
+	- Coordinate Euclidean Distance: 0.8326
+	- Reconstruction Loss, Averaged Across Batches: 694.6314
+	- KL Divergence, Averaged Across Batches: 340.1950
+	- Descriptor Loss, Averaged Across Batches: 1.2205624183019002
+	- Coordinate Loss, Averaged Across Batches: 1.6833079523510404
+	- Beta: 0.03
+	- Accuracy: 0.3766
+	- Weighted F1: 0.4021
+	- Average Validation Time: 00:00:01
+--------------------------------------------------
+Model Architecture Used:
+Latent Dim: 16
+
+- '':
+VAE(
+  (encoder): Encoder(
+    (tnet): TNet(
+      (fc): Sequential(
+        (0): Linear(in_features=3, out_features=64, bias=True)
+        (1): LeakyReLU(negative_slope=0.01)
+        (2): Linear(in_features=64, out_features=128, bias=True)
+        (3): LeakyReLU(negative_slope=0.01)
+        (4): Linear(in_features=128, out_features=9, bias=True)
+      )
+    )
+    (spatial_mlp): Sequential(
+      (0): Conv1d(3, 64, kernel_size=(1,), stride=(1,))
+      (1): BatchNorm1d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      (2): LeakyReLU(negative_slope=0.01)
+      (3): Conv1d(64, 128, kernel_size=(1,), stride=(1,))
+      (4): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      (5): LeakyReLU(negative_slope=0.01)
+      (6): Conv1d(128, 1024, kernel_size=(1,), stride=(1,))
+      (7): BatchNorm1d(1024, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      (8): LeakyReLU(negative_slope=0.01)
+    )
+    (descriptor_mlp): Sequential(
+      (0): Conv1d(5, 64, kernel_size=(1,), stride=(1,))
+      (1): BatchNorm1d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      (2): LeakyReLU(negative_slope=0.01)
+      (3): Conv1d(64, 128, kernel_size=(1,), stride=(1,))
+      (4): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      (5): LeakyReLU(negative_slope=0.01)
+    )
+    (global_pool): AdaptiveAvgPool1d(output_size=1)
+    (fc): Sequential(
+      (0): Linear(in_features=2176, out_features=1024, bias=True)
+      (1): LeakyReLU(negative_slope=0.01)
+      (2): Linear(in_features=1024, out_features=512, bias=True)
+      (3): LeakyReLU(negative_slope=0.01)
+      (4): Linear(in_features=512, out_features=256, bias=True)
+      (5): LeakyReLU(negative_slope=0.01)
+    )
+    (z_mean_fc): Linear(in_features=256, out_features=16, bias=True)
+    (z_log_var_fc): Linear(in_features=256, out_features=16, bias=True)
+  )
+  (sampling): Sample()
+  (decoder): Decoder(
+    (fc): Sequential(
+      (0): Linear(in_features=16, out_features=256, bias=True)
+      (1): LeakyReLU(negative_slope=0.01)
+    )
+    (coord_deconv): Sequential(
+      (0): ConvTranspose1d(256, 512, kernel_size=(2,), stride=(1,))
+      (1): BatchNorm1d(512, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      (2): LeakyReLU(negative_slope=0.01)
+      (3): ConvTranspose1d(512, 1024, kernel_size=(2,), stride=(2,))
+      (4): BatchNorm1d(1024, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      (5): LeakyReLU(negative_slope=0.01)
+      (6): ConvTranspose1d(1024, 256, kernel_size=(2,), stride=(2,))
+      (7): BatchNorm1d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      (8): LeakyReLU(negative_slope=0.01)
+      (9): ConvTranspose1d(256, 3, kernel_size=(1,), stride=(1,))
+    )
+    (coord_fc): Sequential(
+      (0): Linear(in_features=3, out_features=3, bias=True)
+      (1): LeakyReLU(negative_slope=0.01)
+    )
+    (desc_deconv): Sequential(
+      (0): ConvTranspose1d(256, 512, kernel_size=(2,), stride=(1,))
+      (1): BatchNorm1d(512, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      (2): LeakyReLU(negative_slope=0.01)
+      (3): ConvTranspose1d(512, 128, kernel_size=(2,), stride=(2,))
+      (4): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      (5): LeakyReLU(negative_slope=0.01)
+      (6): ConvTranspose1d(128, 64, kernel_size=(2,), stride=(2,))
+      (7): BatchNorm1d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      (8): LeakyReLU(negative_slope=0.01)
+      (9): ConvTranspose1d(64, 5, kernel_size=(1,), stride=(1,))
+    )
+    (desc_fc): Sequential(
+      (0): Linear(in_features=5, out_features=5, bias=True)
+      (1): LeakyReLU(negative_slope=0.01)
+    )
+    (combined_fc): Sequential(
+      (0): Linear(in_features=8, out_features=8, bias=True)
+      (1): LeakyReLU(negative_slope=0.01)
+    )
+  )
+)
+
+- 'encoder':
+Encoder(
+  (tnet): TNet(
+    (fc): Sequential(
+      (0): Linear(in_features=3, out_features=64, bias=True)
+      (1): LeakyReLU(negative_slope=0.01)
+      (2): Linear(in_features=64, out_features=128, bias=True)
+      (3): LeakyReLU(negative_slope=0.01)
+      (4): Linear(in_features=128, out_features=9, bias=True)
+    )
+  )
+  (spatial_mlp): Sequential(
+    (0): Conv1d(3, 64, kernel_size=(1,), stride=(1,))
+    (1): BatchNorm1d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+    (2): LeakyReLU(negative_slope=0.01)
+    (3): Conv1d(64, 128, kernel_size=(1,), stride=(1,))
+    (4): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+    (5): LeakyReLU(negative_slope=0.01)
+    (6): Conv1d(128, 1024, kernel_size=(1,), stride=(1,))
+    (7): BatchNorm1d(1024, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+    (8): LeakyReLU(negative_slope=0.01)
+  )
+  (descriptor_mlp): Sequential(
+    (0): Conv1d(5, 64, kernel_size=(1,), stride=(1,))
+    (1): BatchNorm1d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+    (2): LeakyReLU(negative_slope=0.01)
+    (3): Conv1d(64, 128, kernel_size=(1,), stride=(1,))
+    (4): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+    (5): LeakyReLU(negative_slope=0.01)
+  )
+  (global_pool): AdaptiveAvgPool1d(output_size=1)
+  (fc): Sequential(
+    (0): Linear(in_features=2176, out_features=1024, bias=True)
+    (1): LeakyReLU(negative_slope=0.01)
+    (2): Linear(in_features=1024, out_features=512, bias=True)
+    (3): LeakyReLU(negative_slope=0.01)
+    (4): Linear(in_features=512, out_features=256, bias=True)
+    (5): LeakyReLU(negative_slope=0.01)
+  )
+  (z_mean_fc): Linear(in_features=256, out_features=16, bias=True)
+  (z_log_var_fc): Linear(in_features=256, out_features=16, bias=True)
+)
+
+- 'encoder.tnet':
+TNet(
+  (fc): Sequential(
+    (0): Linear(in_features=3, out_features=64, bias=True)
+    (1): LeakyReLU(negative_slope=0.01)
+    (2): Linear(in_features=64, out_features=128, bias=True)
+    (3): LeakyReLU(negative_slope=0.01)
+    (4): Linear(in_features=128, out_features=9, bias=True)
+  )
+)
+
+- 'encoder.tnet.fc':
+Sequential(
+  (0): Linear(in_features=3, out_features=64, bias=True)
+  (1): LeakyReLU(negative_slope=0.01)
+  (2): Linear(in_features=64, out_features=128, bias=True)
+  (3): LeakyReLU(negative_slope=0.01)
+  (4): Linear(in_features=128, out_features=9, bias=True)
+)
+
+- 'encoder.tnet.fc.0':
+Linear(in_features=3, out_features=64, bias=True)
+
+- 'encoder.tnet.fc.1':
+LeakyReLU(negative_slope=0.01)
+
+- 'encoder.tnet.fc.2':
+Linear(in_features=64, out_features=128, bias=True)
+
+- 'encoder.tnet.fc.3':
+LeakyReLU(negative_slope=0.01)
+
+- 'encoder.tnet.fc.4':
+Linear(in_features=128, out_features=9, bias=True)
+
+- 'encoder.spatial_mlp':
+Sequential(
+  (0): Conv1d(3, 64, kernel_size=(1,), stride=(1,))
+  (1): BatchNorm1d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+  (2): LeakyReLU(negative_slope=0.01)
+  (3): Conv1d(64, 128, kernel_size=(1,), stride=(1,))
+  (4): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+  (5): LeakyReLU(negative_slope=0.01)
+  (6): Conv1d(128, 1024, kernel_size=(1,), stride=(1,))
+  (7): BatchNorm1d(1024, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+  (8): LeakyReLU(negative_slope=0.01)
+)
+
+- 'encoder.spatial_mlp.0':
+Conv1d(3, 64, kernel_size=(1,), stride=(1,))
+
+- 'encoder.spatial_mlp.1':
+BatchNorm1d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+
+- 'encoder.spatial_mlp.2':
+LeakyReLU(negative_slope=0.01)
+
+- 'encoder.spatial_mlp.3':
+Conv1d(64, 128, kernel_size=(1,), stride=(1,))
+
+- 'encoder.spatial_mlp.4':
+BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+
+- 'encoder.spatial_mlp.5':
+LeakyReLU(negative_slope=0.01)
+
+- 'encoder.spatial_mlp.6':
+Conv1d(128, 1024, kernel_size=(1,), stride=(1,))
+
+- 'encoder.spatial_mlp.7':
+BatchNorm1d(1024, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+
+- 'encoder.spatial_mlp.8':
+LeakyReLU(negative_slope=0.01)
+
+- 'encoder.descriptor_mlp':
+Sequential(
+  (0): Conv1d(5, 64, kernel_size=(1,), stride=(1,))
+  (1): BatchNorm1d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+  (2): LeakyReLU(negative_slope=0.01)
+  (3): Conv1d(64, 128, kernel_size=(1,), stride=(1,))
+  (4): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+  (5): LeakyReLU(negative_slope=0.01)
+)
+
+- 'encoder.descriptor_mlp.0':
+Conv1d(5, 64, kernel_size=(1,), stride=(1,))
+
+- 'encoder.descriptor_mlp.1':
+BatchNorm1d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+
+- 'encoder.descriptor_mlp.2':
+LeakyReLU(negative_slope=0.01)
+
+- 'encoder.descriptor_mlp.3':
+Conv1d(64, 128, kernel_size=(1,), stride=(1,))
+
+- 'encoder.descriptor_mlp.4':
+BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+
+- 'encoder.descriptor_mlp.5':
+LeakyReLU(negative_slope=0.01)
+
+- 'encoder.global_pool':
+AdaptiveAvgPool1d(output_size=1)
+
+- 'encoder.fc':
+Sequential(
+  (0): Linear(in_features=2176, out_features=1024, bias=True)
+  (1): LeakyReLU(negative_slope=0.01)
+  (2): Linear(in_features=1024, out_features=512, bias=True)
+  (3): LeakyReLU(negative_slope=0.01)
+  (4): Linear(in_features=512, out_features=256, bias=True)
+  (5): LeakyReLU(negative_slope=0.01)
+)
+
+- 'encoder.fc.0':
+Linear(in_features=2176, out_features=1024, bias=True)
+
+- 'encoder.fc.1':
+LeakyReLU(negative_slope=0.01)
+
+- 'encoder.fc.2':
+Linear(in_features=1024, out_features=512, bias=True)
+
+- 'encoder.fc.3':
+LeakyReLU(negative_slope=0.01)
+
+- 'encoder.fc.4':
+Linear(in_features=512, out_features=256, bias=True)
+
+- 'encoder.fc.5':
+LeakyReLU(negative_slope=0.01)
+
+- 'encoder.z_mean_fc':
+Linear(in_features=256, out_features=16, bias=True)
+
+- 'encoder.z_log_var_fc':
+Linear(in_features=256, out_features=16, bias=True)
+
+- 'sampling':
+Sample()
+
+- 'decoder':
+Decoder(
+  (fc): Sequential(
+    (0): Linear(in_features=16, out_features=256, bias=True)
+    (1): LeakyReLU(negative_slope=0.01)
+  )
+  (coord_deconv): Sequential(
+    (0): ConvTranspose1d(256, 512, kernel_size=(2,), stride=(1,))
+    (1): BatchNorm1d(512, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+    (2): LeakyReLU(negative_slope=0.01)
+    (3): ConvTranspose1d(512, 1024, kernel_size=(2,), stride=(2,))
+    (4): BatchNorm1d(1024, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+    (5): LeakyReLU(negative_slope=0.01)
+    (6): ConvTranspose1d(1024, 256, kernel_size=(2,), stride=(2,))
+    (7): BatchNorm1d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+    (8): LeakyReLU(negative_slope=0.01)
+    (9): ConvTranspose1d(256, 3, kernel_size=(1,), stride=(1,))
+  )
+  (coord_fc): Sequential(
+    (0): Linear(in_features=3, out_features=3, bias=True)
+    (1): LeakyReLU(negative_slope=0.01)
+  )
+  (desc_deconv): Sequential(
+    (0): ConvTranspose1d(256, 512, kernel_size=(2,), stride=(1,))
+    (1): BatchNorm1d(512, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+    (2): LeakyReLU(negative_slope=0.01)
+    (3): ConvTranspose1d(512, 128, kernel_size=(2,), stride=(2,))
+    (4): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+    (5): LeakyReLU(negative_slope=0.01)
+    (6): ConvTranspose1d(128, 64, kernel_size=(2,), stride=(2,))
+    (7): BatchNorm1d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+    (8): LeakyReLU(negative_slope=0.01)
+    (9): ConvTranspose1d(64, 5, kernel_size=(1,), stride=(1,))
+  )
+  (desc_fc): Sequential(
+    (0): Linear(in_features=5, out_features=5, bias=True)
+    (1): LeakyReLU(negative_slope=0.01)
+  )
+  (combined_fc): Sequential(
+    (0): Linear(in_features=8, out_features=8, bias=True)
+    (1): LeakyReLU(negative_slope=0.01)
+  )
+)
+
+- 'decoder.fc':
+Sequential(
+  (0): Linear(in_features=16, out_features=256, bias=True)
+  (1): LeakyReLU(negative_slope=0.01)
+)
+
+- 'decoder.fc.0':
+Linear(in_features=16, out_features=256, bias=True)
+
+- 'decoder.fc.1':
+LeakyReLU(negative_slope=0.01)
+
+- 'decoder.coord_deconv':
+Sequential(
+  (0): ConvTranspose1d(256, 512, kernel_size=(2,), stride=(1,))
+  (1): BatchNorm1d(512, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+  (2): LeakyReLU(negative_slope=0.01)
+  (3): ConvTranspose1d(512, 1024, kernel_size=(2,), stride=(2,))
+  (4): BatchNorm1d(1024, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+  (5): LeakyReLU(negative_slope=0.01)
+  (6): ConvTranspose1d(1024, 256, kernel_size=(2,), stride=(2,))
+  (7): BatchNorm1d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+  (8): LeakyReLU(negative_slope=0.01)
+  (9): ConvTranspose1d(256, 3, kernel_size=(1,), stride=(1,))
+)
+
+- 'decoder.coord_deconv.0':
+ConvTranspose1d(256, 512, kernel_size=(2,), stride=(1,))
+
+- 'decoder.coord_deconv.1':
+BatchNorm1d(512, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+
+- 'decoder.coord_deconv.2':
+LeakyReLU(negative_slope=0.01)
+
+- 'decoder.coord_deconv.3':
+ConvTranspose1d(512, 1024, kernel_size=(2,), stride=(2,))
+
+- 'decoder.coord_deconv.4':
+BatchNorm1d(1024, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+
+- 'decoder.coord_deconv.5':
+LeakyReLU(negative_slope=0.01)
+
+- 'decoder.coord_deconv.6':
+ConvTranspose1d(1024, 256, kernel_size=(2,), stride=(2,))
+
+- 'decoder.coord_deconv.7':
+BatchNorm1d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+
+- 'decoder.coord_deconv.8':
+LeakyReLU(negative_slope=0.01)
+
+- 'decoder.coord_deconv.9':
+ConvTranspose1d(256, 3, kernel_size=(1,), stride=(1,))
+
+- 'decoder.coord_fc':
+Sequential(
+  (0): Linear(in_features=3, out_features=3, bias=True)
+  (1): LeakyReLU(negative_slope=0.01)
+)
+
+- 'decoder.coord_fc.0':
+Linear(in_features=3, out_features=3, bias=True)
+
+- 'decoder.coord_fc.1':
+LeakyReLU(negative_slope=0.01)
+
+- 'decoder.desc_deconv':
+Sequential(
+  (0): ConvTranspose1d(256, 512, kernel_size=(2,), stride=(1,))
+  (1): BatchNorm1d(512, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+  (2): LeakyReLU(negative_slope=0.01)
+  (3): ConvTranspose1d(512, 128, kernel_size=(2,), stride=(2,))
+  (4): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+  (5): LeakyReLU(negative_slope=0.01)
+  (6): ConvTranspose1d(128, 64, kernel_size=(2,), stride=(2,))
+  (7): BatchNorm1d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+  (8): LeakyReLU(negative_slope=0.01)
+  (9): ConvTranspose1d(64, 5, kernel_size=(1,), stride=(1,))
+)
+
+- 'decoder.desc_deconv.0':
+ConvTranspose1d(256, 512, kernel_size=(2,), stride=(1,))
+
+- 'decoder.desc_deconv.1':
+BatchNorm1d(512, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+
+- 'decoder.desc_deconv.2':
+LeakyReLU(negative_slope=0.01)
+
+- 'decoder.desc_deconv.3':
+ConvTranspose1d(512, 128, kernel_size=(2,), stride=(2,))
+
+- 'decoder.desc_deconv.4':
+BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+
+- 'decoder.desc_deconv.5':
+LeakyReLU(negative_slope=0.01)
+
+- 'decoder.desc_deconv.6':
+ConvTranspose1d(128, 64, kernel_size=(2,), stride=(2,))
+
+- 'decoder.desc_deconv.7':
+BatchNorm1d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+
+- 'decoder.desc_deconv.8':
+LeakyReLU(negative_slope=0.01)
+
+- 'decoder.desc_deconv.9':
+ConvTranspose1d(64, 5, kernel_size=(1,), stride=(1,))
+
+- 'decoder.desc_fc':
+Sequential(
+  (0): Linear(in_features=5, out_features=5, bias=True)
+  (1): LeakyReLU(negative_slope=0.01)
+)
+
+- 'decoder.desc_fc.0':
+Linear(in_features=5, out_features=5, bias=True)
+
+- 'decoder.desc_fc.1':
+LeakyReLU(negative_slope=0.01)
+
+- 'decoder.combined_fc':
+Sequential(
+  (0): Linear(in_features=8, out_features=8, bias=True)
+  (1): LeakyReLU(negative_slope=0.01)
+)
+
+- 'decoder.combined_fc.0':
+Linear(in_features=8, out_features=8, bias=True)
+
+- 'decoder.combined_fc.1':
+LeakyReLU(negative_slope=0.01)
+--------------------------------------------------
+Search complete!
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+Alternative history filename updated: 'best_f1_loss_penalties_toy_bs64_ld16_adam_lr1e-05_wd1e-05_be0.03_co3_de1.5_pd0.1_cl0.2_tr0.001_epoch_139'
+Saving to alternative history filename: 'best_f1_loss_penalties_toy_bs64_ld16_adam_lr1e-05_wd1e-05_be0.03_co3_de1.5_pd0.1_cl0.2_tr0.001_epoch_139.pth'...
+History saved to 'metric_history/best_f1_loss_penalties_toy_bs64_ld16_adam_lr1e-05_wd1e-05_be0.03_co3_de1.5_pd0.1_cl0.2_tr0.001_epoch_139.pth'
+
+Plot saved to 'best_f1_loss_penalties_toy_bs64_ld16_adam_lr1e-05_wd1e-05_be0.03_co3_de1.5_pd0.1_cl0.2_tr0.001_epoch_139_recon-beta_kl_vs_epochs.png'
+Plot saved to 'best_f1_loss_penalties_toy_bs64_ld16_adam_lr1e-05_wd1e-05_be0.03_co3_de1.5_pd0.1_cl0.2_tr0.001_epoch_139_f1_vs_epochs.png'
+Plot saved to 'best_f1_loss_penalties_toy_bs64_ld16_adam_lr1e-05_wd1e-05_be0.03_co3_de1.5_pd0.1_cl0.2_tr0.001_epoch_139_total_loss_vs_epochs.png'
+Plot saved to 'best_f1_loss_penalties_toy_bs64_ld16_adam_lr1e-05_wd1e-05_be0.03_co3_de1.5_pd0.1_cl0.2_tr0.001_epoch_139_acc_vs_epochs.png'
+Plot saved to 'best_f1_loss_penalties_toy_bs64_ld16_adam_lr1e-05_wd1e-05_be0.03_co3_de1.5_pd0.1_cl0.2_tr0.001_epoch_139_raw_recon_loss_parts_vs_epochs.png'
+Plot saved to 'best_f1_loss_penalties_toy_bs64_ld16_adam_lr1e-05_wd1e-05_be0.03_co3_de1.5_pd0.1_cl0.2_tr0.001_epoch_139_scaled_recon_loss_parts_vs_epochs.png'
+Plot saved to 'best_f1_loss_penalties_toy_bs64_ld16_adam_lr1e-05_wd1e-05_be0.03_co3_de1.5_pd0.1_cl0.2_tr0.001_epoch_139_kl_vs_recon.png'
+Plot saved to 'best_f1_loss_penalties_toy_bs64_ld16_adam_lr1e-05_wd1e-05_be0.03_co3_de1.5_pd0.1_cl0.2_tr0.001_epoch_139_beta_kl_vs_recon.png'
+Plot saved to 'best_f1_loss_penalties_toy_bs64_ld16_adam_lr1e-05_wd1e-05_be0.03_co3_de1.5_pd0.1_cl0.2_tr0.001_epoch_139_total_loss_vs_f1.png'
+
+Resetting history to epoch 139...
+
+Best loss model checkpoint for epoch 133 does not exist.
+
+TrainingHistory rolled back to epoch 139. Updated attributes:
+	- Last updated model: 'best_f1_avg_epoch_139.pth'
+	- Last improved model: 'best_f1_avg_epoch_139.pth' Epoch: 139
+	- Best loss: 7.1013, Model: 'None' Epoch: 133
+	- Best F1 average: 0.4144, Model: 'best_f1_avg_epoch_139.pth' Epoch: 139
+
+Attempting to load last updated model...
+Loading model and optimizer checkpoint from '/mnt/scratch/users/40538519/outputs/model_checkpoints/loss_penalties_toy_bs64_ld16_adam_lr1e-05_wd1e-05_be0.03_co3_de1.5_pd0.1_cl0.2_tr0.001/best_f1_avg_epoch_139.pth'...
+Checkpoint loaded.
+
+Plotting latent space using PCA and UMAP with K=5...
+Plot saved to 'best_f1_loss_penalties_toy_bs64_ld16_adam_lr1e-05_wd1e-05_be0.03_co3_de1.5_pd0.1_cl0.2_tr0.001_epoch_139_pca.png'
+Plot saved to 'best_f1_loss_penalties_toy_bs64_ld16_adam_lr1e-05_wd1e-05_be0.03_co3_de1.5_pd0.1_cl0.2_tr0.001_epoch_139_umap.png'
+Latent analysis metrics:
+Silhouette score (PCA): 0.3510
+Silhouette score (UMAP): 0.4109
+
+Unique distances:
+tensor([0.0000e+00, 9.7656e-04, 1.3811e-03,  ..., 9.8834e+00, 1.0067e+01,
+        1.0280e+01])
+
+Max distance: 10.2805
+Mean pairwise distance: 5.5090, Standard deviation: 1.0835
+
+Alternative history filename updated: 'best_f1_loss_penalties_toy_bs64_ld16_adam_lr1e-05_wd1e-05_be0.03_co3_de1.5_pd0.1_cl0.2_tr0.001_epoch_139'
+Saving to alternative history filename: 'best_f1_loss_penalties_toy_bs64_ld16_adam_lr1e-05_wd1e-05_be0.03_co3_de1.5_pd0.1_cl0.2_tr0.001_epoch_139.pth'...
+History saved to 'metric_history/best_f1_loss_penalties_toy_bs64_ld16_adam_lr1e-05_wd1e-05_be0.03_co3_de1.5_pd0.1_cl0.2_tr0.001_epoch_139.pth'
+
+Getting samples for comparison visualisations...
+Robot comparison visualisation plot saved to 'comparison_best_f1_loss_penalties_toy_bs64_ld16_adam_lr1e-05_wd1e-05_be0.03_co3_de1.5_pd0.1_cl0.2_tr0.001_epoch_139_101482.png'
+Robot comparison visualisation plot saved to 'comparison_best_f1_loss_penalties_toy_bs64_ld16_adam_lr1e-05_wd1e-05_be0.03_co3_de1.5_pd0.1_cl0.2_tr0.001_epoch_139_220597.png'
+Robot comparison visualisation plot saved to 'comparison_best_f1_loss_penalties_toy_bs64_ld16_adam_lr1e-05_wd1e-05_be0.03_co3_de1.5_pd0.1_cl0.2_tr0.001_epoch_139_70987.png'
+Robot comparison visualisation plot saved to 'comparison_best_f1_loss_penalties_toy_bs64_ld16_adam_lr1e-05_wd1e-05_be0.03_co3_de1.5_pd0.1_cl0.2_tr0.001_epoch_139_8936.png'
+Robot comparison visualisation plot saved to 'comparison_best_f1_loss_penalties_toy_bs64_ld16_adam_lr1e-05_wd1e-05_be0.03_co3_de1.5_pd0.1_cl0.2_tr0.001_epoch_139_2421.png'
+
+Pipeline complete!
+Script execution completed.
+Deactivating environment...
+Job complete.
