@@ -21,6 +21,9 @@ from ..metrics.metrics import get_best_tradeoff_score
 from .train_test import train_val
 from .history_checkpoint import TrainingHistory
 from ..data.dataset import VoxelDataset
+from ..visualisation.plots import generate_plots
+from ..visualisation.robot import compare_reconstructed
+
 
 def create_grid() -> list[dict]:
     """
@@ -28,13 +31,14 @@ def create_grid() -> list[dict]:
     Creates a grid of training configurations as a list of dictionaries containing:
     - 'batch_size'
     - 'latent_dim'
-    - 'loss'
     - 'optimizer' (list of dictionaries with keys 'type', 'params' and 'model_name')
     - 'lr'
     - 'decay'
+    - 'coord' - scaler for coordinate match loss
+    - 'desc' - scaler for descriptor match loss
+    - 'pad' - scaler for padded voxel penalty
+    - 'collapse' - scaler for coordinate overlap penalty
     - 'beta' - higher values lead to a more constrained latent space, lower values lead to a more flexible latent space representation (and focuses on reconstruction loss)
-    - alphas - balances descriptor loss and coordinate loss, High emphasises descriptor accuracy, lower focuses on coordinate reconstruction
-    - dup_pad_penalty_scales - adjusts the penalty applied for incorrect number of padded voxels in comparison to the original and duplicates
     - lambda_regs - adjusts the regularisation term for the transformation matrix
 
     Other tunable parameters not included here include:
@@ -47,10 +51,9 @@ def create_grid() -> list[dict]:
     :return: Grid of training configurations
     """
     print("Creating grid...")
+    """
     batch_sizes = [64]  # Possibly trial 16, and 128 later
     latent_dims = [16] #[12, 16]  # Possibly trial 16 later
-    # Applied to coordinate loss, Cross entropy loss used for descriptor loss
-    loss_functions = ["mse"]  # Possibly later trail "smoothL1", bce expects probabilities in range [0,1], otherwise use bcewithlogitsloss as internally applies sigmoid
     optimizer = [
         {"type": optim.Adam, "params": {}, "model_name": "adam"},
         # # {"type": optim.SGD, "params": {"nesterov": True}, "model_name": "sgd"},  # Potential for later
@@ -60,25 +63,92 @@ def create_grid() -> list[dict]:
     ]
     learning_rates = [5e-4] #[5e-4, 1e-4]   # Later potentially trial 5e-4, 5e-3, and 1e-2 for fine-tuning
     weight_decay = [1e-5]  #[0, 1e-5]  # Possibly later trial 1e-2
-    betas = [0.01]  # Possibly trial 0.5, 2, and 4 later
-    alphas = [0.2]  #[0.2, 0.3]  # High emphasises descriptor accuracy, lower focuses on coordinate reconstruction
-    dup_pad_penalty_scales = [1]  # Scales penalty (penalty for abs different number of padded voxels to original, plus penalty for duplicate non-padded voxels)
-    lambda_regs = [0.001]
+    lambda_coord = [2, 3, 4]
+    lambda_desc = [1.5, 2]
+    lambda_pad = [0.3, 0.5, 0.7]
+    lambda_collapse = [0.1, 0.3, 0.5]
+    betas = [0.02, 0.05]  # Possibly trial 0.5, 2, and 4 later
+    lambda_regs = [0.001, 0.002]
 
     grid = [
-        {"batch_size": batch_size, "latent_dim": latent_dim, "loss": loss, "optimizer": opt, "lr": lr, "decay": decay, "beta": beta, "alpha": alpha, "dup_pad": dup_pad, "lambda_reg": lambda_reg}
+        {"batch_size": batch_size, "latent_dim": latent_dim, "optimizer": opt, "lr": lr, "decay": decay, "lambda_coord": coord, "lambda_desc": desc, "lambda_pad": pad, "lambda_collapse": collapse, "beta": beta, "lambda_reg": lambda_reg}
         for batch_size in batch_sizes
         for latent_dim in latent_dims
-        for loss in loss_functions
         for opt in optimizer
         for lr in learning_rates
         for decay in weight_decay
+        for coord in lambda_coord
+        for desc in lambda_desc
+        for pad in lambda_pad
+        for collapse in lambda_collapse
         for beta in betas
-        for alpha in alphas
-        for dup_pad in dup_pad_penalty_scales
         for lambda_reg in lambda_regs
     ]
     print(f"Grid created with {len(grid)} configuration(s).")
+    """
+
+    grid = [
+        {"batch_size": 64, "latent_dim": 16, "optimizer": {"type": optim.Adam, "params": {}, "model_name": "adam"},
+         "lr": 1e-5, "decay": 1e-5, "lambda_coord": 1.5, "lambda_desc": 1.5, "lambda_pad": 0.1, "lambda_collapse": 0.4,
+         "beta": 0.02, "lambda_reg": 0.001},
+        {"batch_size": 64, "latent_dim": 16, "optimizer": {"type": optim.Adam, "params": {}, "model_name": "adam"},
+         "lr": 1e-5, "decay": 1e-5, "lambda_coord": 2, "lambda_desc": 2, "lambda_pad": 0.3, "lambda_collapse": 0.2,
+         "beta": 0.03, "lambda_reg": 0.001},
+        {"batch_size": 64, "latent_dim": 16, "optimizer": {"type": optim.Adam, "params": {}, "model_name": "adam"},
+         "lr": 1e-5, "decay": 1e-5, "lambda_coord": 3, "lambda_desc": 2, "lambda_pad": 0.5, "lambda_collapse": 0.1,
+         "beta": 0.03, "lambda_reg": 0.001},
+        {"batch_size": 64, "latent_dim": 16, "optimizer": {"type": optim.Adam, "params": {}, "model_name": "adam"},
+         "lr": 1e-5, "decay": 1e-5, "lambda_coord": 4, "lambda_desc": 1.5, "lambda_pad": 0.7, "lambda_collapse": 0.3,
+         "beta": 0.05, "lambda_reg": 0.001},
+        {"batch_size": 64, "latent_dim": 16, "optimizer": {"type": optim.Adam, "params": {}, "model_name": "adam"},
+         "lr": 1e-5, "decay": 1e-5, "lambda_coord": 1.5, "lambda_desc": 2, "lambda_pad": 0.5, "lambda_collapse": 0.5,
+         "beta": 0.02, "lambda_reg": 0.001},
+        {"batch_size": 64, "latent_dim": 16, "optimizer": {"type": optim.Adam, "params": {}, "model_name": "adam"},
+         "lr": 1e-5, "decay": 1e-5, "lambda_coord": 2, "lambda_desc": 1.5, "lambda_pad": 0.3, "lambda_collapse": 0.4,
+         "beta": 0.05, "lambda_reg": 0.001},
+        {"batch_size": 64, "latent_dim": 16, "optimizer": {"type": optim.Adam, "params": {}, "model_name": "adam"},
+         "lr": 1e-5, "decay": 1e-5, "lambda_coord": 3, "lambda_desc": 1.5, "lambda_pad": 0.1, "lambda_collapse": 0.2,
+         "beta": 0.03, "lambda_reg": 0.001},
+        {"batch_size": 64, "latent_dim": 16, "optimizer": {"type": optim.Adam, "params": {}, "model_name": "adam"},
+         "lr": 1e-5, "decay": 1e-5, "lambda_coord": 4, "lambda_desc": 2, "lambda_pad": 0.7, "lambda_collapse": 0.3,
+         "beta": 0.05, "lambda_reg": 0.001},
+        {"batch_size": 64, "latent_dim": 16, "optimizer": {"type": optim.Adam, "params": {}, "model_name": "adam"},
+         "lr": 1e-5, "decay": 1e-5, "lambda_coord": 1.5, "lambda_desc": 1.5, "lambda_pad": 0.3, "lambda_collapse": 0.5,
+         "beta": 0.02, "lambda_reg": 0.001},
+        {"batch_size": 64, "latent_dim": 16, "optimizer": {"type": optim.Adam, "params": {}, "model_name": "adam"},
+         "lr": 1e-5, "decay": 1e-5, "lambda_coord": 2, "lambda_desc": 2, "lambda_pad": 0.5, "lambda_collapse": 0.4,
+         "beta": 0.03, "lambda_reg": 0.001},
+        {"batch_size": 64, "latent_dim": 16, "optimizer": {"type": optim.Adam, "params": {}, "model_name": "adam"},
+         "lr": 1e-5, "decay": 1e-5, "lambda_coord": 3, "lambda_desc": 2, "lambda_pad": 0.1, "lambda_collapse": 0.3,
+         "beta": 0.05, "lambda_reg": 0.001},
+        {"batch_size": 64, "latent_dim": 16, "optimizer": {"type": optim.Adam, "params": {}, "model_name": "adam"},
+         "lr": 1e-5, "decay": 1e-5, "lambda_coord": 4, "lambda_desc": 1.5, "lambda_pad": 0.7, "lambda_collapse": 0.2,
+         "beta": 0.03, "lambda_reg": 0.001},
+        {"batch_size": 64, "latent_dim": 16, "optimizer": {"type": optim.Adam, "params": {}, "model_name": "adam"},
+         "lr": 1e-5, "decay": 1e-5, "lambda_coord": 1.5, "lambda_desc": 2, "lambda_pad": 0.5, "lambda_collapse": 0.4,
+         "beta": 0.02, "lambda_reg": 0.001},
+        {"batch_size": 64, "latent_dim": 16, "optimizer": {"type": optim.Adam, "params": {}, "model_name": "adam"},
+         "lr": 1e-5, "decay": 1e-5, "lambda_coord": 2, "lambda_desc": 1.5, "lambda_pad": 0.3, "lambda_collapse": 0.1,
+         "beta": 0.03, "lambda_reg": 0.001},
+        {"batch_size": 64, "latent_dim": 16, "optimizer": {"type": optim.Adam, "params": {}, "model_name": "adam"},
+         "lr": 1e-5, "decay": 1e-5, "lambda_coord": 3, "lambda_desc": 2, "lambda_pad": 0.7, "lambda_collapse": 0.5,
+         "beta": 0.05, "lambda_reg": 0.001},
+        {"batch_size": 64, "latent_dim": 16, "optimizer": {"type": optim.Adam, "params": {}, "model_name": "adam"},
+         "lr": 1e-5, "decay": 1e-5, "lambda_coord": 4, "lambda_desc": 1.5, "lambda_pad": 0.1, "lambda_collapse": 0.2,
+         "beta": 0.02, "lambda_reg": 0.001},
+        {"batch_size": 64, "latent_dim": 16, "optimizer": {"type": optim.Adam, "params": {}, "model_name": "adam"},
+         "lr": 1e-5, "decay": 1e-5, "lambda_coord": 1.5, "lambda_desc": 2, "lambda_pad": 0.3, "lambda_collapse": 0.4,
+         "beta": 0.03, "lambda_reg": 0.001},
+        {"batch_size": 64, "latent_dim": 16, "optimizer": {"type": optim.Adam, "params": {}, "model_name": "adam"},
+         "lr": 1e-5, "decay": 1e-5, "lambda_coord": 2, "lambda_desc": 1.5, "lambda_pad": 0.5, "lambda_collapse": 0.3,
+         "beta": 0.05, "lambda_reg": 0.001},
+        {"batch_size": 64, "latent_dim": 16, "optimizer": {"type": optim.Adam, "params": {}, "model_name": "adam"},
+         "lr": 1e-5, "decay": 1e-5, "lambda_coord": 3, "lambda_desc": 2, "lambda_pad": 0.1, "lambda_collapse": 0.5,
+         "beta": 0.02, "lambda_reg": 0.001},
+        {"batch_size": 64, "latent_dim": 16, "optimizer": {"type": optim.Adam, "params": {}, "model_name": "adam"},
+         "lr": 1e-5, "decay": 1e-5, "lambda_coord": 4, "lambda_desc": 1.5, "lambda_pad": 0.7, "lambda_collapse": 0.1,
+         "beta": 0.03, "lambda_reg": 0.001}
+    ]
 
     return grid
 
@@ -129,7 +199,7 @@ def train_grid_search(train_ds: VoxelDataset, val_ds: VoxelDataset, model_archit
             start_timer = time.perf_counter()
 
             # Assign unique name containing test information
-            model_name = f"{model_architecture_name}_bs{setup['batch_size']}_ld{setup['latent_dim']}_{setup['loss']}_{setup['optimizer']['model_name']}_lr{setup['lr']}_wd{setup['decay']}_be{setup['beta']}_a{setup['alpha']}_dup{setup['dup_pad']}_lam{setup['lambda_reg']}"
+            model_name = f"{model_architecture_name}_bs{setup['batch_size']}_ld{setup['latent_dim']}_{setup['optimizer']['model_name']}_lr{setup['lr']}_wd{setup['decay']}_be{setup['beta']}_co{setup['lambda_coord']}_de{setup['lambda_desc']}_pd{setup['lambda_pad']}_cl{setup['lambda_collapse']}_tr{setup['lambda_reg']}"
 
             # Check if history path is already in file
             if f"{model_name}_history.pth" in completed_histories:
@@ -154,7 +224,7 @@ def train_grid_search(train_ds: VoxelDataset, val_ds: VoxelDataset, model_archit
             vae = VAE(INPUT_DIM, setup['latent_dim'], model_name, max_voxels=train_ds.max_voxels, coordinate_dimensions=train_ds.coordinate_dim).to(DEVICE)
 
             # Initialise loss function
-            criterion = VaeLoss(setup['loss'], setup['alpha'], setup['dup_pad'], setup['lambda_reg'])
+            criterion = VaeLoss(setup['lambda_coord'], setup['lambda_desc'], setup['lambda_pad'], setup['lambda_collapse'], setup['lambda_reg'])
 
             # Initialise optimizer
             optim_params = setup['optimizer']['params']
@@ -169,6 +239,9 @@ def train_grid_search(train_ds: VoxelDataset, val_ds: VoxelDataset, model_archit
             history_path = f"{history.model_name}_history.pth"
             file.write(history_path + "\n")
             print(f"Added '{history_path}' to '{Path(*search_list_path.parts[-2:])}'")
+
+            generate_plots(history, history.model_name)
+            compare_reconstructed(vae, val_loader, num_sample=5, filename=f"comparison_{history.model_name}")
 
             # Append training time for progress updates
             stop_timer = time.perf_counter()

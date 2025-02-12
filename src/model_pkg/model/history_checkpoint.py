@@ -9,7 +9,6 @@ from pathlib import Path, PosixPath, WindowsPath  # For patching torch.load when
 import platform  # For patching torch.load when saved on one machine and loaded on a different
 import re
 from ..config import DEVICE, NUM_CLASSES, MODEL_CHECKPOINT_DIR, HISTORY_DIR, PATIENCE, EPOCHS, BASE_DIR
-from ..metrics.losses import VaeLoss
 from . import model as model_module  # Used for reconstructing model in load_model_checkpoint
 
 def avg_and_format_time(times: list[float]) -> str:
@@ -141,7 +140,7 @@ class TrainingHistory:
     check_and_save_model_improvement should be called prior to updating epoch history.
     update_epoch should be called prior to saving history.
     """
-    def __init__(self, model: torch.nn.Module, dataloader: torch.utils.data.DataLoader, optimizer: torch.optim.Optimizer, criterion: VaeLoss, scheduler: torch.optim.lr_scheduler.ReduceLROnPlateau = None):
+    def __init__(self, model: torch.nn.Module, dataloader: torch.utils.data.DataLoader, optimizer: torch.optim.Optimizer, scheduler: torch.optim.lr_scheduler.ReduceLROnPlateau = None):
         """
         Initialises TrainingHistory object for tracking metrics.
         Use TrainingHistory.load() to load and initialise saved objects.
@@ -163,7 +162,6 @@ class TrainingHistory:
         self.batch_size = dataloader.batch_size
         self.optim = optimizer.__class__.__name__
         self.weight_decay = optimizer.param_groups[0]['weight_decay']
-        self.loss_fn = criterion.loss_name
         self.scheduler = {
             "patience": scheduler.patience,
             "factor": scheduler.factor
@@ -193,9 +191,15 @@ class TrainingHistory:
             'lr': [],  # Learning rate used by optimizer per epoch
             'training_time': [],  # Training loop time in seconds
             'desc_loss': [],  # Average descriptor loss per epoch
+            'scaled_desc_loss': [],  # Average lambda scaled descriptor loss per epoch
             'coor_loss': [],  # Average coordinate loss per epoch
-            'dup_pad_avg': [],  # Average duplicate and padded penalty per epoch
-            'transform_reg_avg': []  # Average transformation regularising term per epoch
+            'scaled_coor_loss': [],  # Averaged lambda scaled coordinate loss per epoch
+            'pad_penalty': [],  # Average padding penalty per epoch
+            'scaled_pad_penalty': [],  # Average lambda scaled padding penalty per epoch
+            'collapse_penalty': [],  # Average coordinate collapse penalty per epoch
+            'scaled_collapse_penalty': [],  # Average lambda scaled coordinate collapse penalty per epoch
+            'transform_reg_avg': [],  # Average transformation regularising term per epoch
+            'scaled_transform_reg': []  # Average lambda scaled transformation regularisation term per epoch
         }
 
         # No learning rate required for validation due to not using optimizer
@@ -213,9 +217,15 @@ class TrainingHistory:
             'beta': [],  # Beta applied to KL divergence per epoch
             'training_time': [],  # Validation loop time in seconds
             'desc_loss': [],  # Average descriptor loss per epoch
+            'scaled_desc_loss': [],  # Average lambda scaled descriptor loss per epoch
             'coor_loss': [],  # Average coordinate loss per epoch
-            'dup_pad_avg': [],  # Average duplicate and padded penalty per epoch
-            'transform_reg_avg': []  # Average transformation regularising term per epoch
+            'scaled_coor_loss': [],  # Averaged lambda scaled coordinate loss per epoch
+            'pad_penalty': [],  # Average padding penalty per epoch
+            'scaled_pad_penalty': [],  # Average lambda scaled padding penalty per epoch
+            'collapse_penalty': [],  # Average coordinate collapse penalty per epoch
+            'scaled_collapse_penalty': [],  # Average lambda scaled coordinate collapse penalty per epoch
+            'transform_reg_avg': [],  # Average transformation regularising term per epoch
+            'scaled_transform_reg': []  # Average lambda scaled transformation regularisation term per epoch
         }
 
     def check_and_save_model_improvement(self, val_epoch_metrics: dict, epoch: int, model: torch.nn.Module, optimizer: torch.optim.Optimizer, scheduler: torch.optim.lr_scheduler.LRScheduler = None) -> bool:
@@ -239,7 +249,7 @@ class TrainingHistory:
         :return: True when patience epoch reached with no improvement, or final epoch reached
         """
         improved = False
-        epoch_loss = val_epoch_metrics['recon'] + val_epoch_metrics['beta'] * val_epoch_metrics['kl']
+        epoch_loss = val_epoch_metrics['recon_loss'] + val_epoch_metrics['beta'] * val_epoch_metrics['kl']
 
         # Loss
         if self.last_updated_model is None or epoch_loss < self.bests['best_loss']:
@@ -300,8 +310,6 @@ class TrainingHistory:
         if increment_epochs_run:
             self.epochs_run += 1
         history['coor_euclid'].append(epoch_metrics['coor_euclid'])
-        history['recon'].append(epoch_metrics['recon'])
-        history['kl'].append(epoch_metrics['kl'])
         history['accuracy'].append(epoch_metrics['accuracy'])
         history['recall_classes'] = torch.cat([history['recall_classes'], epoch_metrics['class_recall'].unsqueeze(0)])
         history['recall_weighted_avg'].append(epoch_metrics['weighted_recall'])
@@ -312,9 +320,18 @@ class TrainingHistory:
         history['beta'].append(epoch_metrics['beta'])
         history['training_time'].append(epoch_metrics['training_time'])
         history['desc_loss'].append(epoch_metrics['desc_loss'])
-        history['coor_loss'].append(epoch_metrics['coor_loss'])
-        history['dup_pad_avg'].append(epoch_metrics['dup_pad_avg'])
-        history['transform_reg_avg'].append(epoch_metrics['transform_reg_avg'])
+        history['scaled_desc_loss'].append(epoch_metrics['scaled_desc_loss'])
+        history['coor_loss'].append(epoch_metrics['coor_match_loss'])
+        history['scaled_coor_loss'].append(epoch_metrics['scaled_coor_match_loss'])
+        history['pad_penalty'].append(epoch_metrics['pad_penalty'])
+        history['scaled_pad_penalty'].append(epoch_metrics['scaled_pad_penalty'])
+        history['collapse_penalty'].append(epoch_metrics['collapse_penalty'])
+        history['scaled_collapse_penalty'].append(epoch_metrics['scaled_collapse_penalty'])
+        history['transform_reg_avg'].append(epoch_metrics['transform_reg'])
+        history['scaled_transform_reg'].append(epoch_metrics['scaled_transform_reg'])
+        history['recon'].append(epoch_metrics['recon_loss'])
+        history['kl'].append(epoch_metrics['kl'])
+
         if 'lr' in history:
             history['lr'].append(epoch_metrics['lr'])
         if 'patience' in history:
@@ -540,7 +557,6 @@ class TrainingHistory:
             f"Batch Size: {self.batch_size}",
             f"Optimizer: {self.optim}",
             f"Weight Decay: {self.weight_decay}",
-            f"Loss Function: {self.loss_fn}",
             f"Scheduler:\n\t- Patience: {self.scheduler['patience']}\n\t- Factor: {self.scheduler['factor']}\n" if self.scheduler is not None else "Scheduler: None\n",
             f"Best Validation Loss: {self.bests['best_loss'] * 100:.4f}" if self.bests['best_loss'] is not None else "Best Validation Loss: None",  # type: ignore
             f"Best Validation Loss Model: '{self.bests['best_loss_model'].name if self.bests['best_loss_model'] else 'None'}'",  # type: ignore

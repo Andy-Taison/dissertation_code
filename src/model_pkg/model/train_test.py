@@ -13,12 +13,10 @@ from .history_checkpoint import TrainingHistory, remove_old_improvement_models, 
 def train(model: torch.nn.Module, dataloader: torch.utils.data.DataLoader, loss_fn, optimizer: torch.optim.Optimizer, beta: int = 1) -> dict:
     """
     Single epoch training loop.
-    Reconstruction loss is sum of coordinate loss and descriptor loss, averaged across batches.
-    Displayed loss, reconstruction loss and KL divergence are scaled for easier interpretability due to weighted recon and averaged KL.
 
     :param model: VAE model
     :param dataloader: DataLoader object
-    :param loss_fn: Loss function, should return reconstruction loss and KL div individually as tensors
+    :param loss_fn: Loss function, should return total loss as a tensor
     :param optimizer: Optimizer object
     :param beta: KL divergence scaling factor, higher values lead to a more constrained latent space, lower values lead to a more flexible latent space representation, default 1 (standard VAE)
     :return: Dictionary of epoch metrics
@@ -30,18 +28,27 @@ def train(model: torch.nn.Module, dataloader: torch.utils.data.DataLoader, loss_
     processed = 0
 
     # Cumulative totals
-    total_recon_loss = 0
-    total_kl_div = 0
     total_accuracy = 0
     total_recall = torch.zeros(NUM_CLASSES).to(DEVICE)  # Total weighted recall for each class/descriptor value
     total_precision = torch.zeros(NUM_CLASSES).to(DEVICE)  # Total weighted precision for each class/descriptor value
     total_f1 = torch.zeros(NUM_CLASSES).to(DEVICE)  # Total weighted F1 score for each class/descriptor value
     total_support = torch.zeros(NUM_CLASSES).to(DEVICE)  # Support for each class/descriptor value
     total_distance = 0  # Total Euclidean distance for coordinate values
-    desc_loss_total = 0
-    coor_loss_total = 0
-    duplicate_pad_penalty_total = 0
-    transform_reg_total = 0
+    loss_parts_totals = {
+        'recon_loss': 0,
+        'coor_match_loss': 0,
+        'scaled_coor_match_loss': 0,
+        'desc_loss': 0,
+        'scaled_desc_loss': 0,
+        'pad_penalty': 0,
+        'scaled_pad_penalty': 0,
+        'collapse_penalty': 0,
+        'scaled_collapse_penalty': 0,
+        'transform_reg': 0,
+        'scaled_transform_reg': 0,
+        'kl': 0,
+        'beta_kl': 0,
+    }
 
     time_to_train = []  # Maintains average time to train from each batch loop for progress statements
 
@@ -62,26 +69,21 @@ def train(model: torch.nn.Module, dataloader: torch.utils.data.DataLoader, loss_
         batch_support = get_batch_support(x, x_reconstructed)  # Based on descriptor values
 
         # Compute loss
-        recon_loss, kl_div, desc_loss, coor_loss, duplicate_pad_penalty, transform_reg = loss_fn(x, x_reconstructed, z_mean, z_log_var, transform_matrix)
-        loss = recon_loss + beta * kl_div
+        loss, loss_parts = loss_fn(x, x_reconstructed, z_mean, z_log_var, beta, transform_matrix)
 
         # Backpropagation
         loss.backward()  # Compute gradients
         optimizer.step()  # Update parameters
 
         # Update metrics
-        total_recon_loss += recon_loss.item()
-        total_kl_div += kl_div.item()
         total_accuracy += accuracy
         total_recall += recall * batch_support  # Recall weighted by batch support
         total_precision += precision * batch_support  # Precision weighted by batch support
         total_f1 += f1_score * batch_support  # F1 scores weighted by batch support
         total_support += batch_support
         total_distance += euclid_dist
-        desc_loss_total += desc_loss.item()
-        coor_loss_total += coor_loss.item()
-        duplicate_pad_penalty_total += duplicate_pad_penalty
-        transform_reg_total += transform_reg.item()
+        for key in loss_parts:
+            loss_parts_totals[key] += loss_parts[key]
 
         # Update count
         processed += len(ids)
@@ -104,8 +106,6 @@ def train(model: torch.nn.Module, dataloader: torch.utils.data.DataLoader, loss_
             print(f"\tAverage coordinate Euclidean distance: {euclid_dist:>6.4f}\n")
 
     # Averages
-    epoch_recon_loss = total_recon_loss / len(dataloader)
-    epoch_kl_div = total_kl_div / len(dataloader)
     epoch_accuracy = total_accuracy / len(dataloader)
     epoch_recall_per_class = total_recall / total_support  # average recall score for each class
     epoch_recall_per_class[torch.isnan(epoch_recall_per_class)] = 0  # Replace nan values from division by zero
@@ -117,22 +117,17 @@ def train(model: torch.nn.Module, dataloader: torch.utils.data.DataLoader, loss_
     epoch_f1_per_class[torch.isnan(epoch_f1_per_class)] = 0  # Replace nan values from division by zero
     epoch_f1_weighted_avg = (total_f1 / total_support.sum()).sum().item()  # Normalises weighted f1 and sums to get weighted average
     epoch_euclid_dist = total_distance / len(dataloader)
-    desc_loss_avg = desc_loss_total / len(dataloader)
-    coor_loss_avg = coor_loss_total / len(dataloader)
-    duplicate_pad_penalty_avg = duplicate_pad_penalty_total / len(dataloader)
-    transform_reg_avg = transform_reg_total / len(dataloader)
+    epoch_loss_parts = {key: value / len(dataloader) for key, value in loss_parts_totals.items()}
 
     print(f"Train metrics (averages):")
-    print(f"\tRecon loss = {epoch_recon_loss:>8.4f}")
-    print(f"\tKL div = {epoch_kl_div:>8.4f}")
+    print(f"\tRecon loss = {epoch_loss_parts['recon_loss']:>8.4f}")
+    print(f"\tKL div = {epoch_loss_parts['kl']:>8.4f}")
     print(f"\tAccuracy = {epoch_accuracy * 100:>6.2f}%")
     print(f"\tF1 score (weighted average) = {epoch_f1_weighted_avg:>6.4f}")
     print(f"\tCoordinate Euclidean distance: {epoch_euclid_dist:>6.4f}\n")
 
     return {
         "coor_euclid": epoch_euclid_dist,
-        "recon": epoch_recon_loss,
-        "kl": epoch_kl_div,
         "beta": beta,
         "accuracy": epoch_accuracy,
         "class_recall": epoch_recall_per_class,
@@ -142,10 +137,8 @@ def train(model: torch.nn.Module, dataloader: torch.utils.data.DataLoader, loss_
         "class_f1": epoch_f1_per_class,
         "weighted_f1": epoch_f1_weighted_avg,
         "lr": optimizer.param_groups[0]['lr'],
-        "desc_loss": desc_loss_avg,
-        "coor_loss": coor_loss_avg,
-        "dup_pad_avg": duplicate_pad_penalty_avg,
-        "transform_reg_avg": transform_reg_avg
+        "loss_parts": epoch_loss_parts,
+        **epoch_loss_parts
     }
 
 
@@ -168,18 +161,27 @@ def test(model: torch.nn.Module, dataloader: torch.utils.data.DataLoader, loss_f
     processed = 0
 
     # Cumulative totals
-    total_recon_loss = 0
-    total_kl_div = 0
     total_accuracy = 0
     total_recall = torch.zeros(NUM_CLASSES).to(DEVICE)  # Total weighted recall for each class/descriptor value
     total_precision = torch.zeros(NUM_CLASSES).to(DEVICE)  # Total weighted precision for each class/descriptor value
     total_f1 = torch.zeros(NUM_CLASSES).to(DEVICE)  # Total weighted F1 score for each class/descriptor value
     total_support = torch.zeros(NUM_CLASSES).to(DEVICE)  # Support for each class/descriptor value
     total_distance = 0  # Total Euclidean distance for coordinate values
-    desc_loss_total = 0
-    coor_loss_total = 0
-    duplicate_pad_penalty_total = 0
-    transform_reg_total = 0
+    loss_parts_totals = {
+        'recon_loss': 0,
+        'coor_match_loss': 0,
+        'scaled_coor_match_loss': 0,
+        'desc_loss': 0,
+        'scaled_desc_loss': 0,
+        'pad_penalty': 0,
+        'scaled_pad_penalty': 0,
+        'collapse_penalty': 0,
+        'scaled_collapse_penalty': 0,
+        'transform_reg': 0,
+        'scaled_transform_reg': 0,
+        'kl': 0,
+        'beta_kl': 0,
+    }
 
     time_to_train = []  # Maintains average time to train from each batch loop for progress statements
 
@@ -198,22 +200,17 @@ def test(model: torch.nn.Module, dataloader: torch.utils.data.DataLoader, loss_f
             batch_support = get_batch_support(x, x_reconstructed)  # Based on descriptor values
 
             # Compute loss
-            recon_loss, kl_div, desc_loss, coor_loss, duplicate_pad_penalty, transform_reg = loss_fn(x, x_reconstructed, z_mean, z_log_var, transform_matrix)
-            loss = recon_loss + beta * kl_div
+            loss, loss_parts = loss_fn(x, x_reconstructed, z_mean, z_log_var, beta, transform_matrix)
 
             # Update metrics
-            total_recon_loss += recon_loss.item()
-            total_kl_div += kl_div.item()
             total_accuracy += accuracy
             total_recall += recall * batch_support  # Recall weighted by batch support
             total_precision += precision * batch_support  # Precision weighted by batch support
             total_f1 += f1_score * batch_support  # F1 scores weighted by batch support
             total_support += batch_support
             total_distance += euclid_dist
-            desc_loss_total += desc_loss.item()
-            coor_loss_total += coor_loss.item()
-            duplicate_pad_penalty_total += duplicate_pad_penalty
-            transform_reg_total += transform_reg.item()
+            for key in loss_parts:
+                loss_parts_totals[key] += loss_parts[key]
 
             # Update count
             processed += len(ids)
@@ -236,8 +233,6 @@ def test(model: torch.nn.Module, dataloader: torch.utils.data.DataLoader, loss_f
                 print(f"\tAverage coordinate Euclidean distance: {euclid_dist:>6.4f}\n")
 
     # Averages
-    epoch_recon_loss = total_recon_loss / len(dataloader)
-    epoch_kl_div = total_kl_div / len(dataloader)
     epoch_accuracy = total_accuracy / len(dataloader)
     epoch_recall_per_class = total_recall / total_support  # average recall score for each class
     epoch_recall_per_class[torch.isnan(epoch_recall_per_class)] = 0  # Replace nan values from division by zero
@@ -249,22 +244,17 @@ def test(model: torch.nn.Module, dataloader: torch.utils.data.DataLoader, loss_f
     epoch_f1_per_class[torch.isnan(epoch_f1_per_class)] = 0  # Replace nan values from division by zero
     epoch_f1_weighted_avg = (total_f1 / total_support.sum()).sum().item()  # Normalises weighted f1 and sums to get weighted average
     epoch_euclid_dist = total_distance / len(dataloader)
-    desc_loss_avg = desc_loss_total / len(dataloader)
-    coor_loss_avg = coor_loss_total / len(dataloader)
-    duplicate_pad_penalty_avg = duplicate_pad_penalty_total / len(dataloader)
-    transform_reg_avg = transform_reg_total / len(dataloader)
+    epoch_loss_parts = {key: value / len(dataloader) for key, value in loss_parts_totals.items()}
 
     print(f"Test metrics (averages):")
-    print(f"\tRecon loss = {epoch_recon_loss:>8.4f}")
-    print(f"\tKL div = {epoch_kl_div:>8.4f}")
+    print(f"\tRecon loss = {epoch_loss_parts['recon_loss']:>8.4f}")
+    print(f"\tKL div = {epoch_loss_parts['kl']:>8.4f}")
     print(f"\tAccuracy = {epoch_accuracy * 100:>6.2f}%")
     print(f"\tF1 score (weighted average) = {epoch_f1_weighted_avg:>6.4f}")
     print(f"\tCoordinate Euclidean distance: {epoch_euclid_dist:>6.4f}\n")
 
     return {
         "coor_euclid": epoch_euclid_dist,
-        "recon": epoch_recon_loss,
-        "kl": epoch_kl_div,
         "beta": beta,
         "accuracy": epoch_accuracy,
         "class_recall": epoch_recall_per_class,
@@ -273,10 +263,8 @@ def test(model: torch.nn.Module, dataloader: torch.utils.data.DataLoader, loss_f
         "weighted_precision": epoch_precision_weighted_avg,
         "class_f1": epoch_f1_per_class,
         "weighted_f1": epoch_f1_weighted_avg,
-        "desc_loss": desc_loss_avg,
-        "coor_loss": coor_loss_avg,
-        "dup_pad_avg": duplicate_pad_penalty_avg,
-        "transform_reg_avg": transform_reg_avg
+        "loss_parts": epoch_loss_parts,
+        **epoch_loss_parts
     }
 
 
@@ -307,7 +295,7 @@ def train_val(model: torch.nn.Module, train_dataloader: torch.utils.data.DataLoa
 
     # Initialise training history when training from scratch
     if training_history is None:
-        training_history = TrainingHistory(model, train_dataloader, optimizer, loss_fn, scheduler)
+        training_history = TrainingHistory(model, train_dataloader, optimizer, scheduler)
         print(f"New training history object created '{training_history.model_name}'\n")
     else:
         # Check passed training history matches other objects
@@ -317,8 +305,6 @@ def train_val(model: torch.nn.Module, train_dataloader: torch.utils.data.DataLoa
             raise ValueError(f"Training history batch size: {training_history.batch_size} does not match passed dataloader batch size: {train_dataloader.__getattribute__('batch_size')}.")
         if training_history.optim != optimizer.__class__.__name__:
             raise ValueError(f"Training history optimizer: {training_history.optim} does not match passed optimizer: {optimizer.__class__.__name__}.")
-        if training_history.loss_fn != loss_fn.loss_name:
-            raise ValueError(f"Training history loss function: {training_history.loss_fn} does not match passed loss function: {loss_fn.loss_name}.")
         if len(training_history.model_architecture) != len([(name, module) for name, module in model.named_modules()]):
             raise ValueError(f"Training history model architecture does not match passed model architecture.\nTraining history architecture:\n{training_history.model_architecture}")
         if training_history.scheduler is not None:

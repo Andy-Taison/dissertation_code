@@ -150,19 +150,3 @@ plots/
 !tracked_outputs/
 !tracked_outputs/**
 !tracked_outputs/**/plots/
-
-# Stop tracking plots and outputs to avoid cluttering HPC (should still be available in earlier commits)
-tracked_outputs/base_outputs/
-tracked_outputs/base_log_weights/
-tracked_outputs/base_log_weights_toy/
-tracked_outputs/conv_toy/
-tracked_outputs/conv_pool_toy/
-tracked_outputs/conv_decode_loss_toy/
-tracked_outputs/conv_skip_toy/
-tracked_outputs/deep_toy/
-tracked_outputs/batch_norm_toy/
-tracked_outputs/sparse_toy/
-tracked_outputs/pointnet_toy/
-tracked_outputs/no_loss_transform_toy/
-tracked_outputs/strong_dup_alp_toy/
-tracked_outputs/longer_toy/

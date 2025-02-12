@@ -348,19 +348,21 @@ Beta scaled KL divergence steadily increases.
 F1 steadily increases until around epoch 40 before flatlining.
 Accuracy does similar.
 
-Realised that in the plots coordinate loss is not the fixed scaled (adjusted) coordinate loss, 
+Realised that in the plots, coordinate loss is not the fixed scaled (adjusted) coordinate loss, 
 but the raw loss and so it is still shown in a low range (around 0.1-0.14) compared to dup pad (around 0.6-1.2) which is scaled in the plots. 
 desc_loss (1.2-1.6) is the raw values, but that doesn't have a scaling.
 Adjusted this in the code, so future plots will show the adjusted losses.
 Not showing alpha scaled however.
 
+PROBLEMS IDENTIFIED:
 Inspecting the reconstructed output closer, the coordinates are not duplicates, but are very close. 
 Meaning when the sparse grid is converted back to a dense one for visualisations, the coordinates are collapsing to duplicates.
 The way the coordinate loss is calculated also assumes a 1-to-1 correspondence, which is not the case due to shuffling.
 Further to this, the way the duplicate and pad penalty is calculated and applied is non differentiable and so the model isn't learning directly.
+The descriptor loss is also being affected by the shuffling. CrossEntropyLoss is order dependant. The shuffling is still required to avoid a positional bias.
 
 * Changed how padding penalty is calculated and applied so it is now differentiable so the model can learn.
-Now taking the mean absolute sum of the expected padded voxels. Using softmax as this is differentiable.
+Now taking the smooth L1 (differentiable absolute) difference of padded voxels. Using softmax as this is differentiable.
 
 Added a matching loss, loosely inspired by chamfer distance.
 Calculates pairwise distance from reconstructed coordinates to original coordinates (rows represent reconstructed, columns are original).
@@ -368,5 +370,17 @@ Masks out padded voxels (based on descriptor designation) to ignore the coordina
 Applies softmin (differentiable) to work out nearest neighbour probability - also scales the distance matrix to encourage points to focus on a single point.
 Normalises probabilities across the rows (vertically) to create competition and encourage points to not cluster around the same original point.
 Averages for the batch.
+
+Added an overlap penalty, calculated from the pairwise distance between matching coordinates.
+The negative sum of the log of the upper triangle of the distance matrix (excluding the diagonal)
+is calculated as the penalty and then averaged over the batch.
+
+Added a loss for descriptor values based on nearest neighbour.
+Calculates the pairwise distance between original and reconstructed points.
+Padded voxels are then masked, before obtaining the most likely descriptor value based on nearest original voxel.
+Loss is calculated by taking the cross entropy (model must output raw logits).
+This also means descriptor values are tied to location, which hopefully the model will learn.
+
+These losses and penalties replace the original loss functions (which relied on order, and were not applied in a differential manner).
 
  

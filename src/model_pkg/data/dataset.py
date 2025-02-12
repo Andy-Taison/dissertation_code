@@ -7,7 +7,7 @@ import torch
 import torch.utils.data
 from torch.utils.data import Dataset
 import torch.nn.functional as F
-from ..config import NUM_CLASSES, COORDINATE_DIMENSIONS, DEVICE
+from ..config import NUM_CLASSES, COORDINATE_DIMENSIONS, DEVICE, EXPANDED_GRID_SIZE
 
 
 class VoxelDataset(Dataset):
@@ -82,28 +82,36 @@ class VoxelDataset(Dataset):
         return robot_id, sparse_data
 
 
-def sparse_to_dense(sparse_data: torch.Tensor, grid_size: int = 11) -> torch.Tensor:
+def sparse_to_dense(sparse_data: torch.Tensor, batched=False) -> torch.Tensor:
     """
     Converts sparse voxel representation back to a dense matrix.
 
     :param sparse_data: Sparse voxel data with shape (max_voxels, NUM_CLASSES + 3),
         columns 0-2 are normalised coordinates (x, y, z) in range [0,1],
-        and columns 3-(NUM_CLASSES + 3) are one-hot encoded descriptor values.
-    :param grid_size: Size of output grid along each dimension
+        and columns 3-(NUM_CLASSES + 3) are one-hot encoded descriptor values
+    :param batched: Bool denoting if sparse_data is batched
     :return: Dense voxel grid
     """
-    dense_grid = torch.zeros(grid_size, grid_size, grid_size, dtype=torch.int64).to(DEVICE)
+    if not batched:
+        sparse_data = sparse_data.unsqueeze(0)
 
-    # Extract coordinates and descriptor values
-    coor = sparse_data[:, :COORDINATE_DIMENSIONS] * (grid_size - 1)
-    coor_rounded = coor.round().long()  # Scale normalised coordinates back to grid indices
-    coor = torch.clamp(coor_rounded, min=0, max=grid_size - 1)  # Clamp values to range [0, 10] to avoid errors if not normalised correctly
-    descriptors = sparse_data[:, COORDINATE_DIMENSIONS:].argmax(dim=1)  # Convert one-hot encoding back to descriptor values
+    shape = (sparse_data.size(0),) + (EXPANDED_GRID_SIZE,) * COORDINATE_DIMENSIONS
+    dense_grid = torch.zeros(shape, dtype=torch.int64).to(DEVICE)
 
-    for i in range(sparse_data.shape[0]):
-        x, y, z = coor[i]
-        descriptor = descriptors[i]
-        if descriptor != 0:  # Skip padding descriptors
-            dense_grid[x, y, z] = descriptor
+    for i, robot in enumerate(sparse_data):
+        # Extract coordinates and descriptor values
+        coor = robot[:, :COORDINATE_DIMENSIONS] * (EXPANDED_GRID_SIZE - 1)
+        coor_rounded = coor.round().long()  # Scale normalised coordinates back to grid indices
+        coor = torch.clamp(coor_rounded, min=0, max=EXPANDED_GRID_SIZE - 1)  # Clamp values to range [0, 10] to avoid errors if not normalised correctly
+        descriptors = robot[:, COORDINATE_DIMENSIONS:].argmax(dim=1)  # Convert one-hot encoding back to descriptor values
+
+        for j in range(robot.shape[0]):
+            x, y, z = coor[j]
+            descriptor = descriptors[j]
+            if descriptor != 0:  # Skip padding descriptors
+                dense_grid[i, x, y, z] = descriptor
+
+    if not batched:
+        dense_grid = dense_grid.squeeze(0)
 
     return dense_grid

@@ -95,7 +95,7 @@ def run():
     print()
     """
     # Initialise training components
-    criterion = VaeLoss("mse")
+    criterion = VaeLoss(lambda_coord=1, lambda_desc=1, lambda_pad=0.1, lambda_collapse=0.1)
     optimizer = optim.Adam(vae.parameters(), lr=config.LEARNING_RATE)
     """
 
@@ -130,7 +130,7 @@ def run():
     else:
         # Grid search training
         train_grid_search(train_ds, val_ds, grid_search_model_name, clear_history_list=False)
-        #-----------------------------------------
+        # -----------------------------------------
         # TESTING
         """
         best_history = TrainingHistory.load_history("best_performing_coord_scale_toy_bs64_ld16_mse_adam_lr0.0005_wd1e-05_be0.01_a0.2_dup1_lam0.001_epoch_20.pth")
@@ -140,14 +140,14 @@ def run():
         if best_epoch < best_history.epochs_run:
             best_history.rollback(best_epoch)
         best_model, best_optimizer, _, epochs_run = load_model_checkpoint(best_history)
-        criterion = VaeLoss("mse", alpha=0.2, dup_pad_penalty_scale=1, lambda_reg=0.001)
+        criterion = VaeLoss(lambda_coord=1, lambda_desc=1, lambda_pad=0.1, lambda_collapse=0.1, lambda_reg=0.001)
         history = train_val(best_model, train_loader, val_loader, criterion, best_optimizer, 21, beta=0.01, training_history=best_history,
                             prune_old_checkpoints=False)
         # generate_plots(history, alt_name)
         test_model, _, _, epochs_run = load_model_checkpoint(history)
         compare_reconstructed(test_model, val_loader, 2, filename=f"comparison_{alt_name}", skip_loader_samples=1)
         """
-        #-----------------------------------------------
+        # -----------------------------------------------
 
     # Grid search using balanced loss and F1 to score
     print("Starting gridsearch for best trade-off performance model...")
@@ -177,7 +177,7 @@ def run():
         print()
         best_history.save_history(alt_name)
 
-        compare_reconstructed(best_model, val_loader, 3, filename=f"comparison_{alt_name}")
+        compare_reconstructed(best_model, val_loader, num_sample=5, filename=f"comparison_{alt_name}")
         print()
     except (FileNotFoundError, ValueError) as e:
         print(f"{e} Cannot perform latent analysis for {alt_name}.")
@@ -210,7 +210,7 @@ def run():
         print()
         best_loss_history.save_history(alt_loss_name)
 
-        compare_reconstructed(best_loss_model, val_loader, 3, filename=f"comparison_{alt_loss_name}")
+        compare_reconstructed(best_loss_model, val_loader, num_sample=5, filename=f"comparison_{alt_loss_name}")
         print()
     except (FileNotFoundError, ValueError) as e:
         print(f"{e} Cannot perform latent analysis for {alt_loss_name}.")
@@ -243,23 +243,11 @@ def run():
         print()
         best_f1_history.save_history(alt_f1_name)
 
-        compare_reconstructed(best_f1_model, val_loader, 3, filename=f"comparison_{alt_f1_name}")
+        compare_reconstructed(best_f1_model, val_loader, num_sample=5, filename=f"comparison_{alt_f1_name}")
     except (FileNotFoundError, ValueError) as e:
         print(f"{e} Cannot perform latent analysis for {alt_f1_name}.")
 
     print("\nPipeline complete!")
-
-
-def generate_plots(history: TrainingHistory, model_name: str):
-    plot_metrics_vs_epochs(history, "recon", "beta_kl", filename=f"{model_name}_recon-beta_kl_vs_epochs")
-    plot_metrics_vs_epochs(history, "f1_weighted_avg", filename=f"{model_name}_f1_vs_epochs")
-    plot_metrics_vs_epochs(history, "total_loss", filename=f"{model_name}_total_loss_vs_epochs")
-    plot_metrics_vs_epochs(history, "accuracy", filename=f"{model_name}_acc_vs_epochs")
-    plot_metrics_vs_epochs(history, "desc_loss", "coor_loss", "dup_pad_avg", "transform_reg_avg", filename=f"{model_name}_recon_loss_parts_vs_epochs")
-
-    plot_loss_tradeoffs(history, "kl", filename=f"{model_name}_kl_vs_recon")
-    plot_loss_tradeoffs(history, "kl_beta", filename=f"{model_name}_beta_kl_vs_recon")
-    plot_loss_tradeoffs(history, "total_loss", filename=f"{model_name}_total_loss_vs_f1")
 
 
 if __name__ == "__main__":

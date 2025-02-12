@@ -44,7 +44,13 @@ def sample_latent_space(model: VAE, dataloader: DataLoader) -> torch.Tensor:
     return latent_vectors
 
 
-def normalise_latent(latent_vector: torch.Tensor) -> torch.Tensor:
+def normalise_latent(latent_vector: torch.Tensor) -> tuple[torch.Tensor, StandardScaler]:
+    """
+    Fits a scaler to the passed latent vector.
+
+    :param latent_vector: Tensor to fit scaler to and normalise
+    :return: Normalised vector, Fitted scaler
+    """
     # Normalise
     scaler = StandardScaler()
     normalised_latent = scaler.fit_transform(latent_vector.numpy())
@@ -52,7 +58,7 @@ def normalise_latent(latent_vector: torch.Tensor) -> torch.Tensor:
     # Convert back to tensor
     normalised_latent_t = torch.from_numpy(normalised_latent)
 
-    return normalised_latent_t
+    return normalised_latent_t, scaler
 
 
 def train_pca(latent_vectors: torch.Tensor, n_components: int = 2) -> PCA:
@@ -237,8 +243,8 @@ def analyse_latent_space(model, train_dataloader: DataLoader, val_dataloader: Da
     val_latent = sample_latent_space(model, val_dataloader)
 
     # Normalise latent vectors
-    train_latent_norm = normalise_latent(train_latent)
-    val_latent_norm = normalise_latent(val_latent)
+    train_latent_norm, scaler = normalise_latent(train_latent)  # Fit and transform
+    val_latent_norm = torch.from_numpy(scaler.transform(val_latent.numpy()))  # Transform
 
     # Train PCA and UMAP
     pca_reducer = train_pca(train_latent_norm)
