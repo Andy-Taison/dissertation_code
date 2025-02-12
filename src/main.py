@@ -129,7 +129,7 @@ def run():
         train_grid_search(subset_train_ds, subset_val_ds, "test", clear_history_list=False)  # type: ignore
     else:
         # Grid search training
-        train_grid_search(train_ds, val_ds, grid_search_model_name, clear_history_list=False, log_skipped_histories=False)
+        train_grid_search(train_ds, val_ds, grid_search_model_name, clear_history_list=False)
         # -----------------------------------------
         # TESTING
         """

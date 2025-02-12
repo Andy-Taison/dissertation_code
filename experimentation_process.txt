@@ -384,6 +384,15 @@ This also means descriptor values are tied to location, which hopefully the mode
 These losses and penalties replace the original loss functions (which relied on order, and were not applied in a differential manner).
 
 Quick training runs to get a feel for the lambda scaling hyperparameters showed noticable improvements. 
+All run with:
+batch_sizes = [64] 
+latent_dims = [16]
+optimizer = [
+	{"type": optim.Adam, "params": {}, "model_name": "adam"}
+]
+learning_rates = [1e-5]
+lambda_reg = 0.001
+
 - Started with 
 lambda_coord and lambda_desc = 1, 
 and lambda_pad and lambda_collapse = 0.1, 
