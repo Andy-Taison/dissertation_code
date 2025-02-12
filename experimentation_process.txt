@@ -472,9 +472,24 @@ appears to have more non-padded voxels, but appears to be less flexible in them 
 
 Collapse penalty may be too aggressive, this may also affect exploration ability in the latent space.
 Pad penalty can be seen to be effective, however if its too strong, it may restrict model flexibility.
+It may be too weak, leading to over-prediction of non-padded voxels.
 Both coord loss and desc loss descrease steadily, but coordinate loss seems to dominate.
 Models with high collapse penalty struggle with descriptor diversity.
 
 * Beta and learning rate targeted runs based on best loss model (tuned slightly before new losses).
 Training to 100 epochs with patience 15.
- 
+
+Best loss model used:
+learning rate = 1e-5
+beta = 1.0
+Raw values: pad penalty and coordinate loss increase. It also looks like they start to stabilise towards the end. Descriptor loss and collapse penalty seem fairly steady.
+Scaled losses/penalties: Desc, Pad, and collapse are fairly steady and low ~0.5, coordinate loss increases, but seems to stabilise towards the end of training at around 6.
+Though this model was deemed the best loss, it took a sharp dip at epoch 11 before increasing, so it may be masking how potentially bad this model really is. 
+beta scaled KL drops quickly initially and then continues to decline slowly. 
+The best loss model seems overly regularised and constrained, producing either no voxels at all, or only a single voxel in the same location (blue - wheels).
+The best f1 model used:
+learning rate = 3e-05 and beta = 0.1 and produced more voxels, had a better variety of descriptor values, but limited spatial variance.
+Models with a lower beta produced better spatial and descriptor variance, however too low could potentially lead to a latent space that isn't meaningful.
+
+* Targeted tuning for
+

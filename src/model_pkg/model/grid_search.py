@@ -89,24 +89,24 @@ def create_grid() -> list[dict]:
 
     grid = [
         {"batch_size": 64, "latent_dim": 16, "optimizer": {"type": optim.Adam, "params": {}, "model_name": "adam"},
-         "lr": 1e-5, "decay": 1e-5, "lambda_coord": 1.5, "lambda_desc": 1.5, "lambda_pad": 0.1,
-         "lambda_collapse": 0.4, "beta": 0.1, "lambda_reg": 0.001},
+         "lr": 1e-5, "decay": 1e-5, "lambda_coord": 1.5, "lambda_desc": 1.5, "lambda_pad": 0.15,
+         "lambda_collapse": 0.3, "beta": 0.1, "lambda_reg": 0.001},
 
         {"batch_size": 64, "latent_dim": 16, "optimizer": {"type": optim.Adam, "params": {}, "model_name": "adam"},
-         "lr": 1e-5, "decay": 1e-5, "lambda_coord": 1.5, "lambda_desc": 1.5, "lambda_pad": 0.1,
-         "lambda_collapse": 0.4, "beta": 0.5, "lambda_reg": 0.001},
+         "lr": 1e-5, "decay": 1e-5, "lambda_coord": 1.5, "lambda_desc": 1.5, "lambda_pad": 0.15,
+         "lambda_collapse": 0.3, "beta": 0.5, "lambda_reg": 0.001},
 
         {"batch_size": 64, "latent_dim": 16, "optimizer": {"type": optim.Adam, "params": {}, "model_name": "adam"},
-         "lr": 1e-5, "decay": 1e-5, "lambda_coord": 1.5, "lambda_desc": 1.5, "lambda_pad": 0.1,
-         "lambda_collapse": 0.4, "beta": 1.0, "lambda_reg": 0.001},
+         "lr": 3e-5, "decay": 1e-5, "lambda_coord": 1.5, "lambda_desc": 1.5, "lambda_pad": 0.15,
+         "lambda_collapse": 0.3, "beta": 0.5, "lambda_reg": 0.001},
 
         {"batch_size": 64, "latent_dim": 16, "optimizer": {"type": optim.Adam, "params": {}, "model_name": "adam"},
-         "lr": 3e-5, "decay": 1e-5, "lambda_coord": 1.5, "lambda_desc": 1.5, "lambda_pad": 0.1,
-         "lambda_collapse": 0.4, "beta": 0.1, "lambda_reg": 0.001},
+         "lr": 1e-5, "decay": 1e-5, "lambda_coord": 1.2, "lambda_desc": 1.5, "lambda_pad": 0.15,
+         "lambda_collapse": 0.3, "beta": 0.1, "lambda_reg": 0.001},
 
         {"batch_size": 64, "latent_dim": 16, "optimizer": {"type": optim.Adam, "params": {}, "model_name": "adam"},
-         "lr": 3e-5, "decay": 1e-5, "lambda_coord": 1.5, "lambda_desc": 1.5, "lambda_pad": 0.1,
-         "lambda_collapse": 0.4, "beta": 0.5, "lambda_reg": 0.001}
+         "lr": 3e-5, "decay": 1e-5, "lambda_coord": 1.5, "lambda_desc": 2.0, "lambda_pad": 0.15,
+         "lambda_collapse": 0.2, "beta": 0.1, "lambda_reg": 0.001}
     ]
 
     return grid
