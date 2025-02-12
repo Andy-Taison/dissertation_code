@@ -10,6 +10,7 @@ import platform  # For patching torch.load when saved on one machine and loaded 
 import re
 from ..config import DEVICE, NUM_CLASSES, MODEL_CHECKPOINT_DIR, HISTORY_DIR, PATIENCE, EPOCHS, BASE_DIR
 from . import model as model_module  # Used for reconstructing model in load_model_checkpoint
+from ..metrics.losses import VaeLoss
 
 def avg_and_format_time(times: list[float]) -> str:
     """
@@ -140,15 +141,16 @@ class TrainingHistory:
     check_and_save_model_improvement should be called prior to updating epoch history.
     update_epoch should be called prior to saving history.
     """
-    def __init__(self, model: torch.nn.Module, dataloader: torch.utils.data.DataLoader, optimizer: torch.optim.Optimizer, scheduler: torch.optim.lr_scheduler.ReduceLROnPlateau = None):
+    def __init__(self, model: torch.nn.Module, dataloader: torch.utils.data.DataLoader, criterion: VaeLoss, optimizer: torch.optim.Optimizer, scheduler: torch.optim.lr_scheduler.ReduceLROnPlateau = None):
         """
         Initialises TrainingHistory object for tracking metrics.
         Use TrainingHistory.load() to load and initialise saved objects.
 
         :param model: Model to track history for, must have attribute 'name'
         :param dataloader: Used to obtain batch size
+        :param criterion: Loss function
         :param optimizer: Optimizer name tracked
-        :param criterion: Loss function, should have attribute 'loss_name'
+        :param criterion: Loss function used, should have lambda values stored as attributes
         :param scheduler: Scheduler if using (optional), should be a ReduceLROnPlateau scheduler where the learning rate is adjusted based on (reconstruction loss + beta * KL divergence)
         """
         self.model_name = model.name
@@ -160,6 +162,7 @@ class TrainingHistory:
         self.last_improved_model = None
 
         self.batch_size = dataloader.batch_size
+        self.criterion = criterion
         self.optim = optimizer.__class__.__name__
         self.weight_decay = optimizer.param_groups[0]['weight_decay']
         self.scheduler = {

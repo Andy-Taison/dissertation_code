@@ -101,7 +101,7 @@ def transform_latent_space(reducer, latent_vectors: torch.Tensor) -> np.ndarray:
     return reducer.transform(latent_vectors.numpy())
 
 
-def kmeans_cluster(latent_vectors: np.ndarray, n_clusters: int = 3) -> tuple[KMeans, np.ndarray]:
+def kmeans_cluster(latent_vectors: np.ndarray, n_clusters: int = 5) -> tuple[KMeans, np.ndarray]:
     """
     Perform KMeans clustering on latent vectors.
 
@@ -281,7 +281,7 @@ def analyse_latent_space(model, train_dataloader: DataLoader, val_dataloader: Da
         pca_silhouette = calculate_silhouette_score(val_pca_data, pca_cluster_labels)
         umap_silhouette = calculate_silhouette_score(val_umap_data, umap_cluster_labels)
 
-        print("\nLatent analysis metrics:")
+        print("Latent analysis metrics:")
         print(f"Silhouette score (PCA): {pca_silhouette:.4f}")
         print(f"Silhouette score (UMAP): {umap_silhouette:.4f}\n")
 
@@ -294,7 +294,7 @@ def analyse_latent_space(model, train_dataloader: DataLoader, val_dataloader: Da
         return {
             "pca_sil": pca_silhouette,
             "umap_sil": umap_silhouette,
-            "mean_pd": mean_dist,
-            "std_pd": std_dist,
+            "pairwise_mean": mean_dist,
+            "pairwise_std": std_dist,
             "k_used": k
         }

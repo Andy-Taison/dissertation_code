@@ -383,4 +383,62 @@ This also means descriptor values are tied to location, which hopefully the mode
 
 These losses and penalties replace the original loss functions (which relied on order, and were not applied in a differential manner).
 
- 
+Quick training runs to get a feel for the lambda scaling hyperparameters showed noticable improvements. 
+- Started with 
+lambda_coord and lambda_desc = 1, 
+and lambda_pad and lambda_collapse = 0.1, 
+using beta = 0.01  
+2 epochs
+-> tighly clustered voxels, some correctly identified, noticable misplacelemt. Collapse starts high, drops significantly. Coor_loss and Desc_loss descrease slowly (but not much).
+
+- collapse = 0.5, pad = 0.2, 20 epochs
+-> layouts more spreadout, still tendency for clustering, and descriptors not matching.
+coor_loss steady decrease
+desc_loss gradual improvement.
+padded_pen slight increase.
+collapse sharp decrease, and reduced overlap
+beta*kl decreases significantly and stabilises, effective utilisation of latent space.
+
+- coord, desc = 1.5
+pad = 0.1
+collapse = 0.4
+-> More descriptor varitation, padded voxels under predicted (too many non padded). 
+Scaled pad penalty increases (in range [0.03,0.05]
+Other scaled losses/penalties steadily and slowly decrease (though around 2).
+Collapse penalty steeply drops from 8 to near 0 in around 3 epochs
+Beta*KL stabilises at low value, could be under utilising the latent space.
+
+- coord, desc = 2 
+pad = 0.3 
+collapse = 0.2
+beta = 0.03
+-> variation in descriptors still, but not alot of variation in placement or padded voxels. Layout seems fairly rigid.
+Collapse penalty still drops rapidly, penalty already strong enough.
+
+- coord = 3
+pad = 0.5
+collapse = 0.1
+-> Still aren't getting correct number of padded voxels (visualisation with 1 original, 7 reconstructed - could be affected by average in dataset), most of the visualised robots contain approx 7.
+Slight variation in descriptor values, but limited.
+Collapse penalty higher than others at beginning and drops rapidly (2 to near 0). 
+Scaled pad penalty is the lowest (0.12 slowly rising to ~0.15), the other scaled penalties are between start much higher, 
+collapse penalty quickly drops from 2 to close to 0, whilst desc and coor losses decrease slowly (coor being slightly higher dropping from 6-4 whilst desc drops from 4-2). 
+
+After making a few lambda scaling adjustements,
+descriptor diversity increased, showing better descriptor learning, 
+but the model consistently over predicts non-padded voxels, indicating that the padded voxel penalty may be too weak or influenced by competing losses. 
+The coordinate layout remains somewhat rigid with limited spatial variation, suggesting that the model struggles to generalise positional flexibility. 
+The collapse penalty drops sharply in early epochs, helping prevent voxel overlap, but its rapid decrease suggests the overlap penalty may either be too strong 
+or an adaptive scaling is required, but it may be affecting other losses. 
+Coordinate and descriptor losses decreased steadily, the padded penalty remained low, implying insufficient regularisation. 
+Latent space analysis via PCA and UMAP showed well-separated clusters, reflecting effective latent structuring but possibly contributing to rigid reconstructions. 
+Adjusting lambda_coord and lambda_desc improved spatial spread and descriptor variation. 
+However, the padded voxel penaltys ineffectiveness and limited layout diversity highlight the need for stronger regularisation and stronger or more dynamic penalty scaling. 
+In short:
+Descriptor matching improved with higher lambda_desc values.
+Collapse penalty scaling effectively reduced overlaps quickly.
+Padded Voxel Penalty remains ineffective despite adjustments.
+Limited coordinate diversity, still feels fixed. 
+Collapse penalty sharply drops from ~8 to near zero within around 3 epochs.
+
+Started some targeted training runs.

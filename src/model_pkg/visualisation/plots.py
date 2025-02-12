@@ -204,7 +204,7 @@ def check_inputs(training_histories: TrainingHistory | list[TrainingHistory], hi
 
 
 def plot_metrics_vs_epochs(training_histories: TrainingHistory | list[TrainingHistory], *metrics: str,
-                           filename: str | Path = None,
+                           filename: str = None,
                            history_labels: list[str] = None, title: str = None, y1_label: str = None,
                            y2_label: str = None, metrics_from: str = 'train_and_val', y_scale_threshold: int = 10,
                            figsize: tuple[float, float] = (15, 6)):

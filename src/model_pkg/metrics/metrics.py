@@ -3,7 +3,13 @@ Metric calculation functions
 """
 
 import torch
-from ..config import NUM_CLASSES, DEVICE
+from torch.utils.data import DataLoader
+from pathlib import Path
+import pandas as pd
+from datetime import datetime
+from ..model.history_checkpoint import TrainingHistory, extract_epoch_number, load_model_checkpoint
+from ..visualisation.latent import analyse_latent_space
+from ..config import NUM_CLASSES, DEVICE, OUTPUTS_DIR
 
 """
 Coordinate metrics
@@ -115,3 +121,85 @@ def get_best_tradeoff_score(recon: list, kl: list, beta: list, f1_weighted_avg: 
     best_score = torch.min(score).item()
 
     return best_epoch, best_score
+
+
+def log_metrics(history: TrainingHistory, train_dataloader: DataLoader, val_dataloader: DataLoader, k: int, log: str = 'loss', filename: str = "metrics_table"):
+    """
+    Logs validation metrics to csv file sorted by total loss.
+    Epoch number must be extractable from best model stored.
+    If model checkpoint can be loaded, it is used to obtain latent space metrics which are included in the csv.
+
+    :param history: History object to add best metrics to file
+    :param train_dataloader: Used to normalise the sampled latent vector, and train PCA and UMAP
+    :param val_dataloader: Used to sample latent vector, perform PCA and UMAP reduction and obtain latent space metrics via kmeans
+    :param k: K used for kmeans clustering for latent space metrics
+    :param log: Best performing 'loss' or 'f1' epoch to obtain and log
+    :param filename: Filename, if exists, metrics will be appended before sorting
+    """
+    match log.lower():
+        case 'loss':
+            epoch = extract_epoch_number(history.bests['best_loss_model'])
+        case 'f1':
+            epoch = extract_epoch_number(history.bests['best_f1_avg_model'])
+        case _:
+            raise ValueError("'log' must be either 'loss' or 'f1'.")
+
+    if epoch is None:
+        raise ValueError(f"Best '{log.lower()}' model stored is None.")
+
+    idx = epoch - 1
+
+    new_data = {
+        'timestamp': datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        'name': history.alt_history_filename if history.alt_history_filename is not None else history.model_name,
+        'batch_size': history.batch_size,
+        'latent_dim': history.latent_dim,
+        'lambda_coord': history.criterion.lambda_coord,
+        'lambda_desc': history.criterion.lambda_desc,
+        'lambda_pad': history.criterion.lambda_pad,
+        'lambda_collapse': history.criterion.lambda_collapse,
+        'beta': history.val['beta'][idx],
+        'recon_loss': history.val['recon'][idx],
+        'kl': history.val['kl'][idx],
+        'scaled_kl': history.val['kl'][idx] * history.val['beta'][idx],
+        'total_loss': history.val['recon'][idx] + (history.val['kl'][idx] * history.val['beta'][idx]),
+        'scaled_coord': history.val['scaled_coor_loss'][idx],
+        'scaled_desc': history.val['scaled_desc_loss'][idx],
+        'scaled_pad': history.val['scaled_pad_penalty'][idx],
+        'scaled_col': history.val['scaled_collapse_penalty'][idx]
+    }
+
+    try:
+        # Load corresponding model
+        loaded_model, _, _, _ = load_model_checkpoint(history, log.lower())
+
+        latent_metrics = analyse_latent_space(loaded_model, train_dataloader, val_dataloader, k)
+        new_data.update(latent_metrics)
+    except FileNotFoundError as e:
+        print(e)
+
+    # Convert to DataFrame
+    new_row_df = pd.DataFrame([new_data])
+
+    filepath = Path(OUTPUTS_DIR) / f"{filename}.csv"
+    if not filepath.parent.exists():
+        print(f"\nCreating directory '{filepath.parent}'...")
+        filepath.parent.mkdir(parents=True, exist_ok=True)
+
+    # Check if CSV exists
+    if filepath.is_file():
+        # Read CSV
+        df = pd.read_csv(filepath)
+        # Append new row
+        df = pd.concat([df, new_row_df], ignore_index=True)
+        print("\nData appended to existing file. Sorting and saving...")
+    else:
+        df = new_row_df
+        print("\nFile not found. Saving to new file...")
+
+    # Sort the DataFrame by 'total_loss' in ascending order
+    df = df.sort_values(by='total_loss', ascending=True).reset_index(drop=True)
+
+    # Save to CSV
+    df.to_csv(filepath, index=False)
+    print(f"Saved to '{filepath.name}'")

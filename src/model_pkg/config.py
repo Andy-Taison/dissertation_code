@@ -17,8 +17,9 @@ BASE_DIR = Path("/users/40538519/sharedscratch")
 # Directories
 DATA_DIR = BASE_DIR / "data" / "raw"  # Path to raw data CSV files
 PROCESSED_DIR = BASE_DIR / "data" / "processed"  # Path to store processed CSV files
-MODEL_CHECKPOINT_DIR = BASE_DIR / "outputs" / "model_checkpoints"  # Path to store checkpointed trained models (files include optimizer and optional scheduler if used)
-HISTORY_DIR = BASE_DIR / "outputs" / "metric_history"  # Path to store training history metrics
+OUTPUTS_DIR = BASE_DIR / "outputs"
+MODEL_CHECKPOINT_DIR = OUTPUTS_DIR / "model_checkpoints"  # Path to store checkpointed trained models (files include optimizer and optional scheduler if used)
+HISTORY_DIR = OUTPUTS_DIR / "metric_history"  # Path to store training history metrics
 PLOT_DIR = BASE_DIR / "plots"  # Path to store generated plots
 
 # Training configurations

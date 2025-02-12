@@ -17,7 +17,7 @@ import time
 from ..config import DEVICE, INPUT_DIM, EPOCHS, HISTORY_DIR
 from .model import VAE
 from ..metrics.losses import VaeLoss
-from ..metrics.metrics import get_best_tradeoff_score
+from ..metrics.metrics import get_best_tradeoff_score, log_metrics
 from .train_test import train_val
 from .history_checkpoint import TrainingHistory
 from ..data.dataset import VoxelDataset
@@ -153,7 +153,7 @@ def create_grid() -> list[dict]:
     return grid
 
 
-def train_grid_search(train_ds: VoxelDataset, val_ds: VoxelDataset, model_architecture_name: str, clear_history_list: bool = False, history_list_filename: str = "grid_search_list", prune_old_checkpoints: bool = True):
+def train_grid_search(train_ds: VoxelDataset, val_ds: VoxelDataset, model_architecture_name: str, clear_history_list: bool = False, history_list_filename: str = "grid_search_list", prune_old_checkpoints: bool = True, log_skipped_histories: bool = False):
     """
     Conducts training for grid search.
     Grid is created based on 'create_grid' function.
@@ -172,6 +172,7 @@ def train_grid_search(train_ds: VoxelDataset, val_ds: VoxelDataset, model_archit
     :param clear_history_list: When False, files already listed in '<history_list_filename>.txt' are skipped, when True '<history_list_filename>.txt' is overwritten
     :param history_list_filename: Filename without extension for storing paths to trained history files
     :param prune_old_checkpoints: Removes old checkpoint files (saves memory)
+    :param log_skipped_histories: Boolean to log trained histories to metrics table
     """
     print("*" * 50)
     print("Starting grid search training...")
@@ -201,10 +202,29 @@ def train_grid_search(train_ds: VoxelDataset, val_ds: VoxelDataset, model_archit
             # Assign unique name containing test information
             model_name = f"{model_architecture_name}_bs{setup['batch_size']}_ld{setup['latent_dim']}_{setup['optimizer']['model_name']}_lr{setup['lr']}_wd{setup['decay']}_be{setup['beta']}_co{setup['lambda_coord']}_de{setup['lambda_desc']}_pd{setup['lambda_pad']}_cl{setup['lambda_collapse']}_tr{setup['lambda_reg']}"
 
+            # Create dataloaders updating batch_size
+            train_loader = DataLoader(train_ds, batch_size=setup['batch_size'], shuffle=True)
+            val_loader = DataLoader(val_ds, batch_size=setup['batch_size'], shuffle=False)
+
+            # Initialise loss function
+            criterion = VaeLoss(setup['lambda_coord'], setup['lambda_desc'], setup['lambda_pad'],
+                                setup['lambda_collapse'], setup['lambda_reg'])
+
+
             # Check if history path is already in file
             if f"{model_name}_history.pth" in completed_histories:
                 print(f"Skipping configuration, already completed: '{model_name}'")
                 completed_histories.remove(f"{model_name}_history.pth")  # Completed histories set used to check if files in search_list_path were not found
+
+                if log_skipped_histories:
+                    skipped_history = TrainingHistory.load_history(f"{model_name}_history.pth")
+
+                    # REMOVE AFTER LOGGING RUN HISTORY, AND MOVE vae BACK BELOW IF-ELSE #################################################################
+                    skipped_history.criterion = criterion
+
+
+                    log_metrics(skipped_history, train_loader, val_loader, k=5, log="loss")
+
                 continue
             else:
                 if time_to_train:
@@ -216,15 +236,10 @@ def train_grid_search(train_ds: VoxelDataset, val_ds: VoxelDataset, model_archit
                 else:
                     print(f"\nConfiguration [{i + 1:>4d}/{len(grid):>4d}]:")
 
-            # Create dataloaders updating batch_size
-            train_loader = DataLoader(train_ds, batch_size=setup['batch_size'], shuffle=True)
-            val_loader = DataLoader(val_ds, batch_size=setup['batch_size'], shuffle=False)
-
             # Create model
             vae = VAE(INPUT_DIM, setup['latent_dim'], model_name, max_voxels=train_ds.max_voxels, coordinate_dimensions=train_ds.coordinate_dim).to(DEVICE)
 
-            # Initialise loss function
-            criterion = VaeLoss(setup['lambda_coord'], setup['lambda_desc'], setup['lambda_pad'], setup['lambda_collapse'], setup['lambda_reg'])
+            # MOVE CRITERION TO HERE!!!!!!!!!!!!!!!!!!!11111
 
             # Initialise optimizer
             optim_params = setup['optimizer']['params']
@@ -240,8 +255,12 @@ def train_grid_search(train_ds: VoxelDataset, val_ds: VoxelDataset, model_archit
             file.write(history_path + "\n")
             print(f"Added '{history_path}' to '{Path(*search_list_path.parts[-2:])}'")
 
+            print()
             generate_plots(history, history.model_name)
+            print()
             compare_reconstructed(vae, val_loader, num_sample=5, filename=f"comparison_{history.model_name}")
+            print()
+            log_metrics(history, train_loader, val_loader, k=5, log="loss")
 
             # Append training time for progress updates
             stop_timer = time.perf_counter()

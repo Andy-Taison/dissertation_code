@@ -295,7 +295,7 @@ def train_val(model: torch.nn.Module, train_dataloader: torch.utils.data.DataLoa
 
     # Initialise training history when training from scratch
     if training_history is None:
-        training_history = TrainingHistory(model, train_dataloader, optimizer, scheduler)
+        training_history = TrainingHistory(model, train_dataloader, loss_fn, optimizer, scheduler)
         print(f"New training history object created '{training_history.model_name}'\n")
     else:
         # Check passed training history matches other objects
