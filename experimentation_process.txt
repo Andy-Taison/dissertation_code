@@ -441,4 +441,27 @@ Padded Voxel Penalty remains ineffective despite adjustments.
 Limited coordinate diversity, still feels fixed. 
 Collapse penalty sharply drops from ~8 to near zero within around 3 epochs.
 
-Started some targeted training runs.
+* Started some targeted training runs.
+Best loss model:
+lambda_coord, lambda_desc = 1.5	
+lambda_pad = 0.1
+lambda_collapse = 0.4
+beta = 0.02
+
+Collapse penalty rapidly drops, but it does start extreamly high (around 80, and then drops to near 0). 
+Pad penalty gradually rises and looks like it almost stabilises. 
+Coord loss and desc loss both slowly decrease. 
+Beta scaled kl increases rapidly around epoch 90. 
+All the scaled losses except pad penalty gradually decrease, and are in the range 4-0. 
+Scaled pad penalty rises before it looks like it almost stabilises, however the scaled loss is small compared to the others (in the range 0.01-0.02). 
+Latent space still looks well segregated. 
+
+Whilst the best loss model shows points moving around (though they seem to be targeted towards the centre), the spatial variance is fairly similar. 
+Descriptor variance is higher. But in terms of padded voxels, the number of non-padded voxels appears to be around 4 (4 padded voxels). 
+The best f1 model where coordinate position isn't accounted for (using configuration coord=3, desc=1.5, pad=0.1, collapse=0.2, trans=0.001, beta=0.03) 
+appears to have more non-padded voxels, but appears to be less flexible in them as it seems they are almost fixed at 7 non-padded voxels.
+
+Collapse penalty may be too aggressive, this may also affect exploration ability in the latent space.
+Pad penalty can be seen to be effective, however if its too strong, it may restrict model flexibility.
+Both coord loss and desc loss descrease steadily, but coordinate loss seems to dominate.
+Models with high collapse penalty struggle with descriptor diversity.

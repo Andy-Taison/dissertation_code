@@ -23,7 +23,7 @@ def euclidean_distance(x: torch.Tensor, x_reconstructed: torch.Tensor) -> float:
     :param x_reconstructed: Reconstructed input with shape (batch_size, *input_dim)
     :return: Mean Euclidean distance of reconstructed coordinates to original input coordinates
     """
-    distance = torch.norm(x[:, :, :3] - x_reconstructed[:, :, :3], dim=-1).mean().item()
+    distance = torch.linalg.vector_norm(x[:, :, :3] - x_reconstructed[:, :, :3], dim=-1).mean().item()
 
     return distance
 
@@ -154,6 +154,7 @@ def log_metrics(history: TrainingHistory, train_dataloader: DataLoader, val_data
         'name': history.alt_history_filename if history.alt_history_filename is not None else history.model_name,
         'batch_size': history.batch_size,
         'latent_dim': history.latent_dim,
+        'learning_rate': history.train['lr'],
         'lambda_coord': history.criterion.lambda_coord,
         'lambda_desc': history.criterion.lambda_desc,
         'lambda_pad': history.criterion.lambda_pad,
@@ -163,10 +164,13 @@ def log_metrics(history: TrainingHistory, train_dataloader: DataLoader, val_data
         'kl': history.val['kl'][idx],
         'scaled_kl': history.val['kl'][idx] * history.val['beta'][idx],
         'total_loss': history.val['recon'][idx] + (history.val['kl'][idx] * history.val['beta'][idx]),
+        'avg_weighted_f1': history.val['f1_weighted_avg'][idx],
+        'avg_euclid_dist': history.val['coor_euclid'],
         'scaled_coord': history.val['scaled_coor_loss'][idx],
         'scaled_desc': history.val['scaled_desc_loss'][idx],
         'scaled_pad': history.val['scaled_pad_penalty'][idx],
-        'scaled_col': history.val['scaled_collapse_penalty'][idx]
+        'scaled_collapse': history.val['scaled_collapse_penalty'][idx],
+        'epochs_run': history.epochs_run
     }
 
     try:
