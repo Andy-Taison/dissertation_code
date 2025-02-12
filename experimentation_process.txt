@@ -474,3 +474,7 @@ Collapse penalty may be too aggressive, this may also affect exploration ability
 Pad penalty can be seen to be effective, however if its too strong, it may restrict model flexibility.
 Both coord loss and desc loss descrease steadily, but coordinate loss seems to dominate.
 Models with high collapse penalty struggle with descriptor diversity.
+
+* Beta and learning rate targeted runs based on best loss model (tuned slightly before new losses).
+Training to 100 epochs with patience 15.
+ 
