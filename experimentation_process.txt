@@ -500,3 +500,13 @@ collapse = 0.2 and 0.3
 beta = 0.1 and 0.5
 
 Noticed padded voxel penalty had a bug. Where I was taking the absolute between the original and reconstructed and modified it to smooth L1, the order was incorrect.
+Corrected losses/penalties.
+
+* Targeted tuning to get a feel for new losses:
+beta = 0.01 and 0.1   # Found earlier that this was about the correct range
+coord = 1.0 and 2.0
+desc = 1.0 and 2.0
+pad = 1.0
+collapse = 1.0 and 2.0
+reg = 0.001
+epochs = 50, patience = 10
