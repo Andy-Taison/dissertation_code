@@ -159,8 +159,8 @@ def padded_voxel_penalty(orig_descriptors: torch.Tensor, recon_descriptors: torc
     recon_padded_prob = recon_probs[:, :, 0]
 
     # Difference in expected number of padded voxels
-    penalty = F.smooth_l1_loss(orig_padded_prob.sum(dim=1), recon_padded_prob.sum(dim=1), reduction='mean')  # Differentiable absolute function
-
+    penalty = F.smooth_l1_loss(recon_padded_prob, orig_padded_prob, reduction='mean')  # Differentiable absolute function
+    
     return penalty
 
 
