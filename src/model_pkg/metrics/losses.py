@@ -14,11 +14,10 @@ def coordinate_matching_loss(x: torch.Tensor, x_reconstructed: torch.Tensor) -> 
     Consists of two parts:
     1. Clustering penalty - Penalises clustering of multiple reconstructed points around the same original point.
         Measured using the entropy of the distribution formed based on each original points attention.
-        Lower entropy suggests clustering, so the max entropy is calculated based on a uniform distribution,
-        and the entropy is subtracted from this value, scaled to prevent over penalising when the model over
-        predicts non-padded voxels.
-    2. Distance penalty - The pairwise distance matrix is weighted by the likelihood of nearest neighbours, and scaled
-        by the average non-padded voxels between the original and reconstructed samples.
+        Lower entropy suggests clustering, so the max entropy is calculated based on a uniform distribution (perfect alignment),
+        and the entropy is subtracted from this value.
+    2. Distance penalty - The pairwise distance matrix is weighted by the likelihood of nearest neighbours.
+        Can encourage the model to under predict voxels, so the padded penalty penalises stronger for more reconstructed padded voxels than original.
 
     :param x: Original input
     :param x_reconstructed: Reconstructed
@@ -38,23 +37,21 @@ def coordinate_matching_loss(x: torch.Tensor, x_reconstructed: torch.Tensor) -> 
         if o_mask.sum() == 0 or r_mask.sum() == 0:
             continue
 
-        # Used to scale penalties
-        avg_non_padded = (r_mask.sum() + o_mask.sum()) / 2.0
-
         # Pairwise distance matrix between all original and reconstructed coordinates
         dist_matrix = torch.cdist(recon, orig, p=2)  # (rows: distances from reconstructed, columns: distances from original)
 
         # Apply masks to ignore padded voxels
         masked_dist_matrix = dist_matrix.clone()  # Avoid modifying matrix directly (causes error) with autograd
-        masked_dist_matrix[~r_mask, :] = float('inf')  # Mask padded rows (reconstructed)
         masked_dist_matrix[:, ~o_mask] = float('inf')  # Mask padded columns (original)
+        masked_dist_matrix[~r_mask, :] = float('inf')  # Mask padded rows (reconstructed)
 
         # Gets probability of the closest point, softmin is differentiable
         neighbour_weights = F.softmin(masked_dist_matrix * 100, dim=1)  # Scaling distance encourages model to focus on a single point
         neighbour_weights = torch.nan_to_num(neighbour_weights)  # Replace nan with 0
 
-        # Sum of attention each original point receives from all reconstructed points
+        # Sum of attention each original point (columns) receives from all reconstructed points
         attention_per_original = neighbour_weights.sum(dim=0)  # (num_original_points)
+        attention_per_original = attention_per_original[o_mask]  # Filter out padded voxels to avoid penalising when padded values present affecting the normalisation process
 
         # Normalise attention to form a probability distribution over original points
         attention_distribution = attention_per_original / (attention_per_original.sum() + 1e-8)  # Avoid division by 0
@@ -62,7 +59,7 @@ def coordinate_matching_loss(x: torch.Tensor, x_reconstructed: torch.Tensor) -> 
         # Shannon entropy for attention distribution (amount of uncertainty) - clustered points will have lower entropy
         entropy = -(attention_distribution * torch.log(attention_distribution + 1e-8)).sum()  # log(0) is undefined
 
-        # Maximum entropy
+        # Maximum entropy (perfect alignment)
         # Happens when distribution is uniform: p(x) = 1/n
         # H(x)max = -sum_{i..N}((1/n)*log(1/n))
         # log(1/n) = -log(n)
@@ -70,14 +67,11 @@ def coordinate_matching_loss(x: torch.Tensor, x_reconstructed: torch.Tensor) -> 
         max_entropy = torch.log(torch.tensor(attention_distribution.size(0), device=DEVICE))
 
         # Clustered points will have lower entropy
-        # Scaled to prevent over penalising when the model over predicts non-padded voxels
-        voxel_diff = F.smooth_l1_loss(r_mask.sum().float(), o_mask.sum().float())  # Differentiable absolute function
-        cluster_scale = 1 + (voxel_diff / (avg_non_padded + 1e-8))  # Avoid division by 0
-        clustering_penalty = (max_entropy - entropy) * cluster_scale
+        clustering_penalty = (max_entropy - entropy) ** 2  # Avoid negatives due to numerical errors
 
         # Distance penalty, balanced for incorrect number of voxels
         masked_dist_matrix[torch.isinf(masked_dist_matrix)] = 0.0  # Avoid 'inf' in calculations
-        distance_penalty = (neighbour_weights * masked_dist_matrix).sum() / (avg_non_padded + 1e-8)  # Avoid division by zero
+        distance_penalty = (neighbour_weights * masked_dist_matrix).sum()
 
         total_penalty += clustering_penalty + distance_penalty
 
@@ -145,10 +139,11 @@ def padded_voxel_penalty(orig_descriptors: torch.Tensor, recon_descriptors: torc
     """
     Calculates penalty for the smooth L1 (differentiable absolute) padded voxel difference from original input.
     Calculated in a differentiable way to help the model learn.
+    Penalises stronger for more reconstructed padded voxels than original to balance coordinate matching loss.
 
     :param orig_descriptors: Original batched one-hot descriptors
     :param recon_descriptors: Reconstructed batched logits
-    :return: Penalty (mean reduction smooth L1)
+    :return: Penalty (mean reduction smooth L1) scaled based on number of padded voxels
     """
     # Class probabilities - softmax is differentiable
     orig_probs = F.softmax(orig_descriptors, dim=-1)
@@ -159,9 +154,19 @@ def padded_voxel_penalty(orig_descriptors: torch.Tensor, recon_descriptors: torc
     recon_padded_prob = recon_probs[:, :, 0]
 
     # Difference in expected number of padded voxels
-    penalty = F.smooth_l1_loss(recon_padded_prob, orig_padded_prob, reduction='mean')  # Differentiable absolute function
-    
-    return penalty
+    penalty = F.smooth_l1_loss(recon_padded_prob, orig_padded_prob, reduction='none')  # Differentiable absolute function, none reduction to apply scale
+
+    # Number of non-padded voxels
+    num_orig_non_padded = (1 - orig_padded_prob).sum(dim=1)  # Per sample
+    num_recon_non_padded = (1 - recon_padded_prob).sum(dim=1)
+
+    # Scaling factor to balance coordinate matching loss and penalise stronger for fewer reconstructed voxels
+    scale_per_sample = torch.clamp(num_orig_non_padded / (num_recon_non_padded + 1e-8), min=1.0)
+
+    # Scale per sample
+    scaled_penalty = (penalty.mean(dim=1) * scale_per_sample).mean()
+
+    return scaled_penalty
 
 
 def overlap_penalty(x_reconstructed: torch.Tensor) -> torch.Tensor:
@@ -183,7 +188,7 @@ def overlap_penalty(x_reconstructed: torch.Tensor) -> torch.Tensor:
     recon_mask = (x_reconstructed[:, :, COORDINATE_DIMENSIONS:].argmax(dim=-1) != 0)  # (Batch_size, num_voxels)
 
     for coords, mask in zip(recon_coords, recon_mask):
-        # Scale, round, and clamp to grid space
+        # Scale, round, and clamp to grid space range
         scaled_coords = coords * (EXPANDED_GRID_SIZE - 1)
         rounded_coords = torch.clamp(torch.round(scaled_coords), min=0, max=EXPANDED_GRID_SIZE - 1)
 
@@ -193,7 +198,7 @@ def overlap_penalty(x_reconstructed: torch.Tensor) -> torch.Tensor:
         # Tracks what has been found to not double count
         overlapping_idx = set()
 
-        # Iterate over each coordinate and check for matching
+        # Iterate over each coordinate set (x,y,z) and check for matching
         for i in range(rounded_coords.size(0)):
             current_coord = rounded_coords[i]
 
@@ -203,7 +208,7 @@ def overlap_penalty(x_reconstructed: torch.Tensor) -> torch.Tensor:
 
             # Find matching coordinates (overlaps)
             matches = (rounded_coords == current_coord).all(dim=1)
-            match_indices = matches.nonzero(as_tuple=True)[0]
+            match_indices = matches.nonzero(as_tuple=True)[0]  # Returns indices as a 1D tensor
 
             # Calculate pairwise distance, and take the negative sum of the log of the upper triangle of the distance matrix (excluding the diagonal)
             if match_indices.numel() > 1:

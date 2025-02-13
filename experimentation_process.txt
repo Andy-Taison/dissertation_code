@@ -364,7 +364,7 @@ The descriptor loss is also being affected by the shuffling. CrossEntropyLoss is
 * Changed how padding penalty is calculated and applied so it is now differentiable so the model can learn.
 Now taking the smooth L1 (differentiable absolute) difference of padded voxels. Using softmax as this is differentiable.
 
-Added a matching loss, loosely inspired by chamfer distance.
+Added a coordinate matching loss, loosely inspired by the Hungarian algorithm, but instead use cdist to calulate a distance matrix. 
 Calculates pairwise distance from reconstructed coordinates to original coordinates (rows represent reconstructed, columns are original).
 Masks out padded voxels (based on descriptor designation) to ignore the coordinates in the penalty calculation.
 Applies softmin (differentiable) to work out nearest neighbour probability - also scales the distance matrix to encourage points to focus on a single point.
@@ -491,5 +491,12 @@ The best f1 model used:
 learning rate = 3e-05 and beta = 0.1 and produced more voxels, had a better variety of descriptor values, but limited spatial variance.
 Models with a lower beta produced better spatial and descriptor variance, however too low could potentially lead to a latent space that isn't meaningful.
 
-* Targeted tuning for
+* Targeted tuning using:
+Learning rates = 1e-05 and 3e-05
+lam cord = 1.2  and 1.5
+lam des = 1.5 and 2.0
+lam pad = 0.15
+collapse = 0.2 and 0.3
+beta = 0.1 and 0.5
 
+Noticed padded voxel penalty had a bug. Where I was taking the absolute between the original and reconstructed and modified it to smooth L1, the order was incorrect.
