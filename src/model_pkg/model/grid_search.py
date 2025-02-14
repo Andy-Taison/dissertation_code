@@ -87,23 +87,23 @@ def create_grid() -> list[dict]:
     grid = [
         # Beta scale focused runs
         {"batch_size": 64, "latent_dim": 16, "optimizer": {"type": optim.Adam, "params": {}, "model_name": "adam"},
-         "lr": 1e-5, "decay": 1e-5, "lambda_coord": 5.5, "lambda_desc": 2.5, "lambda_collapse": 0,
+         "lr": 1e-5, "decay": 1e-5, "lambda_coord": 5.5, "lambda_desc": 2.5, "lambda_collapse": 0.0,
          "beta": 0.2, "lambda_reg": 0.001},
 
         {"batch_size": 64, "latent_dim": 16, "optimizer": {"type": optim.Adam, "params": {}, "model_name": "adam"},
-         "lr": 1e-5, "decay": 1e-5, "lambda_coord": 3.5, "lambda_desc": 5.0, "lambda_collapse": 0,
+         "lr": 1e-5, "decay": 1e-5, "lambda_coord": 3.5, "lambda_desc": 5.0, "lambda_collapse": 0.0,
          "beta": 0.25, "lambda_reg": 0.001},
 
         {"batch_size": 64, "latent_dim": 16, "optimizer": {"type": optim.Adam, "params": {}, "model_name": "adam"},
-         "lr": 1e-5, "decay": 1e-5, "lambda_coord": 6.0, "lambda_desc": 3.0, "lambda_collapse": 0,
+         "lr": 1e-5, "decay": 1e-5, "lambda_coord": 6.0, "lambda_desc": 3.0, "lambda_collapse": 0.0,
          "beta": 0.3, "lambda_reg": 0.001},
 
         {"batch_size": 64, "latent_dim": 16, "optimizer": {"type": optim.Adam, "params": {}, "model_name": "adam"},
-         "lr": 1e-5, "decay": 1e-5, "lambda_coord": 4.0, "lambda_desc": 4.0, "lambda_collapse": 0,
+         "lr": 1e-5, "decay": 1e-5, "lambda_coord": 4.0, "lambda_desc": 4.0, "lambda_collapse": 0.0,
          "beta": 0.35, "lambda_reg": 0.001},
 
         {"batch_size": 64, "latent_dim": 16, "optimizer": {"type": optim.Adam, "params": {}, "model_name": "adam"},
-         "lr": 1e-5, "decay": 1e-5, "lambda_coord": 5.0, "lambda_desc": 5.0, "lambda_collapse": 0,
+         "lr": 1e-5, "decay": 1e-5, "lambda_coord": 5.0, "lambda_desc": 5.0, "lambda_collapse": 0.0,
          "beta": 0.5, "lambda_reg": 0.001}]   # ,
     """
         {"batch_size": 64, "latent_dim": 16, "optimizer": {"type": optim.Adam, "params": {}, "model_name": "adam"},
