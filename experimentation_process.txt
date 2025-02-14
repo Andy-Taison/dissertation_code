@@ -1012,15 +1012,66 @@ Quick run exploration runs:
 
 Baseline Comparison:
 coord = 2.0, desc = 2.0, collapse = 2.0, beta = 0.01
+Limited spatial and colour variation, clustering near centre. 
+Scaled losses: collapse penalty starts much higher than the other losses at 150 (80 not scaled), and drops to near 0 in around 20 epochs, 
+desc loss rises slightly and then drops between 3.5 and 4 (1.5 and 2 not scaled), coor loss is logarithmic and drops from 6.5 to 3 (3.25 to 1.5 not scaled).
+Beta scaled KL rises from 0 to 0.15 where it stabilises mirroring total loss, though total loss is in the range 175-0.
 
 Test entropys effect:
 coord = 4.0, desc = 1.5, collapse = 2.0, beta = 0.005
+Voxels seem to be stacked vertically, slight variation in voxel numbers, and slight variation in colour.
+Scaled losses: collapse penalty drops from 20 to near 0 (10-0 raw), desc loss is flat around 2.5 (1.8 raw), coor loss decreases (faster at the start) from 8-5 (2-1 raw).
+Beta scaled KL rises continually from near 0 to 0.02, total loss drops from 30 to 7 faster near the start. 
 
 Test descriptor matching:
 coord = 1.5, desc = 4.0, collapse = 2.0, beta = 0.008
+Location variation is moderate, seems to try to be following the original, but in a limited way, colours are ok too, but not perfect. 
+Scaled losses: collapse penalty drops from 37 to near 0 in a logarithmic way (18-0 raw), desc loss is flat at 7 (1.5 raw), coor loss is mostly flat with a slight drop from
+4-2 (2.5 to 1 raw). Beta scaled KL almost mirrors total loss (in shape not scale) by rising from near 0 to 0.0175, total loss drops logarithmically from 48 to 9.
 
 Test KL Impact:
 coord = 2.0, desc = 2.0, collapse = 2.0, beta = 0.05
+Some variation in spatial locations that kind of follows the original very lossely, slightly too clustered towards the centre, some colour variation and slight matching.
+Scaled losses: collapse penalty drops rapidly from 20-near 0 in about 15 epochs (10-0 raw), desc loss is flat around 3.5 (1.8 raw), coor loss drops slighly at the beginning
+and then stabilises from 5-2.5 (2.5-1 raw). Beta scaled KL almost mirrors total loss (in shape), rising from near 0 to 0.08, total loss drops from 30 to 5.
 
 Low Collapse Penalty:
 coord = 2.5, desc = 2.5, collapse = 0.5, beta = 0.01
+Voxel number vary, but location not a lot, nor do colours vary. Scaled losses: collapse penalty drops quickly from 7.5 to near 0 in around 20 epochs (15-0 raw), 
+coor loss drops slowly from 5.5 to 2.8 (2-1 raw), desc loss is mostly flat around 4.5 (2 raw). Beta scaled KL rises continually from 0 to 0.065 and then dropping slightly to 0.055
+with some flucuations, total loss drops quickly from 17 to 7.5 where it seems to stabilise. 
+
+
+Collapse penalty dominates early, desc loss relatively flat so poor learning.
+Beta would probably benefit from being increased to emphasise latent space now coordinate is entropy based. 
+
+* Beta models:
+Baseline Higher Beta Check
+coord = 2.5
+desc = 2.5
+collapse = 2.0
+beta = 0.1
+
+Spatially Focused (High Coordinate, Moderate Descriptor)
+coord = 5.0
+desc = 2.0
+collapse = 1.5
+beta = 0.15
+
+Descriptor Emphasis with Strong Latent Constraint
+coord = 2.0
+desc = 5.0
+collapse = 2.0
+beta = 0.2
+
+High Beta  
+coord = 3.5
+desc = 3.5
+collapse = 2.0
+beta = 0.5
+
+Coordinate Descriptor Balance with Standard VAE Beta
+coord: 4.0
+desc: 4.0
+collapse: 1.5
+beta: 1.0 

@@ -87,24 +87,24 @@ def create_grid() -> list[dict]:
     grid = [
         # Beta scale focused runs
         {"batch_size": 64, "latent_dim": 16, "optimizer": {"type": optim.Adam, "params": {}, "model_name": "adam"},
-         "lr": 1e-5, "decay": 1e-5, "lambda_coord": 2.0, "lambda_desc": 2.0, "lambda_collapse": 2.0,
-         "beta": 0.01, "lambda_reg": 0.001},
+         "lr": 1e-5, "decay": 1e-5, "lambda_coord": 2.5, "lambda_desc": 2.5, "lambda_collapse": 2.0,
+         "beta": 0.1, "lambda_reg": 0.001},
 
         {"batch_size": 64, "latent_dim": 16, "optimizer": {"type": optim.Adam, "params": {}, "model_name": "adam"},
-         "lr": 1e-5, "decay": 1e-5, "lambda_coord": 4.0, "lambda_desc": 1.5, "lambda_collapse": 2.0,
-         "beta": 0.005, "lambda_reg": 0.001},
+         "lr": 1e-5, "decay": 1e-5, "lambda_coord": 5.0, "lambda_desc": 2.0, "lambda_collapse": 1.5,
+         "beta": 0.15, "lambda_reg": 0.001},
 
         {"batch_size": 64, "latent_dim": 16, "optimizer": {"type": optim.Adam, "params": {}, "model_name": "adam"},
-         "lr": 1e-5, "decay": 1e-5, "lambda_coord": 1.5, "lambda_desc": 4.0, "lambda_collapse": 2.0,
-         "beta": 0.008, "lambda_reg": 0.001},
+         "lr": 1e-5, "decay": 1e-5, "lambda_coord": 2.0, "lambda_desc": 5.0, "lambda_collapse": 2.0,
+         "beta": 0.2, "lambda_reg": 0.001},
 
         {"batch_size": 64, "latent_dim": 16, "optimizer": {"type": optim.Adam, "params": {}, "model_name": "adam"},
-         "lr": 1e-5, "decay": 1e-5, "lambda_coord": 2.0, "lambda_desc": 2.0, "lambda_collapse": 2.0,
-         "beta": 0.05, "lambda_reg": 0.001},
+         "lr": 1e-5, "decay": 1e-5, "lambda_coord": 3.5, "lambda_desc": 3.5, "lambda_collapse": 2.0,
+         "beta": 0.5, "lambda_reg": 0.001},
 
         {"batch_size": 64, "latent_dim": 16, "optimizer": {"type": optim.Adam, "params": {}, "model_name": "adam"},
-         "lr": 1e-5, "decay": 1e-5, "lambda_coord": 2.5, "lambda_desc": 2.5, "lambda_collapse": 0.5,
-         "beta": 0.01, "lambda_reg": 0.001}]   # ,
+         "lr": 1e-5, "decay": 1e-5, "lambda_coord": 4.0, "lambda_desc": 4.0, "lambda_collapse": 1.5,
+         "beta": 1.0, "lambda_reg": 0.001}]   # ,
     """
         {"batch_size": 64, "latent_dim": 16, "optimizer": {"type": optim.Adam, "params": {}, "model_name": "adam"},
          "lr": 1e-5, "decay": 1e-5, "lambda_coord": 1.0, "lambda_desc": 1.25, "lambda_collapse": 0.75,
