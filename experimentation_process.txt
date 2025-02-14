@@ -1006,3 +1006,21 @@ encoding padded voxels as (11,11,11) rather than (0,0,0) - a genuine location.
 Doing this and using entropy should encourage both the correct number of voxels and the correct locations (max entropy is uniform distribution).
 This should also mean that the padded voxel penalty can be removed, simplifying the problem.
 Removed masking from the descriptor penalty to include padded voxels in the calculations.
+
+* Loss functions updated to treat padded voxels as a genuine coordinate (as above).
+Quick run exploration runs:
+
+Baseline Comparison:
+coord = 2.0, desc = 2.0, collapse = 2.0, beta = 0.01
+
+Test entropys effect:
+coord = 4.0, desc = 1.5, collapse = 2.0, beta = 0.005
+
+Test descriptor matching:
+coord = 1.5, desc = 4.0, collapse = 2.0, beta = 0.008
+
+Test KL Impact:
+coord = 2.0, desc = 2.0, collapse = 2.0, beta = 0.05
+
+Low Collapse Penalty:
+coord = 2.5, desc = 2.5, collapse = 0.5, beta = 0.01
