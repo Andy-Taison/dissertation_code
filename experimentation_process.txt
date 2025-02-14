@@ -532,7 +532,7 @@ beta = 0.01
 Clustered in the centre, fewer reconstructed than original voxels. 
 Limited layout variation. Minor descriptor variation. 
 Scaled losses all downward trends, except pad penalty which increases, however, it is in a much smaller range than the others (max 0.175) 
-whilst the others are around 2 or 3. beta scaled kl peaks at around 0.05, and then drops to 0.03, total loss is around 5.
+whilst the others are around 2 or 3. beta scaled kl peaks at around 0.05, and then drops to 0.03, recon loss is around 5.
 
 Very Low Collapse Penalty with High Beta
 coord = 1.0 
@@ -542,7 +542,7 @@ collapse = 0.1
 beta = 0.1
 Still clustering in the centre, only reconstructing 3 voxels when original has much more. 
 All scaled losses drop and stabilise, coor loss is higher than the others at around 2.5 (stabilised), desc loss around 0.8, 
-pad around 0.3, and collapse near 0. Beta scaled kl looks like a bell curve, but is very small (0.01 to 0.04) compared to the total loss (around 3)
+pad around 0.3, and collapse near 0. Beta scaled kl looks like a bell curve, but is very small (0.01 to 0.04) compared to the recon loss (around 3)
 
 Descriptor Focus Only (Coord low, Collapse low)
 coord = 0.5 
@@ -553,7 +553,7 @@ beta = 0.01
 Still some clustering towards centre of voxel space, but more variation in layout and number of voxels. 
 Better matching of descriptor colours. scaled pad penalty rises but is low compared to the others in range (0.01-0.1). 
 The other scaled losses drop gradually (except collapse that drops rapidly before stabilising near 0, descr loss is in range (5-2.5), 
-coord loss is in range (3-2). beta scaled kl rises rapidly around epoch 45 and stabilises around 0.09, whilst total loss drops and smooths out around 5.
+coord loss is in range (3-2). beta scaled kl rises rapidly around epoch 45 and stabilises around 0.09, whilst recon loss drops and smooths out around 5.
 
 Balanced Spread: Medium Collapse Penalty + Higher Descriptor
 coord = 1.0 
@@ -563,7 +563,7 @@ collapse = 1.5
 beta = 0.05
 Does not reconstruct any voxels. Scaled losses: collapse drops from 1 to near 0, desc and coord loss drop before rising again, 
 desc in range (1.25-2), coord in range (0.75, 1.5), pad penalty rises from 0.02 to 0.1. beta scaled kl rises quickly but small 
-value to 0.006 and then gradually drops  to 0.005. Total loss drops  from 4.5 to 2 before rising to 3.
+value to 0.006 and then gradually drops  to 0.005. recon loss drops  from 4.5 to 2 before rising to 3.
 
 Low Collapse + High Pad Penalty
 coord = 1.0 
@@ -574,7 +574,7 @@ beta = 0.01
 Reconstructs only one voxel near the centre of the descriptor space or nothing at all.
 Some variation in descriptor colour. Scaled losses: collapse drops rapidly to near 0, pad penalty is flat around 0.3, 
 desc drops very slowly from around 1.5 to 0.8, coor fluctuates slightly and is flat initially around 3, 
-takes a dip to 1, and then climbs to 3. Beta scaled kl climbs from 0.0005 to 0.0025, total loss fluctuates in a similar way to 
+takes a dip to 1, and then climbs to 3. Beta scaled kl climbs from 0.0005 to 0.0025, recon loss fluctuates in a similar way to 
 scalled coor but is in the range 10-2, so much higher than beta scaled kl.
 
 Higher Coordinate Penalty with High Beta
@@ -586,7 +586,7 @@ beta = 0.1
 Only reconstructs 2 green voxels with some minor variation on location, but mainly towards the centre of the descriptor space. 
 Scaled coor loss drops and stabilises from around 10 to 7, whilst the other scaled losses are fairly flat, desc loss is around 1, 
 whilst pad penalty and collapse penalty is close to 0. KL divergence oscillates forming 2 mountain like sharp peaks, 
-ranging from 0.01 to 0.05, whilst total loss drops from 14 and flatlines around 8.
+ranging from 0.01 to 0.05, whilst recon loss drops from 14 and flatlines around 8.
 
 Medium Collapse + High KL Beta
 coord = 1.0 
@@ -597,7 +597,7 @@ beta = 0.2
 Clustering near the centre of the descriptor space, with limited layout variation, high number of voxels (seems to be always around the max =8), 
 descriptor colour seems to vary ok. Scaled losses: pad penalty rises slightly and is almost flat in the range 0.005-0.006, 
 collapse penalty drops quickly from 17 to near 0 in around 20 epochs, coor loss is almost flat around 5, desc is flat around 2. 
-Beta scaled KL starts around 0.01 and rises to a sharp peak at 0.015 at epoch 12 before coming down t o0.0025 and slowly rising, total 
+Beta scaled KL starts around 0.01 and rises to a sharp peak at 0.015 at epoch 12 before coming down t o0.0025 and slowly rising, recon 
 loss drops quickly (by epoch 12) from 25 to around 8 and is then almost flat. 
 
 High Collapse Penalty with Lower Pad Penalty
@@ -609,7 +609,7 @@ beta = 0.01
 Still getting clustering near the centre, but more spread than the others so far, slight variation on layout, some variation on descriptor colours. 
 Seem to be getting max number of voxels. Scaled losses: pad penalty is almost flat around 0.0025, collapse penalty drops quickly from 30 to near 0 
 in around 20 epochs, coor loss is near flat around 5, and desc loss is flat around 2. Beta scaled kl continues to increase from 0 to around 0.035, 
-total loss drops in around 20 epochs from 40 to 6.
+recon loss drops in around 20 epochs from 40 to 6.
 
 Higher Beta and Descriptor Penalty
 coord = 1.0 
@@ -620,7 +620,7 @@ beta = 0.15
 Clustering with some variation on layout, more variation on descriptor colours, seems to reconstruct maximum number of voxels. 
 Scaled losses: pad penalty is almost flat around 0.007, collapse penalty drops fairly quickly from around 3 to near 0, coor loss 
 drops gradually from around 5.5 to 4.5, descriptor loss is near flat around 4. Beta scaled KL divergence fluctuates, but its 
-overall trend is that it drops from 0.008 to 0.003 and then rises again to 0.006, whilst total loss drops faster until around 
+overall trend is that it drops from 0.008 to 0.003 and then rises again to 0.006, whilst recon loss drops faster until around 
 epoch 12 and then slower from the value 13 to 8.
 
 High Coord + Descriptor + Collapse Together
@@ -632,7 +632,7 @@ beta = 0.01
 Clustering with some variation on layout, limited to no descriptor colour variation, seems to reconstruct maximum number of voxels.
 Scaled losses: pad penalty rises from 0.01 to 0.04, collapse penalty drops rapidly from 8 to near 0, coor loss drops slightly from 14 to 10, 
 desc loss is almost flat around 4. Beta scaled KL rises steeply at around epoch 20 from near 0 to around 0.150, where it slowly increases to 0.175,
-whilst total loss drops slowing over the epochs from 25 to around 14.
+whilst recon loss drops slowing over the epochs from 25 to around 14.
 
 Extreme High Beta (0.5)
 coord = 1.0 
@@ -643,7 +643,7 @@ beta = 0.5
 Either fails to reconstruct anything, or only reconstructs a single green voxel located near the centre with very minimal location variance. 
 Scaled losses: pad penalty rises from 0.008 to 0.011, the other penalties drop gradually at around the same rate, collapse penalty from 0.4 to 
 near 0, desc loss from 1 to 0.6, coor loss from 2.2 to 1.5. Beta scaled kl drops quickly from 0.012 to 0.003 and then rises to 0.009, 
-whilst total loss drops gradually from 3.5 to 2.25.
+whilst recon loss drops gradually from 3.5 to 2.25.
 
 Low Beta (0.001) + High Collapse
 coord = 1.0 
@@ -654,7 +654,7 @@ beta = 0.001
 Some minor clustering, over reconstructed number of voxels, minor variation in layout, almost no variation in descriptor colours. 
 Scaled losses: pad penalty rises quickly from 0.006 to 0.009 and then flatlines around 0.008, collapse penalty drops quickly from 35 to near 0, 
 coor loss is almost flat around 5, and desc loss is flat around 2. Beta scaled KL rises exponentially from 0 to 0.002 over 80 epochs, 
-whilst total loss almost mirrors this dropping exponentially from 40 to around 6.
+whilst recon loss almost mirrors this dropping exponentially from 40 to around 6.
 
 Full baseline:
 coord = 1.0 
@@ -665,7 +665,7 @@ beta = 0.01
 Gets some clustering, some  variation in layout but compressed compared to original, limited to no descriptor colour variation, 
 seems to be reconstructing maximum voxels. Scaled losses: pad penalty is almost flat around 0.009, collapse penalty drops rapidly 
 from 20 to near 0 in around 20 epochs, coor loss is near flat dropping from around 5 to 4, desc loss is flat around 2. 
-Beta scaled kl is increases at an almost constant rate from 0 to 0.09 in 80 epochs, whilst total loss drops from 27 to 5 in about 15-20 
+Beta scaled kl is increases at an almost constant rate from 0 to 0.09 in 80 epochs, whilst recon loss drops from 27 to 5 in about 15-20 
 epochs before almost flatlining. 
 
 Descriptor Heavy + High Pad Penalty
@@ -677,7 +677,7 @@ beta = 0.01
 Better variation in layout, limited descriptor colour and voxel number variation (only around 2 or 3 reconstructed). 
 Scaled losses: pad penalty increases almost linearly from 0.02 to 0.35, collapse penalty drops rapidly from 25 to near 0 in around 
 30 epochs, coor loss drops very very slowly from around 4 to 2, desc loss also drops very very slowly from around 5.5 to 2. 
-Beta scaled kl increases from around 0 to 0.12, whilst total loss drops quickly from around 35 to around 10 in approx 10 epochs and 
+Beta scaled kl increases from around 0 to 0.12, whilst recon loss drops quickly from around 35 to around 10 in approx 10 epochs and 
 then continues to drop to around 4 over the total 80 epochs.
 
 Collapse + Pad Only (Minimal Descriptor Influence)
@@ -688,7 +688,7 @@ collapse = 4.0
 beta = 0.01
 Better separation, but limited layout variation and only 2 voxels reconstructed even with most around 8 voxels in original. No descriptor colour variation.
 Scaled losses: Collapse penalty drops rapidly from 15 to near 0 in around 10 epochs, all other losses are fairly flat, coor loss is around 2, desc loss is around 1,
-and pad penalty is near 0. Beta scaled kl rises from 0.0006 to a peak at 0.0015 before dropping back down and almost flatlining at 0.0006, whilst total loss drops 
+and pad penalty is near 0. Beta scaled kl rises from 0.0006 to a peak at 0.0015 before dropping back down and almost flatlining at 0.0006, whilst recon loss drops 
 quickly from 18 to 2.5 and almost flatlining. 
 
 It appears that high collapse penalty reduces clustering but limits layout variation.
@@ -707,6 +707,10 @@ desc = 3.0
 pad = 4.0
 collapse = 1.0
 beta = 0.01
+Some variation in spacing between voxels, but seems to follow a fairly fixed layout. Only 4 voxels seems to be produced, but there is good variation in descriptor
+colours. Scaled losses: Pad penalty rises from near 0 to 0.5 where it looks like its starting to stabilise, collapse penalty drops rapidly from 80 to near 0 within 
+around 5 epochs, coor loss decreases very slowly almost flat at about 10, desc loss is practically flat at around 3. Beta scaled KL rises to 0.15 and then slowly decreases to 0.11 
+while recon loss decrease fairly rapidly from 100 to around 20 within about 5 epochs and then continues to decrease slowly to around 8. 
 
 Balanced collapse and lower descriptor with lower pad
 coord = 2.0
@@ -714,6 +718,10 @@ desc = 2.5
 pad = 3.5
 collapse = 2.0
 beta = 0.005
+Similar configuration to pad penalty above collapse but with less variation in descriptor colours, again only 4 voxels seems to be produced. 
+Scaled losses: collapse penalty drops rapidly from 25 to near 0 in 10-15 epochs, pad penalty is flat near 0, desc loss slowly decreases from around 4 to 3,
+coor loss decreases slowly from 10 to 5. Beta scaled KL starts increasing around epoch 20 and climbs to 0.12, whilst recon loss drops from 40 to around 10 in about
+20 epochs where it seems to stabilise. 
 
 Lower descriptor, high pad
 coord = 2.0
@@ -721,6 +729,10 @@ desc = 2.0
 pad = 3.5
 collapse = 2.5
 beta = 0.015
+Limited variation in layout, points cluster slightly, 8 voxels reconstructed even when there are less original, some but limited variation in descriptor colours.
+Scaled losses: pad penalty rises from 0.03 to 0.05 in 10 epochs before decreasing to 0.04, collapse penalty drops rapidly from 70 to near 0 in around 20 epochs, coor loss
+is flat at 10, desc loss is flat at 4. Scaled beta kl rises continually from 0 to 0.035, while recon loss decreases rapidly from 80 to around 12 in around 20 epochs where it seems to 
+stabilise.
 
 Strong descriptor
 coord = 3.0
@@ -728,6 +740,9 @@ desc = 5.0
 pad = 4.5
 collapse = 1.0
 beta = 0.02
+1 voxel reconstructed mostly, sometimes 2 stacked, but no variation in layout or descriptor colour. Scaled losses: pad penalty rises linearly from 0 to 1, collapse penalty
+decreases steadily from 1 to near 0, coor and desc losses look like genetle waves, coor is around 6-8, desc is around 5-3. Beta scaled kl increases constantly from 0.001 to 0.005,
+whilst recon loss is a gentle wave in the range 11-13.
 
 Reduced collapse for higher voxel count
 coord = 2.0
@@ -735,6 +750,9 @@ desc = 3.5
 pad = 4.0
 collapse = 1.5
 beta = 0.01
+Maximum number of voxels constantly produced, limited variation in layout, hardly any variation in descriptor colour. Scaled losses: pad penalty rises constantly from 0.02 to 0.035,
+collapse penalty drops rapidly from 17 to near 0 in around 20 epochs, desc loss is near flat at 5, coor loss slowly decreases from 11 to 8. beta scaled kl increases constantatly from 
+epoch 15 from 0 to 0.2, recon loss decreses rapidly from 30 to 15 in around 10 epochs and then very sloly continues to decrease to about 14.
 
 Descriptor focused 
 coord = 1.5
@@ -742,6 +760,10 @@ desc = 4.0
 pad = 3.5
 collapse = 2.0
 beta = 0.02
+More separation between voxels, though only 2 voxels reconstructed, limited variation in descriptor colours or location. scaled losses: pad penalty rises from near 0 to 1, collapse
+penalty drops rapidly from 11 to near 0 in about 20 epochs, coor loss drops steadily from 8 to 4, desc loss also drops steadily from 6 to 3. Beta scaled kl rises from near 0 to 0.0075, 
+before dropping to 0.4 and then steeply climbing around epoch 70 to 0.0175 and then dropping back down to 0.013, while recon loss drops from 25 to 8 in about 20 epochs and then slowly
+decreases to about 7. 
 
 Lower collapse and descriptor
 coord = 2.0
@@ -749,6 +771,9 @@ desc = 2.0
 pad = 3.5
 collapse = 1.5
 beta = 0.01
+Only 2 voxels reconstructed, but good variation on location and descriptor colour. Scaled losses: collapse penalty rapidly drops from 19 to near 0 in around 10 epochs, 
+pad penalty is near 0, desc loss is near flat around 2.5 to 2 maybe a slight decrease, coor loss drops steadily from 10 to 4. beta scaled kl climbs to 0.05 at epoch 30 and then fluctuates
+between 0.35 and 0.07, while loss decreases quickly from 30 to around 10 in 10 epochs and then slowly drops to 6.
 
 Higher pad penalty to force voxel reconstruction
 coord = 2.0
@@ -756,6 +781,9 @@ desc = 2.5
 pad = 4.5
 collapse = 2.0
 beta = 0.015
+Only 3 blue voxels reconstructed, some limited variation in location, mainly separation between the voxels. scaled losses: pad penalty increases steadily from 0.02 to 0.11, collapse penalty
+drops rapidly from 33 to near 0 in about 30 epochs, desc loss is flat around 2.5, coor loss decreases slowly from 12 to 5. Beta scaled kl rises from 0 to 0.18 with some minor fluctuation, 
+recon loss drops from 50 to 20 in about 20 epochs and then slowly drops to around 9. 
 
 Strong descriptor with balanced penalties
 coord = 3.0
@@ -763,6 +791,9 @@ desc = 4.0
 pad = 3.5
 collapse = 1.0
 beta = 0.008
+only 2 or 3 voxels reconstructed, limited variation in both location and colour. scaled losses: collapse penalty drops rapidly from 20 to near 0 in around 10 epochs, pad penalty is near flat
+with a very slight increase from 0 to 1, desc loss and coor loss both decreas to around epoch 20 when the stabilise, coor loss drops from 15 to 8, and desc loss drops from 6 to 
+3. Beta scaled kl increases from 0 to 0.06 between epoch 7 and 25, then it oscillates and continues to climb to 0.07, recon loss decreases logarithmically from 40 to 11. 
 
 Balanced collapse and pad, reduced coordinate
 coord = 2.5
@@ -770,6 +801,9 @@ desc = 3.0
 pad = 4.0
 collapse = 1.5
 beta = 0.012
+Always 7 voxels reconstructed, no variation in descriptor colour, very slight variation in location. Scaled losses: pad penalty rises from 0.025 to 0.035, collapse penalty
+drops rapidly from 17 to near 0 logarithmically, desc loss is near flat around 5, coor loss is mostly flat around 12-10. beta scaled kl increases constantly with slight 
+fluctuations from 0 to 0.06, recon loss drops logarithmically from 34 to 15. 
 
 Lower descriptor penalty 
 coord = 1.8
@@ -777,6 +811,9 @@ desc = 2.5
 pad = 3.8
 collapse = 2.5
 beta = 0.009
+always 7 voxels reconstructed, seem fairly tightly clustered together, some variation in layout, no variation in colour. scaled losses: pad penalty is flat around 0.04 until 
+epoch 40 when it starts to increase to 0.1, collapse penalty drops rapidly from 70 to near 0 in around 20 epochs, coor loss is near flat around 9, desc loss is near flat around 4.
+beta scaled kl increases steadily from 0 to 0.11, recon loss drops rapidly from 85 to 20 in about 10 epochs and then continues to slowly drop to around 10.
 
 Descriptor heavy with high pad
 coord = 2.0
@@ -784,6 +821,9 @@ desc = 3.5
 pad = 4.5
 collapse = 1.5
 beta = 0.02
+maximum voxels always reconstructed, seems to cluster, limited variation in location and colour. scaled losses: pad penalty is fairly flat in the range 0.023 to 0.027, collapse penalty
+drops rapidly from 10 to near 0 in around 25 epochs, desc loss is flat at 5.5, coor loss decreases steadily from 11 to 8. beta scaled kl rises from near 0 at epoch 20 to 0.2, recon 
+loss drops quickly from 27 to 18 by epoch 5, and then slowly decreases to 14.
 
 Low coordinate penalty for voxel spread
 coord = 1.5
@@ -791,6 +831,9 @@ desc = 3.0
 pad = 4.0
 collapse = 2.0
 beta = 0.006
+7 or 8 voxels reconstructed, fairly clustered, limited variation in location, some variation in colour. scaled losses: pad penalty rises from 0.02 to 0.025 in 10 epochs 
+where it then seems flat, collapse penalty decreases logarithmically from 35 to near 0, coor loss is flat at 7, desc loss is flat at 5. beta scaled kl rises exponentially 
+from 0 to 0.045, recon decreases logarithmically from 45 to 12.
 
 High pad, low collapse, minimal coordinate
 coord = 1.5
@@ -798,6 +841,9 @@ desc = 2.0
 pad = 4.5
 collapse = 1.0
 beta = 0.01
+only 4 voxels reconstructed, some variation in location and colour. scaled losses: collapse penalty drops rapidly from 60 to near 0 in around 10 epochs, pad penalty is flat near 0,
+desc loss is flat at 3, coor loss is mostly flat dropping from 8 to 5. beta scaled kl rises from 0 to 0.04 in 30 epochs where it then oscillates, recon loss drops rapidly from 70
+to 8 in 10 epochs where it is then flat. 
 
 High coord, desc, and pad with increased beta
 coord = 3.5
@@ -805,3 +851,147 @@ desc = 3.5
 pad = 4.0
 collapse = 2.5
 beta = 0.02
+Over reconstructing voxels, clustering, some variation in location and colour. scaled losses: pad penalty rises continually from 0.02 to 0.055, collapse penalty drops rapidly from
+17 to near 0 in around 10 epochs, desc loss is farily flat around 5, coor loss drops steadily from 19 to 13. beta scaled kl rises continually from 0 to 0.27 in 30 epochs where 
+it is then fairly flat, recon loss drops quickly from 40 to 25 in about 10 epochs and then slowly drops to 19.
+
+Loss is always much higher than beta scaled kl, in completly different ranges.
+Pad penalty seems to be in a much lower scale than the other losses.
+
+* Pad beta targeted runs
+
+Beta scale focused runs:
+coord = 2.0
+desc = 2.5
+pad = 3.5
+collapse = 1.5 
+beta = 0.5
+
+coord = 1.0
+desc = 1.25
+pad = 1.75
+collapse = 0.75 
+beta = 0.5
+
+coord = 2.0
+desc = 2.5
+pad = 3.5
+collapse = 1.5
+beta = 1.0
+
+coord = 1.0
+desc = 1.25
+pad = 1.75
+collapse = 0.75
+beta = 1.0
+
+coord = 2.0
+desc = 2.5
+pad = 3.5
+collapse = 1.5
+beta = 2.0
+
+coord = 1.0
+desc = 1.25
+pad = 1.75
+collapse = 0.75
+beta = 2.0
+
+
+Pad focus runs
+coord = 2.0
+desc = 2.5
+pad = 4.0
+collapse = 1.5
+beta = 0.5
+
+coord = 2.0
+desc = 2.5
+pad = 5.0
+collapse = 1.5
+beta = 0.5
+
+coord = 2.0
+desc = 2.5
+pad = 6.0
+collapse = 1.5
+beta = 0.5
+
+coord = 2.0
+desc = 2.5
+pad = 8.0
+collapse = 1.5
+beta = 0.5
+
+coord = 2.0
+desc = 2.5
+pad = 4.0
+collapse = 1.5
+beta = 1.0
+
+coord = 2.0
+desc = 2.5
+pad = 5.0
+collapse = 1.5
+beta = 1.0
+
+coord = 2.0
+desc = 2.5
+pad = 6.0
+collapse = 1.5
+beta = 1.0
+
+coord = 2.0
+desc = 2.5
+pad = 8.0
+collapse = 1.5
+beta = 1.0
+
+Targed based on previous best performing and observations
+coord = 2.5
+desc = 3.0
+pad = 4.0
+collapse = 1.5
+beta = 0.5
+
+coord = 2.0
+desc = 2.5
+pad = 3.5
+collapse = 2.0
+beta = 0.5
+
+coord = 2.5
+desc = 3.0
+pad = 4.0
+collapse = 1.5
+beta = 1.0
+
+coord = 2.0
+desc = 2.5
+pad = 3.5
+collapse = 2.0
+beta = 1.0
+
+coord = 2.5
+desc = 3.0
+pad = 4.0
+collapse = 1.5
+beta = 2.0
+
+coord = 2.0
+desc = 2.5
+pad = 3.5
+collapse = 2.0
+beta = 2.0
+
+coord = 2.0
+desc = 2.5
+pad = 6.0
+collapse = 1.5
+beta = 0.5
+
+coord = 2.0
+desc = 2.5
+pad = 8.0
+collapse = 1.5
+beta = 0.5

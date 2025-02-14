@@ -88,65 +88,96 @@ def create_grid() -> list[dict]:
     """
 
     grid = [
+        # Beta scale focused runs
         {"batch_size": 64, "latent_dim": 16, "optimizer": {"type": optim.Adam, "params": {}, "model_name": "adam"},
-         "lr": 1e-5, "decay": 1e-5, "lambda_coord": 2.5, "lambda_desc": 3.0, "lambda_pad": 4.0,
-         "lambda_collapse": 1.0, "beta": 0.01, "lambda_reg": 0.001},
+         "lr": 1e-5, "decay": 1e-5, "lambda_coord": 2.0, "lambda_desc": 2.5, "lambda_pad": 3.5, "lambda_collapse": 1.5,
+         "beta": 0.5, "lambda_reg": 0.001},
 
         {"batch_size": 64, "latent_dim": 16, "optimizer": {"type": optim.Adam, "params": {}, "model_name": "adam"},
-         "lr": 1e-5, "decay": 1e-5, "lambda_coord": 2.0, "lambda_desc": 2.5, "lambda_pad": 3.5,
-         "lambda_collapse": 2.0, "beta": 0.005, "lambda_reg": 0.001},
+         "lr": 1e-5, "decay": 1e-5, "lambda_coord": 1.0, "lambda_desc": 1.25, "lambda_pad": 1.75, "lambda_collapse": 0.75,
+         "beta": 0.5, "lambda_reg": 0.001},
 
         {"batch_size": 64, "latent_dim": 16, "optimizer": {"type": optim.Adam, "params": {}, "model_name": "adam"},
-         "lr": 1e-5, "decay": 1e-5, "lambda_coord": 2.0, "lambda_desc": 2.0, "lambda_pad": 3.5,
-         "lambda_collapse": 2.5, "beta": 0.015, "lambda_reg": 0.001},
+         "lr": 1e-5, "decay": 1e-5, "lambda_coord": 2.0, "lambda_desc": 2.5, "lambda_pad": 3.5, "lambda_collapse": 1.5,
+         "beta": 1.0, "lambda_reg": 0.001},
 
         {"batch_size": 64, "latent_dim": 16, "optimizer": {"type": optim.Adam, "params": {}, "model_name": "adam"},
-         "lr": 1e-5, "decay": 1e-5, "lambda_coord": 3.0, "lambda_desc": 5.0, "lambda_pad": 4.5,
-         "lambda_collapse": 1.0, "beta": 0.02, "lambda_reg": 0.001},
+         "lr": 1e-5, "decay": 1e-5, "lambda_coord": 1.0, "lambda_desc": 1.25, "lambda_pad": 1.75, "lambda_collapse": 0.75,
+         "beta": 1.0, "lambda_reg": 0.001},
 
         {"batch_size": 64, "latent_dim": 16, "optimizer": {"type": optim.Adam, "params": {}, "model_name": "adam"},
-         "lr": 1e-5, "decay": 1e-5, "lambda_coord": 2.0, "lambda_desc": 3.5, "lambda_pad": 4.0,
-         "lambda_collapse": 1.5, "beta": 0.01, "lambda_reg": 0.001},
+         "lr": 1e-5, "decay": 1e-5, "lambda_coord": 2.0, "lambda_desc": 2.5, "lambda_pad": 3.5, "lambda_collapse": 1.5,
+         "beta": 2.0, "lambda_reg": 0.001},
 
         {"batch_size": 64, "latent_dim": 16, "optimizer": {"type": optim.Adam, "params": {}, "model_name": "adam"},
-         "lr": 1e-5, "decay": 1e-5, "lambda_coord": 1.5, "lambda_desc": 4.0, "lambda_pad": 3.5,
-         "lambda_collapse": 2.0, "beta": 0.02, "lambda_reg": 0.001},
+         "lr": 1e-5, "decay": 1e-5, "lambda_coord": 1.0, "lambda_desc": 1.25, "lambda_pad": 1.75, "lambda_collapse": 0.75,
+         "beta": 2.0, "lambda_reg": 0.001},
+
+        # Pad focused runs
+        {"batch_size": 64, "latent_dim": 16, "optimizer": {"type": optim.Adam, "params": {}, "model_name": "adam"},
+         "lr": 1e-5, "decay": 1e-5, "lambda_coord": 2.0, "lambda_desc": 2.5, "lambda_pad": 4.0, "lambda_collapse": 1.5,
+         "beta": 0.5, "lambda_reg": 0.001},
 
         {"batch_size": 64, "latent_dim": 16, "optimizer": {"type": optim.Adam, "params": {}, "model_name": "adam"},
-         "lr": 1e-5, "decay": 1e-5, "lambda_coord": 2.0, "lambda_desc": 2.0, "lambda_pad": 3.5,
-         "lambda_collapse": 1.5, "beta": 0.01, "lambda_reg": 0.001},
+         "lr": 1e-5, "decay": 1e-5, "lambda_coord": 2.0, "lambda_desc": 2.5, "lambda_pad": 5.0, "lambda_collapse": 1.5,
+         "beta": 0.5, "lambda_reg": 0.001},
 
         {"batch_size": 64, "latent_dim": 16, "optimizer": {"type": optim.Adam, "params": {}, "model_name": "adam"},
-         "lr": 1e-5, "decay": 1e-5, "lambda_coord": 2.0, "lambda_desc": 2.5, "lambda_pad": 4.5,
-         "lambda_collapse": 2.0, "beta": 0.015, "lambda_reg": 0.001},
+         "lr": 1e-5, "decay": 1e-5, "lambda_coord": 2.0, "lambda_desc": 2.5, "lambda_pad": 6.0, "lambda_collapse": 1.5,
+         "beta": 0.5, "lambda_reg": 0.001},
 
         {"batch_size": 64, "latent_dim": 16, "optimizer": {"type": optim.Adam, "params": {}, "model_name": "adam"},
-         "lr": 1e-5, "decay": 1e-5, "lambda_coord": 3.0, "lambda_desc": 4.0, "lambda_pad": 3.5,
-         "lambda_collapse": 1.0, "beta": 0.008, "lambda_reg": 0.001},
+         "lr": 1e-5, "decay": 1e-5, "lambda_coord": 2.0, "lambda_desc": 2.5, "lambda_pad": 8.0, "lambda_collapse": 1.5,
+         "beta": 0.5, "lambda_reg": 0.001},
 
         {"batch_size": 64, "latent_dim": 16, "optimizer": {"type": optim.Adam, "params": {}, "model_name": "adam"},
-         "lr": 1e-5, "decay": 1e-5, "lambda_coord": 2.5, "lambda_desc": 3.0, "lambda_pad": 4.0,
-         "lambda_collapse": 1.5, "beta": 0.012, "lambda_reg": 0.001},
+         "lr": 1e-5, "decay": 1e-5, "lambda_coord": 2.0, "lambda_desc": 2.5, "lambda_pad": 4.0, "lambda_collapse": 1.5,
+         "beta": 1.0, "lambda_reg": 0.001},
 
         {"batch_size": 64, "latent_dim": 16, "optimizer": {"type": optim.Adam, "params": {}, "model_name": "adam"},
-         "lr": 1e-5, "decay": 1e-5, "lambda_coord": 1.8, "lambda_desc": 2.5, "lambda_pad": 3.8,
-         "lambda_collapse": 2.5, "beta": 0.009, "lambda_reg": 0.001},
+         "lr": 1e-5, "decay": 1e-5, "lambda_coord": 2.0, "lambda_desc": 2.5, "lambda_pad": 5.0, "lambda_collapse": 1.5,
+         "beta": 1.0, "lambda_reg": 0.001},
 
         {"batch_size": 64, "latent_dim": 16, "optimizer": {"type": optim.Adam, "params": {}, "model_name": "adam"},
-         "lr": 1e-5, "decay": 1e-5, "lambda_coord": 2.0, "lambda_desc": 3.5, "lambda_pad": 4.5,
-         "lambda_collapse": 1.5, "beta": 0.02, "lambda_reg": 0.001},
+         "lr": 1e-5, "decay": 1e-5, "lambda_coord": 2.0, "lambda_desc": 2.5, "lambda_pad": 6.0, "lambda_collapse": 1.5,
+         "beta": 1.0, "lambda_reg": 0.001},
 
         {"batch_size": 64, "latent_dim": 16, "optimizer": {"type": optim.Adam, "params": {}, "model_name": "adam"},
-         "lr": 1e-5, "decay": 1e-5, "lambda_coord": 1.5, "lambda_desc": 3.0, "lambda_pad": 4.0,
-         "lambda_collapse": 2.0, "beta": 0.006, "lambda_reg": 0.001},
+         "lr": 1e-5, "decay": 1e-5, "lambda_coord": 2.0, "lambda_desc": 2.5, "lambda_pad": 8.0, "lambda_collapse": 1.5,
+         "beta": 1.0, "lambda_reg": 0.001},
+
+        # Targeted based on previous best performances and observations
+        {"batch_size": 64, "latent_dim": 16, "optimizer": {"type": optim.Adam, "params": {}, "model_name": "adam"},
+         "lr": 1e-5, "decay": 1e-5, "lambda_coord": 2.5, "lambda_desc": 3.0, "lambda_pad": 4.0, "lambda_collapse": 1.5,
+         "beta": 0.5, "lambda_reg": 0.001},
 
         {"batch_size": 64, "latent_dim": 16, "optimizer": {"type": optim.Adam, "params": {}, "model_name": "adam"},
-         "lr": 1e-5, "decay": 1e-5, "lambda_coord": 1.5, "lambda_desc": 2.0, "lambda_pad": 4.5,
-         "lambda_collapse": 1.0, "beta": 0.01, "lambda_reg": 0.001},
+         "lr": 1e-5, "decay": 1e-5, "lambda_coord": 2.0, "lambda_desc": 2.5, "lambda_pad": 3.5, "lambda_collapse": 2.0,
+         "beta": 0.5, "lambda_reg": 0.001},
 
         {"batch_size": 64, "latent_dim": 16, "optimizer": {"type": optim.Adam, "params": {}, "model_name": "adam"},
-         "lr": 1e-5, "decay": 1e-5, "lambda_coord": 3.5, "lambda_desc": 3.5, "lambda_pad": 4.0,
-         "lambda_collapse": 2.5, "beta": 0.02, "lambda_reg": 0.001}
+         "lr": 1e-5, "decay": 1e-5, "lambda_coord": 2.5, "lambda_desc": 3.0, "lambda_pad": 4.0, "lambda_collapse": 1.5,
+         "beta": 1.0, "lambda_reg": 0.001},
+
+        {"batch_size": 64, "latent_dim": 16, "optimizer": {"type": optim.Adam, "params": {}, "model_name": "adam"},
+         "lr": 1e-5, "decay": 1e-5, "lambda_coord": 2.0, "lambda_desc": 2.5, "lambda_pad": 3.5, "lambda_collapse": 2.0,
+         "beta": 1.0, "lambda_reg": 0.001},
+
+        {"batch_size": 64, "latent_dim": 16, "optimizer": {"type": optim.Adam, "params": {}, "model_name": "adam"},
+         "lr": 1e-5, "decay": 1e-5, "lambda_coord": 2.5, "lambda_desc": 3.0, "lambda_pad": 4.0, "lambda_collapse": 1.5,
+         "beta": 2.0, "lambda_reg": 0.001},
+
+        {"batch_size": 64, "latent_dim": 16, "optimizer": {"type": optim.Adam, "params": {}, "model_name": "adam"},
+         "lr": 1e-5, "decay": 1e-5, "lambda_coord": 2.0, "lambda_desc": 2.5, "lambda_pad": 3.5, "lambda_collapse": 2.0,
+         "beta": 2.0, "lambda_reg": 0.001},
+
+        {"batch_size": 64, "latent_dim": 16, "optimizer": {"type": optim.Adam, "params": {}, "model_name": "adam"},
+         "lr": 1e-5, "decay": 1e-5, "lambda_coord": 2.0, "lambda_desc": 2.5, "lambda_pad": 6.0, "lambda_collapse": 1.5,
+         "beta": 0.5, "lambda_reg": 0.001},
+
+        {"batch_size": 64, "latent_dim": 16, "optimizer": {"type": optim.Adam, "params": {}, "model_name": "adam"},
+         "lr": 1e-5, "decay": 1e-5, "lambda_coord": 2.0, "lambda_desc": 2.5, "lambda_pad": 8.0, "lambda_collapse": 1.5,
+         "beta": 0.5, "lambda_reg": 0.001}
     ]
 
     return grid
