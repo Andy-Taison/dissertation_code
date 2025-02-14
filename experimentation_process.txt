@@ -1051,27 +1051,91 @@ coord = 2.5
 desc = 2.5
 collapse = 2.0
 beta = 0.1
+All but 1 voxels line up in a horizontal contiguous row. The colours vary very slightly and 
+the other voxel changes position by 1. Scaled losses: collapse penalty drops from 130 to about 10 
+(2.5 to 2 raw) logarithmically where it seems to stabilise, desc loss rises from 4 to 5 and then 
+starts to decrease back towards 4 (1.75 - 2 raw), coor loss drops steadily logarithmically from
+8 to 5 (3.25-1.75 raw). Beta scaled KL rises to a peak at 0.225 after 15 epochs and steadily declines 
+to 0.1 forming a mountain shape, total loss drops logarithmically from 150 to 20.
 
 Spatially Focused (High Coordinate, Moderate Descriptor)
 coord = 5.0
 desc = 2.0
 collapse = 1.5
 beta = 0.15
+Number of voxels reconstructed is moderately good, limited spatial variation and almost no colour
+variation. Scaled losses: collapse penalty drops logarithmically from 14 to 0.5 (9-0.5 raw), coor
+loss drops smoothly from 10 to 6 (2-1 raw) where it seems to stabilise, desc loss is almost flat
+at 3.5 (2 raw). Beta scaled kl looks like 2 mountain peaks, initially rising from 0.01 to the first
+peak at 0.05, then it drops to 0.02 then rises to the second peak at 0.055 and then drops again to 0.01,
+total loss drops logarithmically from 27 to 10 where it seems to be flattening out.
 
 Descriptor Emphasis with Strong Latent Constraint
 coord = 2.0
 desc = 5.0
 collapse = 2.0
 beta = 0.2
+Moderate layout variation, though slightly clustered and not much variation in voxel numbers, minimal
+variation in colour. Scaled losses: collapse penalty drops logarithmically from 35 to near 0 (18-0 raw), desc loss is
+near flat around 8 (2 raw), coor loss is almost flat around 3.5 (2 raw). Scaled beta kl forms a mountain 
+with a steeper left side and a fluctuating surface, rising from 0.015 to 0.037 and then dropping to 10,
+total loss drops logarithmically from 35 to 10.
 
 High Beta  
 coord = 3.5
 desc = 3.5
 collapse = 2.0
 beta = 0.5
+Best variation in layout and so far though still slightly clustered and seems to be always 6 voxels reconstructed, 
+and good variation in colour. Scaled losses: collapse penalty drops rapidly from 15 to near 0 (7-0 raw) in 20 epochs,
+desc loss is near flat at 6 (1.75 raw), coor loss has a slight drop at the beginning and a very slight downward trend
+from 7 to 4 (2-1 raw). Beta scaled kl is almost convex but is lower on the left side, dropping from 0.015 to 0.005 and then 
+exponentially rising to 0.045, total loss drops quickly at the beginning from 30 to 15 in around 5 epochs and then stedily
+declines to 10.
 
 Coordinate Descriptor Balance with Standard VAE Beta
 coord: 4.0
 desc: 4.0
 collapse: 1.5
 beta: 1.0 
+moderate variation in layout, but fairly clustered, limited colour variation. Scaled losses: collapse penalty drops
+logarithmically from 15 to near 0 (10-0.5 raw), desc loss is flat at 7 (2 raw), coor loss drops slightly
+faster near the beginning from 7 to 5 (2-1.75 raw). Beta scaled KL ocilates slightly on its path, but its main trend 
+looks like a mountain on the left (peak aligned with the y axis) and a platform extending out for 10 epochs before decending,
+overall it drops from 0.05 to 0.005, total loss drops logarithmically from 30 to 12.
+
+High beta seems to produce better layouts, but more clustering, and starting to loose colour variation.
+Best beta seems to be around 0.5. 
+Coordinate loss stabilises too early, potentially difficulty learning beyond clusters.
+Descriptor loss is mostly flat, potentially not learning from spatial relationships (how descriptor loss is calculated).
+Collapse penalty always drops rapidly, easy to minimise, potentially overpowering spatial learning. 
+Beta KL has strong correlation with loss trends, indicating latent space is influencing learning.
+
+
+* Further exploration not using collapse (set to 0 in code), thinking is that coordinate matching loss (entropy) should take care of it
+Potentially the collapse loss is causing clustering:
+
+High coordinate
+coord = 5.5
+desc = 2.5
+beta = 0.2
+
+Descriptor Emphasis, Moderate Beta
+coord = 3.5
+desc = 5.0
+beta = 0.25
+
+max coordinate
+coord = 6.0
+desc = 3.0
+beta = 0.3
+
+Descriptor Coordinate Balance
+coord = 4.0
+desc = 4.0
+beta = 0.35
+
+Mid Beta with Coordinated Descriptor Boost
+coord = 5.0
+desc = 5.0
+beta = 0.5
