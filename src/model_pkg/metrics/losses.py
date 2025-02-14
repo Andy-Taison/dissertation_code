@@ -203,7 +203,6 @@ class VaeLoss:
         coor_match_loss = coordinate_matching_loss(x, x_reconstructed)
         desc_loss = descriptor_matching_loss(x, x_reconstructed)
         collapse_penalty = overlap_penalty(x_reconstructed)
-        collapse_penalty = 0 #######################################################################################################
 
         # Regularisation term to encourage orthogonality - based on https://medium.com/@itberrios6/point-net-for-classification-968ca64c57a9
         batch_size = transform_matrix.size(0)
