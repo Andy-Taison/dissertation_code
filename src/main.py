@@ -16,7 +16,7 @@ from torch.utils.data import DataLoader, Subset
 def run():
     print("Starting VAE pipeline...\n")
 
-    grid_search_model_name = "pad_beta_toy"
+    grid_search_model_name = "pad_encoding_toy"
     combine_and_save = False  # When false, will load processed files
     use_toy_set = True  # Use 20% of full dataset or full dataset, does not use test set
     testing = False  # 128 samples for train and val sets for quick run testing
@@ -60,17 +60,17 @@ def run():
     # Create datasets and dataloaders
     print("\nTraining dataset:")
     summarise_dataset(train_data)
-    train_ds = VoxelDataset(train_data, max_voxels=config.MAX_VOXELS, grid_size=config.EXPANDED_GRID_SIZE)
+    train_ds = VoxelDataset(train_data, max_voxels=config.MAX_VOXELS)
     train_loader = DataLoader(train_ds, batch_size=config.BATCH_SIZE, shuffle=True)
 
     print("Validation dataset:")
     summarise_dataset(val_data)
-    val_ds = VoxelDataset(val_data, max_voxels=config.MAX_VOXELS, grid_size=config.EXPANDED_GRID_SIZE)
+    val_ds = VoxelDataset(val_data, max_voxels=config.MAX_VOXELS)
     val_loader = DataLoader(val_ds, batch_size=config.BATCH_SIZE, shuffle=False)
     if test_data is not None:
         print("Test dataset:")
         summarise_dataset(test_data)  # type: ignore
-        test_ds = VoxelDataset(test_data, max_voxels=config.MAX_VOXELS, grid_size=config.EXPANDED_GRID_SIZE)
+        test_ds = VoxelDataset(test_data, max_voxels=config.MAX_VOXELS)
         test_loader = DataLoader(test_ds, batch_size=config.BATCH_SIZE, shuffle=False)
         print(f"Preprocessed datasets loaded: train ({len(train_ds)}), val ({len(val_ds)}), and test ({len(test_ds)}) sets.\n")
     else:
@@ -95,7 +95,7 @@ def run():
     print()
     """
     # Initialise training components
-    criterion = VaeLoss(lambda_coord=1, lambda_desc=1, lambda_pad=0.1, lambda_collapse=0.1)
+    criterion = VaeLoss(lambda_coord=1, lambda_desc=1, lambda_collapse=0.1)
     optimizer = optim.Adam(vae.parameters(), lr=config.LEARNING_RATE)
     """
 
@@ -140,7 +140,7 @@ def run():
         if best_epoch < best_history.epochs_run:
             best_history.rollback(best_epoch)
         best_model, best_optimizer, _, epochs_run = load_model_checkpoint(best_history)
-        criterion = VaeLoss(lambda_coord=1, lambda_desc=1, lambda_pad=0.1, lambda_collapse=0.1, lambda_reg=0.001)
+        criterion = VaeLoss(lambda_coord=1, lambda_desc=1, lambda_collapse=0.1, lambda_reg=0.001)
         history = train_val(best_model, train_loader, val_loader, criterion, best_optimizer, 21, beta=0.01, training_history=best_history,
                             prune_old_checkpoints=False)
         # generate_plots(history, alt_name)

@@ -9,15 +9,10 @@ from ..config import COORDINATE_DIMENSIONS, DEVICE, EXPANDED_GRID_SIZE
 
 def coordinate_matching_loss(x: torch.Tensor, x_reconstructed: torch.Tensor) -> torch.Tensor:
     """
-    Calculates a penalty based spatial alignment between original and reconstructed coordinates.
-
-    Consists of two parts:
-    1. Clustering penalty - Penalises clustering of multiple reconstructed points around the same original point.
-        Measured using the entropy of the distribution formed based on each original points attention.
-        Lower entropy suggests clustering, so the max entropy is calculated based on a uniform distribution (perfect alignment),
-        and the entropy is subtracted from this value.
-    2. Distance penalty - The pairwise distance matrix is weighted by the likelihood of nearest neighbours.
-        Can encourage the model to under predict voxels, so the padded penalty penalises stronger for more reconstructed padded voxels than original.
+    Calculates a penalty based on spatial alignment between original and reconstructed coordinates.
+    Penalty is the difference between max entropy (perfect alignment) and the entropy over
+    the original point attention distribution. Padded voxels are encoded as a coordinate outside
+    the expanded grid (EXPANDED_GRID_SIZE), and contribute to the loss.
 
     :param x: Original input
     :param x_reconstructed: Reconstructed
@@ -28,30 +23,17 @@ def coordinate_matching_loss(x: torch.Tensor, x_reconstructed: torch.Tensor) -> 
     orig_coords = x[:, :, :COORDINATE_DIMENSIONS]
     recon_coords = x_reconstructed[:, :, :COORDINATE_DIMENSIONS]
 
-    # Masks for non-padded voxels
-    orig_mask = (x[:, :, COORDINATE_DIMENSIONS:].argmax(dim=-1) != 0)  # (Batch_size, num_voxels)
-    recon_mask = (x_reconstructed[:, :, COORDINATE_DIMENSIONS:].argmax(dim=-1) != 0)
-
-    for orig, recon, o_mask, r_mask in zip(orig_coords, recon_coords, orig_mask, recon_mask):
-        # Skip if no non-padded voxels
-        if o_mask.sum() == 0 or r_mask.sum() == 0:
-            continue
+    for orig, recon in zip(orig_coords, recon_coords):
 
         # Pairwise distance matrix between all original and reconstructed coordinates
         dist_matrix = torch.cdist(recon, orig, p=2)  # (rows: distances from reconstructed, columns: distances from original)
 
-        # Apply masks to ignore padded voxels
-        masked_dist_matrix = dist_matrix.clone()  # Avoid modifying matrix directly (causes error) with autograd
-        masked_dist_matrix[:, ~o_mask] = float('inf')  # Mask padded columns (original)
-        masked_dist_matrix[~r_mask, :] = float('inf')  # Mask padded rows (reconstructed)
-
         # Gets probability of the closest point, softmin is differentiable
-        neighbour_weights = F.softmin(masked_dist_matrix * 100, dim=1)  # Scaling distance encourages model to focus on a single point
+        neighbour_weights = F.softmin(dist_matrix * 100, dim=1)  # Scaling distance encourages model to focus on a single point
         neighbour_weights = torch.nan_to_num(neighbour_weights)  # Replace nan with 0
 
         # Sum of attention each original point (columns) receives from all reconstructed points
         attention_per_original = neighbour_weights.sum(dim=0)  # (num_original_points)
-        attention_per_original = attention_per_original[o_mask]  # Filter out padded voxels to avoid penalising when padded values present affecting the normalisation process
 
         # Normalise attention to form a probability distribution over original points
         attention_distribution = attention_per_original / (attention_per_original.sum() + 1e-8)  # Avoid division by 0
@@ -67,13 +49,9 @@ def coordinate_matching_loss(x: torch.Tensor, x_reconstructed: torch.Tensor) -> 
         max_entropy = torch.log(torch.tensor(attention_distribution.size(0), device=DEVICE))
 
         # Clustered points will have lower entropy
-        clustering_penalty = (max_entropy - entropy) ** 2  # Avoid negatives due to numerical errors
+        entropy_penalty = (max_entropy - entropy) ** 2  # Avoid negatives
 
-        # Distance penalty, balanced for incorrect number of voxels
-        masked_dist_matrix[torch.isinf(masked_dist_matrix)] = 0.0  # Avoid 'inf' in calculations
-        distance_penalty = (neighbour_weights * masked_dist_matrix).sum()
-
-        total_penalty += clustering_penalty + distance_penalty
+        total_penalty += entropy_penalty
 
     batch_penalty = total_penalty / x.size(0)  # Averaged over batch
 
@@ -84,7 +62,7 @@ def descriptor_matching_loss(x: torch.Tensor, x_reconstructed: torch.Tensor) -> 
     """
     Calculates a loss for descriptor values based on nearest neighbour.
     Calculates the pairwise distance between original and reconstructed points.
-    Padded voxels are then masked, before obtaining the most likely descriptor value based on nearest original voxel.
+    The most likely descriptor value based on nearest original voxel is then obtained.
     Loss is calculated by taking the cross entropy (model must output raw logits).
 
     :param x: Original input
@@ -99,25 +77,13 @@ def descriptor_matching_loss(x: torch.Tensor, x_reconstructed: torch.Tensor) -> 
     recon_coords = x_reconstructed[:, :, :COORDINATE_DIMENSIONS]
     recon_descriptors = x_reconstructed[:, :, COORDINATE_DIMENSIONS:]
 
-    # Masks for non-padded voxels
-    orig_mask = (orig_descriptors.argmax(dim=-1) != 0)  # (Batch_size, num_voxels)
-    recon_mask = (recon_descriptors.argmax(dim=-1) != 0)
-
-    for orig_coor, recon_coor, orig_desc, recon_desc, o_mask, r_mask in zip(orig_coords, recon_coords, orig_descriptors, recon_descriptors, orig_mask, recon_mask):
-        # Skip if no valid voxels
-        if o_mask.sum() == 0 or r_mask.sum() == 0:
-            continue
+    for orig_coor, recon_coor, orig_desc, recon_desc in zip(orig_coords, recon_coords, orig_descriptors, recon_descriptors):
 
         # Pairwise distance matrix between all original and reconstructed coordinates
         dist_matrix = torch.cdist(recon_coor, orig_coor, p=2)  # (rows: distances from reconstructed, columns: distances from original)
 
-        # Apply masks to ignore padded voxels
-        masked_dist_matrix = dist_matrix.clone()  # Avoid modifying matrix directly (causes error) with autograd
-        masked_dist_matrix[~r_mask, :] = float('inf')  # Mask padded rows (reconstructed)
-        masked_dist_matrix[:, ~o_mask] = float('inf')  # Mask padded columns (original)
-
         # Get probability of the closest point, softmin is differentiable
-        neighbour_weights = F.softmin(masked_dist_matrix * 100, dim=1)  # Scaling distance helps focus on a single point
+        neighbour_weights = F.softmin(dist_matrix * 100, dim=1)  # Scaling distance helps focus on a single point
         neighbour_weights = torch.nan_to_num(neighbour_weights)  # Replace nan with 0
 
         # Matrix multiplication to get predicted descriptors
@@ -132,41 +98,8 @@ def descriptor_matching_loss(x: torch.Tensor, x_reconstructed: torch.Tensor) -> 
         total_loss += descriptor_loss
 
     batch_loss = total_loss / x.size(0)  # Average over batch
+
     return batch_loss
-
-
-def padded_voxel_penalty(orig_descriptors: torch.Tensor, recon_descriptors: torch.Tensor) -> torch.Tensor:
-    """
-    Calculates penalty for the smooth L1 (differentiable absolute) padded voxel difference from original input.
-    Calculated in a differentiable way to help the model learn.
-    Penalises stronger for more reconstructed padded voxels than original to balance coordinate matching loss.
-
-    :param orig_descriptors: Original batched one-hot descriptors
-    :param recon_descriptors: Reconstructed batched logits
-    :return: Penalty (mean reduction smooth L1) scaled based on number of padded voxels
-    """
-    # Class probabilities - softmax is differentiable
-    orig_probs = F.softmax(orig_descriptors, dim=-1)
-    recon_probs = F.softmax(recon_descriptors, dim=-1)
-
-    # Probability of padded voxel
-    orig_padded_prob = orig_probs[:, :, 0]
-    recon_padded_prob = recon_probs[:, :, 0]
-
-    # Difference in expected number of padded voxels
-    penalty = F.smooth_l1_loss(recon_padded_prob, orig_padded_prob, reduction='none')  # Differentiable absolute function, none reduction to apply scale
-
-    # Number of non-padded voxels
-    num_orig_non_padded = (1 - orig_padded_prob).sum(dim=1)  # Per sample
-    num_recon_non_padded = (1 - recon_padded_prob).sum(dim=1)
-
-    # Scaling factor to balance coordinate matching loss and penalise stronger for fewer reconstructed voxels
-    scale_per_sample = torch.clamp(num_orig_non_padded / (num_recon_non_padded + 1e-8), min=1.0)
-
-    # Scale per sample
-    scaled_penalty = (penalty.mean(dim=1) * scale_per_sample).mean()
-
-    return scaled_penalty
 
 
 def overlap_penalty(x_reconstructed: torch.Tensor) -> torch.Tensor:
@@ -224,19 +157,17 @@ def overlap_penalty(x_reconstructed: torch.Tensor) -> torch.Tensor:
 
 
 class VaeLoss:
-    def __init__(self, lambda_coord: float, lambda_desc: float, lambda_pad: float, lambda_collapse: float, lambda_reg: float = 0.001):
+    def __init__(self, lambda_coord: float, lambda_desc: float, lambda_collapse: float, lambda_reg: float = 0.001):
         """
         Initialise VAE Loss with lambda scaling terms.
 
         :param lambda_coord: Scaling factor of coordinate matching loss (clustering around original points, and nearest neighbour weighted pairwise distance)
         :param lambda_desc: Scaling factor of descriptor loss (cross entropy loss based on raw logits and nearest original voxel descriptor)
-        :param lambda_pad: Scaling factor of padded voxel penalty (smooth L1 (differentiable absolute) padded voxel difference from original input)
         :param lambda_collapse: Scaling factor of overlap penalty (negative sum of the log of the upper triangle of the distance matrix (excluding diagonal) of reconstructed voxel coordinates that would collapse into a single point when scaled)
         :param lambda_reg: Scaling factor of transformation regularising term
         """
         self.lambda_coord = lambda_coord
         self.lambda_desc = lambda_desc
-        self.lambda_pad = lambda_pad
         self.lambda_collapse = lambda_collapse
         self.lambda_reg = lambda_reg
 
@@ -252,10 +183,8 @@ class VaeLoss:
         - 'recon_loss'
         - 'coor_match_loss'
         - 'scaled_coor_match_loss'
-        - 'desc_loss': desc_loss.item()
+        - 'desc_loss'
         - 'scaled_desc_loss'
-        - 'pad_penalty'
-        - 'scaled_pad_penalty'
         - 'collapse_penalty'
         - 'scaled_collapse_penalty'
         - 'transform_reg'
@@ -273,7 +202,6 @@ class VaeLoss:
         # Calculate losses and penalties
         coor_match_loss = coordinate_matching_loss(x, x_reconstructed)
         desc_loss = descriptor_matching_loss(x, x_reconstructed)
-        pad_penalty = padded_voxel_penalty(x[:, :, COORDINATE_DIMENSIONS:], x_reconstructed[:, :, COORDINATE_DIMENSIONS:])
         collapse_penalty = overlap_penalty(x_reconstructed)
 
         # Regularisation term to encourage orthogonality - based on https://medium.com/@itberrios6/point-net-for-classification-968ca64c57a9
@@ -285,7 +213,6 @@ class VaeLoss:
         recon_loss = (
                 self.lambda_coord * coor_match_loss +
                 self.lambda_desc * desc_loss +
-                self.lambda_pad * pad_penalty +
                 self.lambda_collapse * collapse_penalty +
                 self.lambda_reg * transform_reg
         )
@@ -300,8 +227,6 @@ class VaeLoss:
             'scaled_coor_match_loss': (self.lambda_coord * coor_match_loss).item(),
             'desc_loss': desc_loss.item(),
             'scaled_desc_loss': (self.lambda_desc * desc_loss).item(),
-            'pad_penalty': pad_penalty.item(),
-            'scaled_pad_penalty': (self.lambda_pad * pad_penalty).item(),
             'collapse_penalty': collapse_penalty.item(),
             'scaled_collapse_penalty': (self.lambda_collapse * collapse_penalty).item(),
             'transform_reg': transform_reg.item(),

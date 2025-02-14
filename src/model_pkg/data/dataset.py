@@ -11,26 +11,24 @@ from ..config import NUM_CLASSES, COORDINATE_DIMENSIONS, DEVICE, EXPANDED_GRID_S
 
 
 class VoxelDataset(Dataset):
-    def __init__(self, dataframe: pd.DataFrame, max_voxels=8, grid_size: int = 11, shuffle_voxels=True):
+    def __init__(self, dataframe: pd.DataFrame, max_voxels=8, shuffle_voxels=True):
         """
         Dataset for robot voxel data and ID.
 
         :param dataframe: Dataframe representing 3D grid data (last 1331 columns), Robot ID should be in the first column
         :param max_voxels: Maximum number of voxels in entire dataset
-        :param grid_size: Size of output grid along each dimension - assumed square
         """
         print("Initialising Dataset...")
-        grids = torch.tensor(dataframe.iloc[:, -(grid_size**3):].values, dtype=torch.float32)
+        grids = torch.tensor(dataframe.iloc[:, -(EXPANDED_GRID_SIZE**3):].values, dtype=torch.float32)
         # Verify grid data has 1331 columns (11x11x11)
-        assert grids.shape[1] == grid_size * grid_size * grid_size, "Grid data does not have the correct number of elements (1331)."
+        assert grids.shape[1] == EXPANDED_GRID_SIZE * EXPANDED_GRID_SIZE * EXPANDED_GRID_SIZE, "Grid data does not have the correct number of elements (1331)."
 
         # Reshape grids into [batch_size, 11, 11, 11]
-        self.grid_data = grids.view(-1, grid_size, grid_size, grid_size)
+        self.grid_data = grids.view(-1, EXPANDED_GRID_SIZE, EXPANDED_GRID_SIZE, EXPANDED_GRID_SIZE)
         self.robot_ids = torch.tensor(dataframe.iloc[:, 0].values, dtype=torch.long)
         self.max_voxels = max_voxels
         self.coordinate_dim = COORDINATE_DIMENSIONS
         self.shuffle_voxels = shuffle_voxels
-        self.grid_size = grid_size
 
         print("Dataset created.\n")
 
@@ -59,7 +57,7 @@ class VoxelDataset(Dataset):
         non_zero_values = grid[non_zero_indices]
 
         # Normalise coordinates
-        normalised_coords = torch.stack(non_zero_indices, dim=1) / (self.grid_size - 1)  # range [0, 1]
+        normalised_coords = torch.stack(non_zero_indices, dim=1) / EXPANDED_GRID_SIZE  # range [0, 1] divides by grid size as padded voxels encoded as expanded grid size
 
         # One-hot encode descriptor values
         one_hot_values = F.one_hot(non_zero_values.long(), num_classes=NUM_CLASSES)
@@ -67,11 +65,13 @@ class VoxelDataset(Dataset):
         num_voxels = non_zero_values.shape[0]
 
         # Stack indices and values (x, y, z, one-hot descriptors) to form a single tensor
-        sparse_data = torch.cat([normalised_coords, one_hot_values], dim=1)  # (N, NUM_CLASSES + 3)
+        sparse_data = torch.cat([normalised_coords, one_hot_values], dim=1)  # (N, COORDINATE_DIM + NUM_CLASSES)
 
         # Pad to fixed shape (max_voxels, NUM_CLASSES + 3)
         if num_voxels < self.max_voxels:
-            padding = torch.zeros(self.max_voxels - num_voxels, COORDINATE_DIMENSIONS + NUM_CLASSES, dtype=torch.int64)
+            coor = torch.full((self.max_voxels - num_voxels, COORDINATE_DIMENSIONS), 1.0)  # Padding coordinates encoded as normalised expanded grid size value
+            zero_descriptors = torch.zeros((self.max_voxels - num_voxels, NUM_CLASSES))  # Initialise descriptor values
+            padding = torch.cat((coor, zero_descriptors), dim=1)
             padding[:, COORDINATE_DIMENSIONS] = 1  # One-hot encoding for 0 descriptor (empty space) padding
             sparse_data = torch.cat([sparse_data, padding], dim=0)
 
@@ -100,15 +100,15 @@ def sparse_to_dense(sparse_data: torch.Tensor, batched=False) -> torch.Tensor:
 
     for i, robot in enumerate(sparse_data):
         # Extract coordinates and descriptor values
-        coor = robot[:, :COORDINATE_DIMENSIONS] * (EXPANDED_GRID_SIZE - 1)
-        coor_rounded = coor.round().long()  # Scale normalised coordinates back to grid indices
-        coor = torch.clamp(coor_rounded, min=0, max=EXPANDED_GRID_SIZE - 1)  # Clamp values to range [0, 10] to avoid errors if not normalised correctly
+        coor = robot[:, :COORDINATE_DIMENSIONS] * EXPANDED_GRID_SIZE  # Scale normalised coordinates back to grid indices, padded values encoded as EXPANDED GRID SIZE (outside of grid)
+        coor_rounded = coor.round().long()
+        coor = torch.clamp(coor_rounded, min=0, max=EXPANDED_GRID_SIZE)  # Clamp values to range [0, EXPANDED_GRID_SIZE] to avoid errors if not normalised correctly
         descriptors = robot[:, COORDINATE_DIMENSIONS:].argmax(dim=1)  # Convert one-hot encoding back to descriptor values
 
         for j in range(robot.shape[0]):
             x, y, z = coor[j]
             descriptor = descriptors[j]
-            if descriptor != 0:  # Skip padding descriptors
+            if descriptor != 0 and not torch.any(coor[j] == EXPANDED_GRID_SIZE):  # Skip padding descriptors and coordinates
                 dense_grid[i, x, y, z] = descriptor
 
     if not batched:

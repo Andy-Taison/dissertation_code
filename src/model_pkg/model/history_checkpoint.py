@@ -197,8 +197,6 @@ class TrainingHistory:
             'scaled_desc_loss': [],  # Average lambda scaled descriptor loss per epoch
             'coor_loss': [],  # Average coordinate loss per epoch
             'scaled_coor_loss': [],  # Averaged lambda scaled coordinate loss per epoch
-            'pad_penalty': [],  # Average padding penalty per epoch
-            'scaled_pad_penalty': [],  # Average lambda scaled padding penalty per epoch
             'collapse_penalty': [],  # Average coordinate collapse penalty per epoch
             'scaled_collapse_penalty': [],  # Average lambda scaled coordinate collapse penalty per epoch
             'transform_reg_avg': [],  # Average transformation regularising term per epoch
@@ -223,8 +221,6 @@ class TrainingHistory:
             'scaled_desc_loss': [],  # Average lambda scaled descriptor loss per epoch
             'coor_loss': [],  # Average coordinate loss per epoch
             'scaled_coor_loss': [],  # Averaged lambda scaled coordinate loss per epoch
-            'pad_penalty': [],  # Average padding penalty per epoch
-            'scaled_pad_penalty': [],  # Average lambda scaled padding penalty per epoch
             'collapse_penalty': [],  # Average coordinate collapse penalty per epoch
             'scaled_collapse_penalty': [],  # Average lambda scaled coordinate collapse penalty per epoch
             'transform_reg_avg': [],  # Average transformation regularising term per epoch
@@ -326,8 +322,6 @@ class TrainingHistory:
         history['scaled_desc_loss'].append(epoch_metrics['scaled_desc_loss'])
         history['coor_loss'].append(epoch_metrics['coor_match_loss'])
         history['scaled_coor_loss'].append(epoch_metrics['scaled_coor_match_loss'])
-        history['pad_penalty'].append(epoch_metrics['pad_penalty'])
-        history['scaled_pad_penalty'].append(epoch_metrics['scaled_pad_penalty'])
         history['collapse_penalty'].append(epoch_metrics['collapse_penalty'])
         history['scaled_collapse_penalty'].append(epoch_metrics['scaled_collapse_penalty'])
         history['transform_reg_avg'].append(epoch_metrics['transform_reg'])

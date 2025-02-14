@@ -157,7 +157,6 @@ def log_metrics(history: TrainingHistory, train_dataloader: DataLoader, val_data
         'learning_rate': history.train['lr'],
         'lambda_coord': history.criterion.lambda_coord,
         'lambda_desc': history.criterion.lambda_desc,
-        'lambda_pad': history.criterion.lambda_pad,
         'lambda_collapse': history.criterion.lambda_collapse,
         'beta': history.val['beta'][idx],
         'recon_loss': history.val['recon'][idx],
@@ -168,7 +167,6 @@ def log_metrics(history: TrainingHistory, train_dataloader: DataLoader, val_data
         'avg_euclid_dist': history.val['coor_euclid'],
         'scaled_coord': history.val['scaled_coor_loss'][idx],
         'scaled_desc': history.val['scaled_desc_loss'][idx],
-        'scaled_pad': history.val['scaled_pad_penalty'][idx],
         'scaled_collapse': history.val['scaled_collapse_penalty'][idx],
         'epochs_run': history.epochs_run
     }

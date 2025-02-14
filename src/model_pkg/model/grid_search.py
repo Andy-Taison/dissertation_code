@@ -36,7 +36,6 @@ def create_grid() -> list[dict]:
     - 'decay'
     - 'coord' - scaler for coordinate match loss
     - 'desc' - scaler for descriptor match loss
-    - 'pad' - scaler for padded voxel penalty
     - 'collapse' - scaler for coordinate overlap penalty
     - 'beta' - higher values lead to a more constrained latent space, lower values lead to a more flexible latent space representation (and focuses on reconstruction loss)
     - lambda_regs - adjusts the regularisation term for the transformation matrix
@@ -65,13 +64,12 @@ def create_grid() -> list[dict]:
     weight_decay = [1e-5]  #[0, 1e-5]  # Possibly later trial 1e-2
     lambda_coord = [2, 3, 4]
     lambda_desc = [1.5, 2]
-    lambda_pad = [0.3, 0.5, 0.7]
     lambda_collapse = [0.1, 0.3, 0.5]
     betas = [0.02, 0.05]  # Possibly trial 0.5, 2, and 4 later
     lambda_regs = [0.001, 0.002]
 
     grid = [
-        {"batch_size": batch_size, "latent_dim": latent_dim, "optimizer": opt, "lr": lr, "decay": decay, "lambda_coord": coord, "lambda_desc": desc, "lambda_pad": pad, "lambda_collapse": collapse, "beta": beta, "lambda_reg": lambda_reg}
+        {"batch_size": batch_size, "latent_dim": latent_dim, "optimizer": opt, "lr": lr, "decay": decay, "lambda_coord": coord, "lambda_desc": desc, "lambda_collapse": collapse, "beta": beta, "lambda_reg": lambda_reg}
         for batch_size in batch_sizes
         for latent_dim in latent_dims
         for opt in optimizer
@@ -79,7 +77,6 @@ def create_grid() -> list[dict]:
         for decay in weight_decay
         for coord in lambda_coord
         for desc in lambda_desc
-        for pad in lambda_pad
         for collapse in lambda_collapse
         for beta in betas
         for lambda_reg in lambda_regs
@@ -90,96 +87,95 @@ def create_grid() -> list[dict]:
     grid = [
         # Beta scale focused runs
         {"batch_size": 64, "latent_dim": 16, "optimizer": {"type": optim.Adam, "params": {}, "model_name": "adam"},
-         "lr": 1e-5, "decay": 1e-5, "lambda_coord": 2.0, "lambda_desc": 2.5, "lambda_pad": 3.5, "lambda_collapse": 1.5,
+         "lr": 1e-5, "decay": 1e-5, "lambda_coord": 2.0, "lambda_desc": 2.5, "lambda_collapse": 1.5,
+         "beta": 0.5, "lambda_reg": 0.001}] #,
+    """
+        {"batch_size": 64, "latent_dim": 16, "optimizer": {"type": optim.Adam, "params": {}, "model_name": "adam"},
+         "lr": 1e-5, "decay": 1e-5, "lambda_coord": 1.0, "lambda_desc": 1.25, "lambda_collapse": 0.75,
          "beta": 0.5, "lambda_reg": 0.001},
 
         {"batch_size": 64, "latent_dim": 16, "optimizer": {"type": optim.Adam, "params": {}, "model_name": "adam"},
-         "lr": 1e-5, "decay": 1e-5, "lambda_coord": 1.0, "lambda_desc": 1.25, "lambda_pad": 1.75, "lambda_collapse": 0.75,
-         "beta": 0.5, "lambda_reg": 0.001},
-
-        {"batch_size": 64, "latent_dim": 16, "optimizer": {"type": optim.Adam, "params": {}, "model_name": "adam"},
-         "lr": 1e-5, "decay": 1e-5, "lambda_coord": 2.0, "lambda_desc": 2.5, "lambda_pad": 3.5, "lambda_collapse": 1.5,
+         "lr": 1e-5, "decay": 1e-5, "lambda_coord": 2.0, "lambda_desc": 2.5, "lambda_collapse": 1.5,
          "beta": 1.0, "lambda_reg": 0.001},
 
         {"batch_size": 64, "latent_dim": 16, "optimizer": {"type": optim.Adam, "params": {}, "model_name": "adam"},
-         "lr": 1e-5, "decay": 1e-5, "lambda_coord": 1.0, "lambda_desc": 1.25, "lambda_pad": 1.75, "lambda_collapse": 0.75,
+         "lr": 1e-5, "decay": 1e-5, "lambda_coord": 1.0, "lambda_desc": 1.25, "lambda_collapse": 0.75,
          "beta": 1.0, "lambda_reg": 0.001},
 
         {"batch_size": 64, "latent_dim": 16, "optimizer": {"type": optim.Adam, "params": {}, "model_name": "adam"},
-         "lr": 1e-5, "decay": 1e-5, "lambda_coord": 2.0, "lambda_desc": 2.5, "lambda_pad": 3.5, "lambda_collapse": 1.5,
+         "lr": 1e-5, "decay": 1e-5, "lambda_coord": 2.0, "lambda_desc": 2.5, "lambda_collapse": 1.5,
          "beta": 2.0, "lambda_reg": 0.001},
 
         {"batch_size": 64, "latent_dim": 16, "optimizer": {"type": optim.Adam, "params": {}, "model_name": "adam"},
-         "lr": 1e-5, "decay": 1e-5, "lambda_coord": 1.0, "lambda_desc": 1.25, "lambda_pad": 1.75, "lambda_collapse": 0.75,
+         "lr": 1e-5, "decay": 1e-5, "lambda_coord": 1.0, "lambda_desc": 1.25, "lambda_collapse": 0.75,
          "beta": 2.0, "lambda_reg": 0.001},
 
-        # Pad focused runs
         {"batch_size": 64, "latent_dim": 16, "optimizer": {"type": optim.Adam, "params": {}, "model_name": "adam"},
-         "lr": 1e-5, "decay": 1e-5, "lambda_coord": 2.0, "lambda_desc": 2.5, "lambda_pad": 4.0, "lambda_collapse": 1.5,
+         "lr": 1e-5, "decay": 1e-5, "lambda_coord": 2.0, "lambda_desc": 2.5, "lambda_collapse": 1.5,
          "beta": 0.5, "lambda_reg": 0.001},
 
         {"batch_size": 64, "latent_dim": 16, "optimizer": {"type": optim.Adam, "params": {}, "model_name": "adam"},
-         "lr": 1e-5, "decay": 1e-5, "lambda_coord": 2.0, "lambda_desc": 2.5, "lambda_pad": 5.0, "lambda_collapse": 1.5,
+         "lr": 1e-5, "decay": 1e-5, "lambda_coord": 2.0, "lambda_desc": 2.5, "lambda_collapse": 1.5,
          "beta": 0.5, "lambda_reg": 0.001},
 
         {"batch_size": 64, "latent_dim": 16, "optimizer": {"type": optim.Adam, "params": {}, "model_name": "adam"},
-         "lr": 1e-5, "decay": 1e-5, "lambda_coord": 2.0, "lambda_desc": 2.5, "lambda_pad": 6.0, "lambda_collapse": 1.5,
+         "lr": 1e-5, "decay": 1e-5, "lambda_coord": 2.0, "lambda_desc": 2.5, "lambda_collapse": 1.5,
          "beta": 0.5, "lambda_reg": 0.001},
 
         {"batch_size": 64, "latent_dim": 16, "optimizer": {"type": optim.Adam, "params": {}, "model_name": "adam"},
-         "lr": 1e-5, "decay": 1e-5, "lambda_coord": 2.0, "lambda_desc": 2.5, "lambda_pad": 8.0, "lambda_collapse": 1.5,
+         "lr": 1e-5, "decay": 1e-5, "lambda_coord": 2.0, "lambda_desc": 2.5, "lambda_collapse": 1.5,
          "beta": 0.5, "lambda_reg": 0.001},
 
         {"batch_size": 64, "latent_dim": 16, "optimizer": {"type": optim.Adam, "params": {}, "model_name": "adam"},
-         "lr": 1e-5, "decay": 1e-5, "lambda_coord": 2.0, "lambda_desc": 2.5, "lambda_pad": 4.0, "lambda_collapse": 1.5,
+         "lr": 1e-5, "decay": 1e-5, "lambda_coord": 2.0, "lambda_desc": 2.5, "lambda_collapse": 1.5,
          "beta": 1.0, "lambda_reg": 0.001},
 
         {"batch_size": 64, "latent_dim": 16, "optimizer": {"type": optim.Adam, "params": {}, "model_name": "adam"},
-         "lr": 1e-5, "decay": 1e-5, "lambda_coord": 2.0, "lambda_desc": 2.5, "lambda_pad": 5.0, "lambda_collapse": 1.5,
+         "lr": 1e-5, "decay": 1e-5, "lambda_coord": 2.0, "lambda_desc": 2.5, "lambda_collapse": 1.5,
          "beta": 1.0, "lambda_reg": 0.001},
 
         {"batch_size": 64, "latent_dim": 16, "optimizer": {"type": optim.Adam, "params": {}, "model_name": "adam"},
-         "lr": 1e-5, "decay": 1e-5, "lambda_coord": 2.0, "lambda_desc": 2.5, "lambda_pad": 6.0, "lambda_collapse": 1.5,
+         "lr": 1e-5, "decay": 1e-5, "lambda_coord": 2.0, "lambda_desc": 2.5, "lambda_collapse": 1.5,
          "beta": 1.0, "lambda_reg": 0.001},
 
         {"batch_size": 64, "latent_dim": 16, "optimizer": {"type": optim.Adam, "params": {}, "model_name": "adam"},
-         "lr": 1e-5, "decay": 1e-5, "lambda_coord": 2.0, "lambda_desc": 2.5, "lambda_pad": 8.0, "lambda_collapse": 1.5,
+         "lr": 1e-5, "decay": 1e-5, "lambda_coord": 2.0, "lambda_desc": 2.5, "lambda_collapse": 1.5,
          "beta": 1.0, "lambda_reg": 0.001},
 
         # Targeted based on previous best performances and observations
         {"batch_size": 64, "latent_dim": 16, "optimizer": {"type": optim.Adam, "params": {}, "model_name": "adam"},
-         "lr": 1e-5, "decay": 1e-5, "lambda_coord": 2.5, "lambda_desc": 3.0, "lambda_pad": 4.0, "lambda_collapse": 1.5,
+         "lr": 1e-5, "decay": 1e-5, "lambda_coord": 2.5, "lambda_desc": 3.0, "lambda_collapse": 1.5,
          "beta": 0.5, "lambda_reg": 0.001},
 
         {"batch_size": 64, "latent_dim": 16, "optimizer": {"type": optim.Adam, "params": {}, "model_name": "adam"},
-         "lr": 1e-5, "decay": 1e-5, "lambda_coord": 2.0, "lambda_desc": 2.5, "lambda_pad": 3.5, "lambda_collapse": 2.0,
+         "lr": 1e-5, "decay": 1e-5, "lambda_coord": 2.0, "lambda_desc": 2.5, "lambda_collapse": 2.0,
          "beta": 0.5, "lambda_reg": 0.001},
 
         {"batch_size": 64, "latent_dim": 16, "optimizer": {"type": optim.Adam, "params": {}, "model_name": "adam"},
-         "lr": 1e-5, "decay": 1e-5, "lambda_coord": 2.5, "lambda_desc": 3.0, "lambda_pad": 4.0, "lambda_collapse": 1.5,
+         "lr": 1e-5, "decay": 1e-5, "lambda_coord": 2.5, "lambda_desc": 3.0, "lambda_collapse": 1.5,
          "beta": 1.0, "lambda_reg": 0.001},
 
         {"batch_size": 64, "latent_dim": 16, "optimizer": {"type": optim.Adam, "params": {}, "model_name": "adam"},
-         "lr": 1e-5, "decay": 1e-5, "lambda_coord": 2.0, "lambda_desc": 2.5, "lambda_pad": 3.5, "lambda_collapse": 2.0,
+         "lr": 1e-5, "decay": 1e-5, "lambda_coord": 2.0, "lambda_desc": 2.5, "lambda_collapse": 2.0,
          "beta": 1.0, "lambda_reg": 0.001},
 
         {"batch_size": 64, "latent_dim": 16, "optimizer": {"type": optim.Adam, "params": {}, "model_name": "adam"},
-         "lr": 1e-5, "decay": 1e-5, "lambda_coord": 2.5, "lambda_desc": 3.0, "lambda_pad": 4.0, "lambda_collapse": 1.5,
+         "lr": 1e-5, "decay": 1e-5, "lambda_coord": 2.5, "lambda_desc": 3.0, "lambda_collapse": 1.5,
          "beta": 2.0, "lambda_reg": 0.001},
 
         {"batch_size": 64, "latent_dim": 16, "optimizer": {"type": optim.Adam, "params": {}, "model_name": "adam"},
-         "lr": 1e-5, "decay": 1e-5, "lambda_coord": 2.0, "lambda_desc": 2.5, "lambda_pad": 3.5, "lambda_collapse": 2.0,
+         "lr": 1e-5, "decay": 1e-5, "lambda_coord": 2.0, "lambda_desc": 2.5, "lambda_collapse": 2.0,
          "beta": 2.0, "lambda_reg": 0.001},
 
         {"batch_size": 64, "latent_dim": 16, "optimizer": {"type": optim.Adam, "params": {}, "model_name": "adam"},
-         "lr": 1e-5, "decay": 1e-5, "lambda_coord": 2.0, "lambda_desc": 2.5, "lambda_pad": 6.0, "lambda_collapse": 1.5,
+         "lr": 1e-5, "decay": 1e-5, "lambda_coord": 2.0, "lambda_desc": 2.5, "lambda_collapse": 1.5,
          "beta": 0.5, "lambda_reg": 0.001},
 
         {"batch_size": 64, "latent_dim": 16, "optimizer": {"type": optim.Adam, "params": {}, "model_name": "adam"},
-         "lr": 1e-5, "decay": 1e-5, "lambda_coord": 2.0, "lambda_desc": 2.5, "lambda_pad": 8.0, "lambda_collapse": 1.5,
+         "lr": 1e-5, "decay": 1e-5, "lambda_coord": 2.0, "lambda_desc": 2.5, "lambda_collapse": 1.5,
          "beta": 0.5, "lambda_reg": 0.001}
     ]
-
+    """
     return grid
 
 
@@ -230,7 +226,7 @@ def train_grid_search(train_ds: VoxelDataset, val_ds: VoxelDataset, model_archit
             start_timer = time.perf_counter()
 
             # Assign unique name containing test information
-            model_name = f"{model_architecture_name}_bs{setup['batch_size']}_ld{setup['latent_dim']}_{setup['optimizer']['model_name']}_lr{setup['lr']}_wd{setup['decay']}_be{setup['beta']}_co{setup['lambda_coord']}_de{setup['lambda_desc']}_pd{setup['lambda_pad']}_cl{setup['lambda_collapse']}_tr{setup['lambda_reg']}"
+            model_name = f"{model_architecture_name}_bs{setup['batch_size']}_ld{setup['latent_dim']}_{setup['optimizer']['model_name']}_lr{setup['lr']}_wd{setup['decay']}_be{setup['beta']}_co{setup['lambda_coord']}_de{setup['lambda_desc']}_cl{setup['lambda_collapse']}_tr{setup['lambda_reg']}"
 
             # Create dataloaders updating batch_size
             train_loader = DataLoader(train_ds, batch_size=setup['batch_size'], shuffle=True)
@@ -261,7 +257,7 @@ def train_grid_search(train_ds: VoxelDataset, val_ds: VoxelDataset, model_archit
             vae = VAE(INPUT_DIM, setup['latent_dim'], model_name, max_voxels=train_ds.max_voxels, coordinate_dimensions=train_ds.coordinate_dim).to(DEVICE)
 
             # Initialise loss function
-            criterion = VaeLoss(setup['lambda_coord'], setup['lambda_desc'], setup['lambda_pad'], setup['lambda_collapse'], setup['lambda_reg'])
+            criterion = VaeLoss(setup['lambda_coord'], setup['lambda_desc'], setup['lambda_collapse'], setup['lambda_reg'])
 
             # Initialise optimizer
             optim_params = setup['optimizer']['params']
@@ -280,7 +276,7 @@ def train_grid_search(train_ds: VoxelDataset, val_ds: VoxelDataset, model_archit
             print()
             generate_plots(history, history.model_name)
             print()
-            compare_reconstructed(vae, val_loader, num_sample=5, filename=f"{history.model_name}/comparison_{history.model_name}")
+            compare_reconstructed(vae, val_loader, num_sample=10, filename=f"{history.model_name}/comparison_{history.model_name}")
             print()
             log_metrics(history, train_loader, val_loader, k=5, log="loss")
 

@@ -866,12 +866,14 @@ desc = 2.5
 pad = 3.5
 collapse = 1.5 
 beta = 0.5
+Only 3 voxels reconstructed (too many padded) constantly in the exact same positions, no layout variation, some descriptor colour variation.
 
 coord = 1.0
 desc = 1.25
 pad = 1.75
 collapse = 0.75 
 beta = 0.5
+7 or 8 voxels reconstructed (mostly too few padded),  
 
 coord = 2.0
 desc = 2.5
@@ -995,3 +997,12 @@ desc = 2.5
 pad = 8.0
 collapse = 1.5
 beta = 0.5
+
+
+Reconstructions still clustering with limited variation in both location and colour.
+Believe there is some bias in the custom losses. 
+Looking at the losses closer, suspect it will be better to do away with masking for the coordinate loss by
+encoding padded voxels as (11,11,11) rather than (0,0,0) - a genuine location.
+Doing this and using entropy should encourage both the correct number of voxels and the correct locations (max entropy is uniform distribution).
+This should also mean that the padded voxel penalty can be removed, simplifying the problem.
+Removed masking from the descriptor penalty to include padded voxels in the calculations.
