@@ -137,7 +137,7 @@ class Encoder(nn.Module):
         combined_features = self.combined_activation(pooled_spatial + max_spatial + pooled_desc)
 
         reduced_features = self.fc(combined_features)
-        print(f"reduced: {reduced_features.shape}")
+
         z_mean = self.z_mean_fc(reduced_features)
         z_log_var = self.z_log_var_fc(reduced_features)
 

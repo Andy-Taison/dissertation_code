@@ -427,9 +427,9 @@ def plot_loss_tradeoffs(training_histories: TrainingHistory | list[TrainingHisto
 
 
 def generate_plots(history: TrainingHistory, model_name: str):
-    plot_metrics_vs_epochs(history, "recon", "beta_kl", "lr", filename=f"{model_name}/{model_name}_recon-beta_kl_vs_epochs")
+    plot_metrics_vs_epochs(history, "recon", "beta_kl", filename=f"{model_name}/{model_name}_recon-beta_kl_vs_epochs")
     plot_metrics_vs_epochs(history, "f1_weighted_avg", filename=f"{model_name}/{model_name}_f1_vs_epochs")
-    plot_metrics_vs_epochs(history, "total_loss", filename=f"{model_name}/{model_name}_total_loss_vs_epochs")
+    plot_metrics_vs_epochs(history, "total_loss", "lr", filename=f"{model_name}/{model_name}_total_loss_lr_vs_epochs")
     plot_metrics_vs_epochs(history, "accuracy", filename=f"{model_name}/{model_name}_acc_vs_epochs")
     plot_metrics_vs_epochs(history, "coor_loss", "desc_loss", "collapse_penalty", filename=f"{model_name}/{model_name}_raw_recon_loss_parts_vs_epochs")
     plot_metrics_vs_epochs(history, "scaled_coor_loss", "scaled_desc_loss", "scaled_collapse_penalty", filename=f"{model_name}/{model_name}_scaled_recon_loss_parts_vs_epochs")

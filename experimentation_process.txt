@@ -1231,16 +1231,62 @@ Added another intermediary layer in the decoder fc (upsampling) before split to 
 Quick exploratory (50 epochs, patience 10, no scheduler, 1e-3 lr, collapse=0.5) 
 High Coordinate:
 coord = 5.0, desc = 2.0, beta = 0.2
+OK colour matching, lmited layout variation and voxel count, only 2-3 voxels reconstructed. 
+Scaled losses: collapse penalty is near 0 constantly (raw fluctuates, but still very low), coor loss drops from 5 to 0.5 where it 
+seems to stabilise (1-0.2 raw), desc loss drops slowly from 3.5 to 2.5 (1.75-1.25 raw). Beta scaled 
+kl is fairly flat at 0.2, total loss drops from 8 to 3 logarithmically.
 
 Descriptor:
 coord = 2.5, desc = 5.0, beta = 0.3
+Some spatial layout variation better voxel number matching. Scaled losses: collapse penalty spikes to 0.14, but mostly remains near 0
+(0.25 raw), Desc loss gradually and continually decreases from 8 to 6 (1.5-1.1 raw), coor loss also drops continually from 2 to 0.2 (0.8-0.1 raw).
+Beta scaled KL climbs slightly from 0 to 0.5 where it remains flat, total loss gradually decreases from 9 to 6.
 
 Balanced Scaling:
 coord = 4.0, desc = 4.0, beta = 0.25
+Limited to no spatial and colour variation, no voxel number variation. Scaled losses: collapse penalty pulses with gradually reducing peaks 
+(0.08, 0.05, 0.03 which is 0.2, 0.1, 0.8 raw) and seems to stabilise near 0. Desc loss continually decreases from 6.5 to 5 (1.7-1.2 raw), 
+coor loss decreases slower near the beginning from 3-2.5 then faster around epoch 10-20 where it drops to 0.5 where it seems to remain flat raw
+drops from 0.8 to 0.1. Beta scaled kl seems to remain fairly flat around 0.7, total loss continually decreases but looks like it starts to 
+stabilise near the end dropping from 10-5. 
 
 Increased Beta:
 coord = 3.5, desc = 3.5, beta = 0.4
+Limited spatial and colour variation, no voxel number variation. Scaled losses: collapse remains flat near 0, but raw fluctuates slightly near 
+the beginning between near 0 and 0.5, desc loss drops continually from 6-4 (1.75-1.25 raw), coor loss looks like a seat where it is fairly flat
+at 3 (0.8 raw) until epoch 10 when it drops to around 0.5 (0.25 raw) around epoch 25. Beta scaled kl climbs slightly but is mostly flat at 0.5,
+total loss looks like a seat similar to coor loss, dropping from 9-4.5
 
 Moderate Coordinate, Higher Beta:
 coord = 3.0, desc = 2.0, beta = 0.5
+Fixed, no variation at all, only 2 blue voxels. Scaled losses: collapse penalty drops from 1 to near 0, where it is flat, desc loss is flat at 2.9 (1.4 raw),
+coor loss is seat like flat for 10 epochs at 2.5 where it begins to drop logarithmically down to 0.6 (0.9 - 0.2 raw). Beta scaled kl is flat near 0, total loss
+is seat like for 10 epochs at 5.5 and drops to 3.5. 
 
+Note beta values may not be overly accurate due to plotting learning rate which has made the beta kl scale difficult to read. Will change for next run.
+
+Descript emphasis performed the best. 
+High desc seems to encourage better voxel spatial awareness. Beta=0.3 had the highest kl div (more active latent space)
+Higher beta cause little variation, lower minimsed latent space usage even though reconstruction improved.
+collapse drops quickly and stabilises near 0, could mean that the penalty is effective, or it could mean the model is cheating 
+and then not exploring - worth reducing slightly.
+Higher coor seems to produce minimal variation, seems that descriptor must learn first.
+Desc should probably be higher than coor.
+
+
+* Testing extremes
+
+High Coordinate Priority Extreme
+coord = 6.0, desc = 1.0, collapse = 0.3, beta = 0.3
+
+High Descriptor Priority Extreme
+coord = 1.0, desc = 6.0, collapse = 0.3, beta = 0.3
+
+Low Collapse Penalty
+coord = 4.0, desc = 4.0, collapse = 0.1, beta = 0.3
+
+High Collapse Penalty
+coord = 3.0, desc = 3.0, collapse = 1.0, beta = 0.3
+
+Balanced but Descriptor First Assumption
+coord = 3.0, desc = 5.0, collapse = 0.3, beta = 0.3

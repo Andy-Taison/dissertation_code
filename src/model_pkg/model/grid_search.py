@@ -86,26 +86,26 @@ def create_grid() -> list[dict]:
     """
 
     grid = [    ########## SCHEDULER IS SET TO NONE BELOW
-        # High coordinate
+
         {"batch_size": 64, "latent_dim": 16, "optimizer": {"type": optim.Adam, "params": {}, "model_name": "adam"},
-         "lr": 1e-3, "decay": 1e-5, "lambda_coord": 5.0, "lambda_desc": 2.0, "lambda_collapse": 0.5,
-         "beta": 0.2, "lambda_reg": 0.001},
-        # Descriptor
-        {"batch_size": 64, "latent_dim": 16, "optimizer": {"type": optim.Adam, "params": {}, "model_name": "adam"},
-         "lr": 1e-3, "decay": 1e-5, "lambda_coord": 2.5, "lambda_desc": 5.0, "lambda_collapse": 0.5,
+         "lr": 1e-3, "decay": 1e-5, "lambda_coord": 6.0, "lambda_desc": 1.0, "lambda_collapse": 0.3,
          "beta": 0.3, "lambda_reg": 0.001},
-        # Balanced
+
         {"batch_size": 64, "latent_dim": 16, "optimizer": {"type": optim.Adam, "params": {}, "model_name": "adam"},
-         "lr": 1e-3, "decay": 1e-5, "lambda_coord": 4.0, "lambda_desc": 4.0, "lambda_collapse": 0.5,
-         "beta": 0.25, "lambda_reg": 0.001},
-        # Increased beta
+         "lr": 1e-3, "decay": 1e-5, "lambda_coord": 1.0, "lambda_desc": 6.0, "lambda_collapse": 0.3,
+         "beta": 0.3, "lambda_reg": 0.001},
+
         {"batch_size": 64, "latent_dim": 16, "optimizer": {"type": optim.Adam, "params": {}, "model_name": "adam"},
-         "lr": 1e-3, "decay": 1e-5, "lambda_coord": 3.5, "lambda_desc": 3.5, "lambda_collapse": 0.5,
-         "beta": 0.4, "lambda_reg": 0.001},
-        # Moderate coordinate, higher beta
+         "lr": 1e-3, "decay": 1e-5, "lambda_coord": 4.0, "lambda_desc": 4.0, "lambda_collapse": 0.1,
+         "beta": 0.3, "lambda_reg": 0.001},
+
         {"batch_size": 64, "latent_dim": 16, "optimizer": {"type": optim.Adam, "params": {}, "model_name": "adam"},
-         "lr": 1e-3, "decay": 1e-5, "lambda_coord": 3.0, "lambda_desc": 2.0, "lambda_collapse": 0.5,
-         "beta": 0.5, "lambda_reg": 0.001}
+         "lr": 1e-3, "decay": 1e-5, "lambda_coord": 3.0, "lambda_desc": 3.0, "lambda_collapse": 1.0,
+         "beta": 0.3, "lambda_reg": 0.001},
+
+        {"batch_size": 64, "latent_dim": 16, "optimizer": {"type": optim.Adam, "params": {}, "model_name": "adam"},
+         "lr": 1e-3, "decay": 1e-5, "lambda_coord": 3.0, "lambda_desc": 5.0, "lambda_collapse": 0.3,
+         "beta": 0.3, "lambda_reg": 0.001}
     ]
 
     return grid
