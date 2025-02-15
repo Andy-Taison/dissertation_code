@@ -1316,3 +1316,25 @@ lambda_coord = 6.0, lambda_desc = 2.0, lambda_collapse = 1.0, beta = 0.3
 
 Low Descriptor, High Collapse
 lambda_coord = 4.5, lambda_desc = 1.5, lambda_collapse = 1.0, beta = 0.3
+
+Descriptor loss seems to remain flat, coordinate loss seems to drop below descriptor loss 
+and then start to stabilise, at the point coordinate loss crosses descriptor loss, KL div starts to increase.
+It seems desc scaling may be too high, and coor scaling may be too low. Collapse penalty may be counterproductive. 
+Beta scaling at 0.3 seems stable.
+
+* High coor low desc
+
+High Coordinate Low Descriptor
+coord = 6.0, desc = 0.5, collapse = 0.3, beta = 0.4
+
+Moderate Coordinate, Very Low Descriptor
+coord = 5.0, desc = 0.2, collapse = 0.3, beta = 0.35
+
+Balanced Coordinate and Collapse, Low Descriptor
+coord = 4.0, desc = 0.4, collapse = 0.5, beta = 0.4
+
+High Coordinate and Collapse, Minimal Descriptor
+coord = 7.0, desc = 0.1, collapse = 0.5, beta = 0.35
+
+Extreme Coordinate Weighting
+coord = 8.0, desc = 0.3, collapse = 0.3, beta = 0.4
