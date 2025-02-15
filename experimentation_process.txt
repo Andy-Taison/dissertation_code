@@ -1172,3 +1172,43 @@ desc = 4.0
 collapse = 1.0  Reintroduced at a low value to prevent clustering
 beta = 0.35
 lr = 5e-5  Introduced a scheduler 
+
+Seems there is extremally limited number of voxel and layout variation, particularly with voxel numbers, they hover around 2 or 3 
+regardless of the original, colours vary a little.
+The model was terminated at epoch 271 via early stop and achieve the following on the final epoch:
+Test metrics (averages):
+	Recon loss =   3.9585
+	KL div =   3.0800
+	Accuracy =  48.49%
+	F1 score (weighted average) = 0.5080
+	Coordinate Euclidean distance: 0.8046 
+The scheduler managed to reduce the learning rate to 5.000000000000002e-09
+
+the model maintained relatively stable coordinate and descriptor losses after initial drops, but there was minimal variation in voxel counts and layout. 
+Beta scaled KL increased steadily as the learning rate reduced, but the overall reconstruction loss flattened, indicating model might be stuck in a local minimum.
+
+
+Scaled descriptor loss ended at a factor of two times the coordinate loss and descriptor loss is based on nearest neighbour, so it may be better to reduce descriptor 
+loss in relation to coordinate loss.
+Though the model may be cheating the coordinate loss somehow.
+If the model finds some stable position and accepts the loss, it may be causing the stagnant layouts. 
+The descriptor loss should be giving the model a kick because so long as the voxels don't collapse into the same space, 
+descriptors are based on nearest neighbour, which should help draw them to their correct locations. 
+Earlier runs showed static layouts in both higher descriptor and higher coordinate loss, making it difficult to pinpoint
+which way to go. 
+Runs with moderate to high coordinate scaling combined with mid to high beta values have shown the most spatial variation.
+High descriptor scaling hasn't provided much layout improvement and tends to plateau quickly.
+If coordinates are already clustered or incorrect, the model might be “satisfied” with incorrect nearest neighbors, reinforcing the wrong layout.
+Though due to past performance, it seems coordinate loss should be higher than descriptor loss.
+
+* Full dataset higher coor, low collapse
+epochs = 400
+
+Coor = 5.0 – prioritise spatial alignment early
+Desc = 3.5 – keeps descriptor learning active but not dominant, letting coordinates settle first
+Collapse = 0.5 – enough to prevent collapse without pulling voxels too close
+Beta = 0.4 – strong enough to ensure latent space is meaningful, but not so high it dominates reconstruction loss
+Learning rate: 1e-3 – higher for more aggressive early learning and escape potential local minima
+Scheduler factor = 0.2 
+Scheduler patience = 10
+Early stopping patience = 20

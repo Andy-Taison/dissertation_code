@@ -88,8 +88,8 @@ def create_grid() -> list[dict]:
     grid = [
         # Beta scale focused runs
         {"batch_size": 64, "latent_dim": 16, "optimizer": {"type": optim.Adam, "params": {}, "model_name": "adam"},
-         "lr": 5e-5, "decay": 1e-5, "lambda_coord": 4.5, "lambda_desc": 4.0, "lambda_collapse": 1.0,
-         "beta": 0.35, "lambda_reg": 0.001}
+         "lr": 1e-3, "decay": 1e-5, "lambda_coord": 5.0, "lambda_desc": 3.5, "lambda_collapse": 0.5,
+         "beta": 0.4, "lambda_reg": 0.001}
     ]
 
     return grid
@@ -182,7 +182,7 @@ def train_grid_search(train_ds: VoxelDataset, val_ds: VoxelDataset, model_archit
             optimizer = setup['optimizer']['type'](vae.parameters(), **optim_params)
 
             # Initialise scheduler
-            scheduler = ReduceLROnPlateau(optimizer, patience=SCHEDULER_PATIENCE)
+            scheduler = ReduceLROnPlateau(optimizer, patience=SCHEDULER_PATIENCE, factor=0.2)
 
             # Train VAE
             history = train_val(vae, train_loader, val_loader, criterion, optimizer, EPOCHS, setup['beta'], scheduler=scheduler, prune_old_checkpoints=prune_old_checkpoints)  # History will be to the latest model, which most likely will not be the best model
