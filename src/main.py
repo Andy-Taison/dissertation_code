@@ -19,7 +19,7 @@ def run():
     grid_search_model_name = "additive_combine"
     combine_and_save = False  # When false, will load processed files
     use_toy_set = True  # Use 20% of full dataset or full dataset, does not use test set
-    testing = True  # 128 samples for train and val sets for quick run testing
+    testing = False  # 128 samples for train and val sets for quick run testing
 
     if combine_and_save:
         # Combine all CSV files and clean
