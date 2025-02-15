@@ -3,7 +3,7 @@ Defines public API for src package
 """
 
 from . import config
-from .data.preprocess import combine_csv_files, split_data, save_split_datasets, summarise_dataset, clean_data, load_processed_datasets
+from .data.preprocess import combine_csv_files, split_data, save_split_datasets, summarise_dataset, clean_data, load_processed_datasets, split_test_diverse_sets
 from .data.dataset import VoxelDataset, sparse_to_dense
 from .visualisation.robot import load_grid_from_file, visualise_robot, compare_reconstructed
 from .visualisation.plots import plot_metrics_vs_epochs, plot_loss_tradeoffs, generate_plots
@@ -24,6 +24,7 @@ __all__ = ["config",
            "summarise_dataset",
            "clean_data",
            "load_processed_datasets",
+           "split_test_diverse_sets",
            "VoxelDataset",
            "sparse_to_dense",
            "load_grid_from_file",

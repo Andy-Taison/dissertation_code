@@ -3,9 +3,10 @@ Functions to load and split data
 """
 
 import pandas as pd
+import numpy as np
 from sklearn.model_selection import train_test_split
 from pathlib import Path
-from ..config import RANDOM_STATE
+from ..config import RANDOM_STATE, EXPANDED_GRID_SIZE
 
 
 def combine_csv_files(directory: str) -> pd.DataFrame:
@@ -203,3 +204,20 @@ def summarise_dataset(dataset: pd.DataFrame):
     print(f"Rows with Exactly 1 Non-Zero Value: {rows_with_one_non_zero} ({rows_with_one_non_zero / num_rows * 100:.2f}%)")
     print(f"Rows with Multiple Non-Zero Values: {rows_with_multiple_non_zero} ({rows_with_multiple_non_zero / num_rows * 100:.2f}%)")
     print(f"Unique Rows: {unique_rows} ({unique_rows / num_rows * 100:.2f})%\n")
+
+
+def split_test_diverse_sets(df: pd.DataFrame):
+    np_df = df.to_numpy()
+    grid_data = np_df[:, -(EXPANDED_GRID_SIZE ** 3):]
+    print(grid_data.shape)
+    # Verify grid data has 1331 columns (11x11x11)
+    assert grid_data.shape[1] == EXPANDED_GRID_SIZE * EXPANDED_GRID_SIZE * EXPANDED_GRID_SIZE, "Grid data does not have the correct number of elements (1331)."
+
+    # Reshape grids into [batch_size, 11, 11, 11]
+    grids = grid_data.reshape(-1, EXPANDED_GRID_SIZE, EXPANDED_GRID_SIZE, EXPANDED_GRID_SIZE)
+    robot_ids = np_df[:, 0]
+
+    non_zeros = np.nonzero(grids)
+    non_zeros_idx = list(zip(*non_zeros))
+
+    print(non_zeros_idx[0])
