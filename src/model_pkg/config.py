@@ -14,6 +14,9 @@ BASE_DIR = Path.cwd().parent  # Can also use Path("../") for relative address, m
 # When running on the HPC use this:
 # BASE_DIR = Path("/users/40538519/sharedscratch")
 
+# Show plots
+PLOT = False
+
 # Directories
 DATA_DIR = BASE_DIR / "data" / "raw"  # Path to raw data CSV files
 PROCESSED_DIR = BASE_DIR / "data" / "processed"  # Path to store processed CSV files

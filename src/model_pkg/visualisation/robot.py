@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches  # For legend
 import numpy as np
 from pathlib import Path
-from ..config import PLOT_DIR, DEVICE, COORDINATE_DIMENSIONS
+from ..config import PLOT_DIR, DEVICE, COORDINATE_DIMENSIONS, PLOT
 from ..data.dataset import sparse_to_dense
 
 
@@ -122,7 +122,8 @@ def visualise_robot(grid_data: torch.Tensor, title: str = None, filename: str | 
         fig.savefig(filepath)
         print(f"Robot visualisation plot saved to '{filepath.name}'")
 
-        plt.show()
+        if PLOT:
+            plt.show()
         plt.close(fig)
 
 
@@ -207,5 +208,6 @@ def compare_reconstructed(model: torch.nn.Module, dataloader: torch.utils.data.D
             fig.savefig(filepath)
             print(f"Robot comparison visualisation plot saved to '{filepath.name}'")
 
-            plt.show()
+            if PLOT:
+                plt.show()
             plt.close(fig)

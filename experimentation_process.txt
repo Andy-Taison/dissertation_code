@@ -1216,7 +1216,7 @@ Early stopping patience = 20
 Limited variation in location, only 2 or 3 voxels were reconstructed, some slight variation in colour.
 
 
-* Realised why the descriptor loss may be mostly flat... 
+** Realised why the descriptor loss may be mostly flat... 
 I'm not passing any coordinate information back to the descriptors in the model, I just concatenate the tensors
 rather than multiplying or adding. Assume that descriptors certainly need coordinate information as their loss 
 is based on location. Also assume that coordinates would benefit from descriptor value information as (in theory 
@@ -1290,3 +1290,29 @@ coord = 3.0, desc = 3.0, collapse = 1.0, beta = 0.3
 
 Balanced but Descriptor First Assumption
 coord = 3.0, desc = 5.0, collapse = 0.3, beta = 0.3
+
+Minimal variation all round.
+Latent space regulation in comparison to total loss seems better.
+Collapse penalty is minimal, potentially leading to voxel sparsity.
+When coor > 5 = limited descriptor variation.
+Desc > 5 = better descriptor accuracy but worse spatial alignment and increased KL.
+Balanced losses seems to produce the most stable training but not produce best latent space diversity.
+Potentially the coordinate loss needs to be even higher to avoid local minima. 
+Suspect with scaled descriptor loss being higher than scaled coord loss, it is falling into local minima.
+
+* Exploring higher coordinate loss scaling
+
+High Coordinate Emphasis
+lambda_coord = 6.0, lambda_desc = 2.0, lambda_collapse = 0.5, beta = 0.3
+
+Moderate Coordinate with Low Descriptor
+lambda_coord = 4.0, lambda_desc = 1.0, lambda_collapse = 0.3, beta = 0.3
+
+Balanced with Higher Coordinate Bias
+lambda_coord = 5.0, lambda_desc = 3.0, lambda_collapse = 0.5, beta = 0.3
+
+High Coordinate, High Collapse Penalty
+lambda_coord = 6.0, lambda_desc = 2.0, lambda_collapse = 1.0, beta = 0.3
+
+Low Descriptor, High Collapse
+lambda_coord = 4.5, lambda_desc = 1.5, lambda_collapse = 1.0, beta = 0.3

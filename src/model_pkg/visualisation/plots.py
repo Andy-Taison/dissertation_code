@@ -5,7 +5,7 @@ Functions to plot history metrics.
 from ..model.history_checkpoint import TrainingHistory
 import matplotlib.pyplot as plt
 from pathlib import Path
-from ..config import PLOT_DIR
+from ..config import PLOT_DIR, PLOT
 
 plt.style.use('dark_background')
 
@@ -325,7 +325,8 @@ def plot_metrics_vs_epochs(training_histories: TrainingHistory | list[TrainingHi
     fig.savefig(filepath)
     print(f"Plot saved to '{filepath.name}'")
 
-    plt.show()
+    if PLOT:
+        plt.show()
     plt.close(fig)
 
 
@@ -422,7 +423,8 @@ def plot_loss_tradeoffs(training_histories: TrainingHistory | list[TrainingHisto
     fig.savefig(filepath)
     print(f"Plot saved to '{filepath.name}'")
 
-    plt.show()
+    if PLOT:
+        plt.show()
     plt.close(fig)
 
 

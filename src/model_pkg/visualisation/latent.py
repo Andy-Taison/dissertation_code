@@ -11,7 +11,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from pathlib import Path
 from ..model.model import VAE
-from ..config import DEVICE, RANDOM_STATE, PLOT_DIR
+from ..config import DEVICE, RANDOM_STATE, PLOT_DIR, PLOT
 import warnings
 # Suppress warnings from sklearn and umap regarding future deprecations and expected behavior:
 # - 'force_all_finite' deprecation (scikit-learn): 'check_array' function in scikit-learn uses it internally, 'force_all_finite' is scheduled to be replaced with 'ensure_all_finite'
@@ -147,7 +147,8 @@ def find_optimal_k(latent_vectors: torch.Tensor, max_k: int = 10, title: str = "
     fig.savefig(filepath)
     print(f"Plot saved to '{filepath.name}'")
 
-    plt.show()
+    if PLOT:
+        plt.show()
     plt.close(fig)
 
 
@@ -179,7 +180,8 @@ def plot_latent_space(data: np.ndarray, cluster_labels: np.ndarray, title: str, 
     fig.savefig(filepath)
     print(f"Plot saved to '{filepath.name}'")
 
-    plt.show()
+    if PLOT:
+        plt.show()
     plt.close(fig)
 
 
