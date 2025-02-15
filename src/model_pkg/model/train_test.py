@@ -3,6 +3,7 @@ Training functions
 """
 
 import torch
+from torch.optim.lr_scheduler import ReduceLROnPlateau
 from pathlib import Path
 import time
 import math
@@ -140,7 +141,7 @@ def train(model: torch.nn.Module, dataloader: torch.utils.data.DataLoader, loss_
     }
 
 
-def test(model: torch.nn.Module, dataloader: torch.utils.data.DataLoader, loss_fn, beta: int = 1) -> dict:
+def test(model: torch.nn.Module, dataloader: torch.utils.data.DataLoader, loss_fn, beta: int = 1) -> tuple[dict, float]:
     """
     Single epoch test/validation loop.
     Reconstruction loss is sum of coordinate loss and descriptor loss, averaged across batches.
@@ -150,7 +151,7 @@ def test(model: torch.nn.Module, dataloader: torch.utils.data.DataLoader, loss_f
     :param dataloader: DataLoader object
     :param loss_fn: Loss function, should return reconstruction loss and KL div individually as tensors
     :param beta: KL divergence scaling factor, higher values lead to a more constrained latent space, lower values lead to a more flexible latent space representation, default 1 (standard VAE)
-    :return: Dictionary of epoch metrics
+    :return: Dictionary of epoch metrics, epoch loss tensor
     """
     # Evaluation mode
     model.eval()
@@ -165,6 +166,7 @@ def test(model: torch.nn.Module, dataloader: torch.utils.data.DataLoader, loss_f
     total_f1 = torch.zeros(NUM_CLASSES).to(DEVICE)  # Total weighted F1 score for each class/descriptor value
     total_support = torch.zeros(NUM_CLASSES).to(DEVICE)  # Support for each class/descriptor value
     total_distance = 0  # Total Euclidean distance for coordinate values
+    total_loss = 0
     loss_parts_totals = {
         'recon_loss': 0,
         'coor_match_loss': 0,
@@ -205,6 +207,7 @@ def test(model: torch.nn.Module, dataloader: torch.utils.data.DataLoader, loss_f
             total_f1 += f1_score * batch_support  # F1 scores weighted by batch support
             total_support += batch_support
             total_distance += euclid_dist
+            total_loss += loss.item()
             for key in loss_parts:
                 loss_parts_totals[key] += loss_parts[key]
 
@@ -240,6 +243,7 @@ def test(model: torch.nn.Module, dataloader: torch.utils.data.DataLoader, loss_f
     epoch_f1_per_class[torch.isnan(epoch_f1_per_class)] = 0  # Replace nan values from division by zero
     epoch_f1_weighted_avg = (total_f1 / total_support.sum()).sum().item()  # Normalises weighted f1 and sums to get weighted average
     epoch_euclid_dist = total_distance / len(dataloader)
+    epoch_loss = total_loss / len(dataloader)
     epoch_loss_parts = {key: value / len(dataloader) for key, value in loss_parts_totals.items()}
 
     print(f"Test metrics (averages):")
@@ -261,7 +265,7 @@ def test(model: torch.nn.Module, dataloader: torch.utils.data.DataLoader, loss_f
         "weighted_f1": epoch_f1_weighted_avg,
         "loss_parts": epoch_loss_parts,
         **epoch_loss_parts
-    }
+    }, epoch_loss
 
 
 def train_val(model: torch.nn.Module, train_dataloader: torch.utils.data.DataLoader, val_dataloader: torch.utils.data.DataLoader, loss_fn, optimizer: torch.optim.Optimizer, epochs: int, beta: [int | float] = 1, training_history: TrainingHistory = None, scheduler: torch.optim.lr_scheduler.ReduceLROnPlateau = None, prune_old_checkpoints: bool = True) -> TrainingHistory:
@@ -340,7 +344,7 @@ def train_val(model: torch.nn.Module, train_dataloader: torch.utils.data.DataLoa
 
         # Validate with timer
         start_timer = time.perf_counter()
-        val_metrics = test(model, val_dataloader, loss_fn, beta)
+        val_metrics, epoch_loss = test(model, val_dataloader, loss_fn, beta)
         stop_timer = time.perf_counter()
         val_metrics['training_time'] = stop_timer - start_timer
 
@@ -358,8 +362,12 @@ def train_val(model: torch.nn.Module, train_dataloader: torch.utils.data.DataLoa
             print("Early stop terminating...")
             break
 
-        if scheduler:
-            scheduler.step(val_metrics['recon'] + val_metrics['beta'] * val_metrics['kl'])
+        if scheduler is not None:
+            prev_lr = scheduler.get_last_lr()[0]
+            scheduler.step(epoch_loss)
+            current_lr = scheduler.get_last_lr()[0]
+            if current_lr != prev_lr:
+                print(f"Learning rate reduced to: {current_lr}")
 
         stop_epoch_timer = time.perf_counter()
         time_to_train.append(stop_epoch_timer - start_epoch_timer)

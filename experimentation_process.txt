@@ -1119,23 +1119,56 @@ High coordinate
 coord = 5.5
 desc = 2.5
 beta = 0.2
+Points are slightly clustered, some but limited variation in layout and colour. Scaled losses: desc loss is flat at 4 (2 raw), Coor loss
+drops smoothly and seems to be slowly stabilising from 18 to 7.5 (3.4-1.4 raw). Beta scaled Kl climbs continually with flucuations from near 0 to 0.08,
+total loss drops smoothly from 22 to 12.
 
 Descriptor Emphasis, Moderate Beta
 coord = 3.5
 desc = 5.0
 beta = 0.25
+Fairly static in voxel count, location variation and colour. Scaled losses: coord loss drops from 5 to 4
+in 5 epochs then flatlines until epoch 30 when it drops slightly more to 3 (1.5-0.8 raw), desc loss is fairly flat
+at 8 (1.7 raw). Beta scaled kl drops logarithmically with fluctuations from 0.008 to 0.002 and stabilises, total 
+loss drops from 13 to 11. 
 
 max coordinate
 coord = 6.0
 desc = 3.0
 beta = 0.3
+Fairly static locations, very slight variation in voxel numbers, no colour variation. Scaled losses: Desc loss is flat at 5 (1.7 raw), 
+coor loss drops logarithmically from 11 to 5 (2-0.8 raw). Beta scaled KL climbs quickly from 0.025 and spikes at 0.38 before dropping 
+quickly to 0.005 and then slowly climbing to 0.013, total loss drops logarithmically from 17 to 10 and seems to be stabilising.
 
 Descriptor Coordinate Balance
 coord = 4.0
 desc = 4.0
 beta = 0.35
+Some variation in voxel numbers that seems to follow the original, locations seem a little fixed, no colour variation. Scaled losses: Coor
+loss drops logarithmically from 7 to 4 (1.75 to 1 raw), desc loss is almost flat with a slight drop from 1.75 to 1.6. Beta scaled KL slowly climbs
+from near 0 to 0.025 for the first 35 epochs before climbing faster to 0.15, total loss drops smoothly from 14 to 10.
 
 Mid Beta with Coordinated Descriptor Boost
 coord = 5.0
 desc = 5.0
 beta = 0.5
+Has some variation in voxel numbers, not a lot of variation in location, or colour. Scaled losses: desc loss drops very slowly from 9 to 7.5 (1.75-1.5 raw),
+coor loss drops logarithmically from 1.75 and stabilises at 1.0.
+
+When coordinate lambda is high, coordinate loss drops effectively, however it also results in limited spatial or colour variation. 
+Requires sufficient descriptor balance. 
+Descriptor focused models stabilise descriptor loss, but do not seemt to improve spatial variation.
+Strong descriptor lambda without enough spatial guidance seems to lead to descriptor matching without fully aiming for a specific voxel or spatial position.
+When coord and desc lambdas are equal, voxel numbers show improvement and better alignment with original.
+Beta between 0.2 and 0.5 seem to produce more structured patterns with meaningful changes in KL. 
+Coor loss tends to be higher than desc loss. Desc loss seems to remain flat most of the time.
+Without collapse penalty, spaitial allignment is being driven by the coordinate matching loss, and this seems to be effective, 
+however clustering persists. It seems that a small clustering penalty may have had some benefits to avoid stacking of voxels. 
+
+* Full dataset run
+
+coord = 4.5
+desc = 4.0
+collapse = 1.0  Reintroduced at a low value to prevent clustering
+beta = 0.35
+lr = 5e-5  Introduced a scheduler 

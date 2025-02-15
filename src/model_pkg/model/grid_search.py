@@ -12,9 +12,10 @@ Maybe trial different early stopping patience.
 """
 from torch.utils.data import DataLoader
 import torch.optim as optim
+from torch.optim.lr_scheduler import ReduceLROnPlateau
 from pathlib import Path
 import time
-from ..config import DEVICE, INPUT_DIM, EPOCHS, HISTORY_DIR
+from ..config import DEVICE, INPUT_DIM, EPOCHS, HISTORY_DIR, SCHEDULER_PATIENCE
 from .model import VAE
 from ..metrics.losses import VaeLoss
 from ..metrics.metrics import get_best_tradeoff_score, log_metrics
@@ -87,95 +88,10 @@ def create_grid() -> list[dict]:
     grid = [
         # Beta scale focused runs
         {"batch_size": 64, "latent_dim": 16, "optimizer": {"type": optim.Adam, "params": {}, "model_name": "adam"},
-         "lr": 1e-5, "decay": 1e-5, "lambda_coord": 5.5, "lambda_desc": 2.5, "lambda_collapse": 0.0,
-         "beta": 0.2, "lambda_reg": 0.001},
-
-        {"batch_size": 64, "latent_dim": 16, "optimizer": {"type": optim.Adam, "params": {}, "model_name": "adam"},
-         "lr": 1e-5, "decay": 1e-5, "lambda_coord": 3.5, "lambda_desc": 5.0, "lambda_collapse": 0.0,
-         "beta": 0.25, "lambda_reg": 0.001},
-
-        {"batch_size": 64, "latent_dim": 16, "optimizer": {"type": optim.Adam, "params": {}, "model_name": "adam"},
-         "lr": 1e-5, "decay": 1e-5, "lambda_coord": 6.0, "lambda_desc": 3.0, "lambda_collapse": 0.0,
-         "beta": 0.3, "lambda_reg": 0.001},
-
-        {"batch_size": 64, "latent_dim": 16, "optimizer": {"type": optim.Adam, "params": {}, "model_name": "adam"},
-         "lr": 1e-5, "decay": 1e-5, "lambda_coord": 4.0, "lambda_desc": 4.0, "lambda_collapse": 0.0,
-         "beta": 0.35, "lambda_reg": 0.001},
-
-        {"batch_size": 64, "latent_dim": 16, "optimizer": {"type": optim.Adam, "params": {}, "model_name": "adam"},
-         "lr": 1e-5, "decay": 1e-5, "lambda_coord": 5.0, "lambda_desc": 5.0, "lambda_collapse": 0.0,
-         "beta": 0.5, "lambda_reg": 0.001}]   # ,
-    """
-        {"batch_size": 64, "latent_dim": 16, "optimizer": {"type": optim.Adam, "params": {}, "model_name": "adam"},
-         "lr": 1e-5, "decay": 1e-5, "lambda_coord": 1.0, "lambda_desc": 1.25, "lambda_collapse": 0.75,
-         "beta": 2.0, "lambda_reg": 0.001},
-
-        {"batch_size": 64, "latent_dim": 16, "optimizer": {"type": optim.Adam, "params": {}, "model_name": "adam"},
-         "lr": 1e-5, "decay": 1e-5, "lambda_coord": 2.0, "lambda_desc": 2.5, "lambda_collapse": 1.5,
-         "beta": 0.5, "lambda_reg": 0.001},
-
-        {"batch_size": 64, "latent_dim": 16, "optimizer": {"type": optim.Adam, "params": {}, "model_name": "adam"},
-         "lr": 1e-5, "decay": 1e-5, "lambda_coord": 2.0, "lambda_desc": 2.5, "lambda_collapse": 1.5,
-         "beta": 0.5, "lambda_reg": 0.001},
-
-        {"batch_size": 64, "latent_dim": 16, "optimizer": {"type": optim.Adam, "params": {}, "model_name": "adam"},
-         "lr": 1e-5, "decay": 1e-5, "lambda_coord": 2.0, "lambda_desc": 2.5, "lambda_collapse": 1.5,
-         "beta": 0.5, "lambda_reg": 0.001},
-
-        {"batch_size": 64, "latent_dim": 16, "optimizer": {"type": optim.Adam, "params": {}, "model_name": "adam"},
-         "lr": 1e-5, "decay": 1e-5, "lambda_coord": 2.0, "lambda_desc": 2.5, "lambda_collapse": 1.5,
-         "beta": 0.5, "lambda_reg": 0.001},
-
-        {"batch_size": 64, "latent_dim": 16, "optimizer": {"type": optim.Adam, "params": {}, "model_name": "adam"},
-         "lr": 1e-5, "decay": 1e-5, "lambda_coord": 2.0, "lambda_desc": 2.5, "lambda_collapse": 1.5,
-         "beta": 1.0, "lambda_reg": 0.001},
-
-        {"batch_size": 64, "latent_dim": 16, "optimizer": {"type": optim.Adam, "params": {}, "model_name": "adam"},
-         "lr": 1e-5, "decay": 1e-5, "lambda_coord": 2.0, "lambda_desc": 2.5, "lambda_collapse": 1.5,
-         "beta": 1.0, "lambda_reg": 0.001},
-
-        {"batch_size": 64, "latent_dim": 16, "optimizer": {"type": optim.Adam, "params": {}, "model_name": "adam"},
-         "lr": 1e-5, "decay": 1e-5, "lambda_coord": 2.0, "lambda_desc": 2.5, "lambda_collapse": 1.5,
-         "beta": 1.0, "lambda_reg": 0.001},
-
-        {"batch_size": 64, "latent_dim": 16, "optimizer": {"type": optim.Adam, "params": {}, "model_name": "adam"},
-         "lr": 1e-5, "decay": 1e-5, "lambda_coord": 2.0, "lambda_desc": 2.5, "lambda_collapse": 1.5,
-         "beta": 1.0, "lambda_reg": 0.001},
-
-        # Targeted based on previous best performances and observations
-        {"batch_size": 64, "latent_dim": 16, "optimizer": {"type": optim.Adam, "params": {}, "model_name": "adam"},
-         "lr": 1e-5, "decay": 1e-5, "lambda_coord": 2.5, "lambda_desc": 3.0, "lambda_collapse": 1.5,
-         "beta": 0.5, "lambda_reg": 0.001},
-
-        {"batch_size": 64, "latent_dim": 16, "optimizer": {"type": optim.Adam, "params": {}, "model_name": "adam"},
-         "lr": 1e-5, "decay": 1e-5, "lambda_coord": 2.0, "lambda_desc": 2.5, "lambda_collapse": 2.0,
-         "beta": 0.5, "lambda_reg": 0.001},
-
-        {"batch_size": 64, "latent_dim": 16, "optimizer": {"type": optim.Adam, "params": {}, "model_name": "adam"},
-         "lr": 1e-5, "decay": 1e-5, "lambda_coord": 2.5, "lambda_desc": 3.0, "lambda_collapse": 1.5,
-         "beta": 1.0, "lambda_reg": 0.001},
-
-        {"batch_size": 64, "latent_dim": 16, "optimizer": {"type": optim.Adam, "params": {}, "model_name": "adam"},
-         "lr": 1e-5, "decay": 1e-5, "lambda_coord": 2.0, "lambda_desc": 2.5, "lambda_collapse": 2.0,
-         "beta": 1.0, "lambda_reg": 0.001},
-
-        {"batch_size": 64, "latent_dim": 16, "optimizer": {"type": optim.Adam, "params": {}, "model_name": "adam"},
-         "lr": 1e-5, "decay": 1e-5, "lambda_coord": 2.5, "lambda_desc": 3.0, "lambda_collapse": 1.5,
-         "beta": 2.0, "lambda_reg": 0.001},
-
-        {"batch_size": 64, "latent_dim": 16, "optimizer": {"type": optim.Adam, "params": {}, "model_name": "adam"},
-         "lr": 1e-5, "decay": 1e-5, "lambda_coord": 2.0, "lambda_desc": 2.5, "lambda_collapse": 2.0,
-         "beta": 2.0, "lambda_reg": 0.001},
-
-        {"batch_size": 64, "latent_dim": 16, "optimizer": {"type": optim.Adam, "params": {}, "model_name": "adam"},
-         "lr": 1e-5, "decay": 1e-5, "lambda_coord": 2.0, "lambda_desc": 2.5, "lambda_collapse": 1.5,
-         "beta": 0.5, "lambda_reg": 0.001},
-
-        {"batch_size": 64, "latent_dim": 16, "optimizer": {"type": optim.Adam, "params": {}, "model_name": "adam"},
-         "lr": 1e-5, "decay": 1e-5, "lambda_coord": 2.0, "lambda_desc": 2.5, "lambda_collapse": 1.5,
-         "beta": 0.5, "lambda_reg": 0.001}
+         "lr": 5e-5, "decay": 1e-5, "lambda_coord": 4.5, "lambda_desc": 4.0, "lambda_collapse": 1.0,
+         "beta": 0.35, "lambda_reg": 0.001}
     ]
-    """
+
     return grid
 
 
@@ -265,8 +181,11 @@ def train_grid_search(train_ds: VoxelDataset, val_ds: VoxelDataset, model_archit
             optim_params["weight_decay"] = setup['decay']
             optimizer = setup['optimizer']['type'](vae.parameters(), **optim_params)
 
+            # Initialise scheduler
+            scheduler = ReduceLROnPlateau(optimizer, patience=SCHEDULER_PATIENCE)
+
             # Train VAE
-            history = train_val(vae, train_loader, val_loader, criterion, optimizer, EPOCHS, setup['beta'], prune_old_checkpoints=prune_old_checkpoints)  # History will be to the latest model, which most likely will not be the best model
+            history = train_val(vae, train_loader, val_loader, criterion, optimizer, EPOCHS, setup['beta'], scheduler=scheduler, prune_old_checkpoints=prune_old_checkpoints)  # History will be to the latest model, which most likely will not be the best model
 
             # Add path to file
             history_path = f"{history.model_name}_history.pth"

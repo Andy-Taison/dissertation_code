@@ -16,9 +16,9 @@ from torch.utils.data import DataLoader, Subset
 def run():
     print("Starting VAE pipeline...\n")
 
-    grid_search_model_name = "no_collapse_explore_toy"
+    grid_search_model_name = "full_dataset"
     combine_and_save = False  # When false, will load processed files
-    use_toy_set = True  # Use 20% of full dataset or full dataset, does not use test set
+    use_toy_set = False  # Use 20% of full dataset or full dataset, does not use test set
     testing = False  # 128 samples for train and val sets for quick run testing
 
     if combine_and_save:
