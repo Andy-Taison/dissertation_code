@@ -16,10 +16,10 @@ from torch.utils.data import DataLoader, Subset
 def run():
     print("Starting VAE pipeline...\n")
 
-    grid_search_model_name = "full_high_desc_low_col"
+    grid_search_model_name = "additive_combine"
     combine_and_save = False  # When false, will load processed files
-    use_toy_set = False  # Use 20% of full dataset or full dataset, does not use test set
-    testing = False  # 128 samples for train and val sets for quick run testing
+    use_toy_set = True  # Use 20% of full dataset or full dataset, does not use test set
+    testing = True  # 128 samples for train and val sets for quick run testing
 
     if combine_and_save:
         # Combine all CSV files and clean
@@ -88,7 +88,7 @@ def run():
     
     # Inspect
     print("Model summary:")
-    summary(vae, input_size=(1, *config.INPUT_DIM), col_names=("input_size", "output_size", "num_params"))  # Add batch size of 1
+    # summary(vae, input_size=(1, *config.INPUT_DIM), col_names=("input_size", "output_size", "num_params"))  # Add batch size of 1
     print("\nModel parameters:")
     for name, param in vae.named_parameters():
         print(f"Parameter: {name}, Requires Grad: {param.requires_grad}")

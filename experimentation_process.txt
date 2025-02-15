@@ -1212,3 +1212,35 @@ Learning rate: 1e-3 – higher for more aggressive early learning and escape pot
 Scheduler factor = 0.2 
 Scheduler patience = 10
 Early stopping patience = 20
+
+Limited variation in location, only 2 or 3 voxels were reconstructed, some slight variation in colour.
+
+
+* Realised why the descriptor loss may be mostly flat... 
+I'm not passing any coordinate information back to the descriptors in the model, I just concatenate the tensors
+rather than multiplying or adding. Assume that descriptors certainly need coordinate information as their loss 
+is based on location. Also assume that coordinates would benefit from descriptor value information as (in theory 
+and at a basic level), components lower down are more likely to be wheels, where as higher up are more likely to 
+be sensors (though this is an example and assumption about the robots, due to them being evolved, this may not 
+be the case, though I would assume some descriptor information would be beneficial to components).
+
+Added another 1Dconv layer to the encoder for the descriptor mlp to make it the same size as the coordinate mlp output.
+Replace the concatentation with additive combination and a LeakyReLU activation. Changed the Linear steps in the fc (refining sequential) to be smaller.
+Added another intermediary layer in the decoder fc (upsampling) before split to mirror. 
+
+Quick exploratory (50 epochs, patience 10, no scheduler, 1e-3 lr, collapse=0.5) 
+High Coordinate:
+coord = 5.0, desc = 2.0, beta = 0.2
+
+Descriptor:
+coord = 2.5, desc = 5.0, beta = 0.3
+
+Balanced Scaling:
+coord = 4.0, desc = 4.0, beta = 0.25
+
+Increased Beta:
+coord = 3.5, desc = 3.5, beta = 0.4
+
+Moderate Coordinate, Higher Beta:
+coord = 3.0, desc = 2.0, beta = 0.5
+

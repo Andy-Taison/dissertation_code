@@ -79,23 +79,28 @@ class Encoder(nn.Module):
             nn.LeakyReLU(),
             nn.Conv1d(64, 128, kernel_size=1),
             nn.BatchNorm1d(128),
+            nn.LeakyReLU(),
+            nn.Conv1d(128, 1024, kernel_size=1),
+            nn.BatchNorm1d(1024),
             nn.LeakyReLU()
         )
 
         self.global_pool = nn.AdaptiveAvgPool1d(1)
 
+        self.combined_activation = nn.LeakyReLU()
+
         # Reduction before latent space
         self.fc = nn.Sequential(
-            nn.Linear(1024 + 1024 + 128, 1024),
-            nn.LeakyReLU(),
             nn.Linear(1024, 512),
             nn.LeakyReLU(),
             nn.Linear(512, 256),
+            nn.LeakyReLU(),
+            nn.Linear(256, 128),
             nn.LeakyReLU()
         )
 
-        self.z_mean_fc = nn.Linear(256, self.latent_dim)
-        self.z_log_var_fc = nn.Linear(256, self.latent_dim)
+        self.z_mean_fc = nn.Linear(128, self.latent_dim)
+        self.z_log_var_fc = nn.Linear(128, self.latent_dim)
 
     def forward(self, x: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
         """
@@ -124,14 +129,15 @@ class Encoder(nn.Module):
         desc_features = self.descriptor_mlp(desc_transposed)
 
         # Global feature extraction
-        pooled_global_features = self.global_pool(spatial_features).squeeze(-1)
-        pooled_desc_features = self.global_pool(desc_features).squeeze(-1)
+        pooled_spatial = self.global_pool(spatial_features).squeeze(-1)
+        max_spatial = torch.max(spatial_features, dim=2)[0]
+        pooled_desc = self.global_pool(desc_features).squeeze(-1)
 
         # Concatenate global, local, and descriptor features
-        combined_features = torch.cat((pooled_global_features, torch.max(spatial_features, dim=2)[0], pooled_desc_features), dim=1)
+        combined_features = self.combined_activation(pooled_spatial + max_spatial + pooled_desc)
 
         reduced_features = self.fc(combined_features)
-
+        print(f"reduced: {reduced_features.shape}")
         z_mean = self.z_mean_fc(reduced_features)
         z_log_var = self.z_log_var_fc(reduced_features)
 
@@ -154,7 +160,9 @@ class Decoder(nn.Module):
 
         # Mirrors encoders mean/logvar branches
         self.fc = nn.Sequential(
-            nn.Linear(latent_dim, 256),
+            nn.Linear(latent_dim, 128),
+            nn.LeakyReLU(),
+            nn.Linear(128, 256),
             nn.LeakyReLU()
         )
 

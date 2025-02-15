@@ -85,11 +85,27 @@ def create_grid() -> list[dict]:
     print(f"Grid created with {len(grid)} configuration(s).")
     """
 
-    grid = [
-        # Beta scale focused runs
+    grid = [    ########## SCHEDULER IS SET TO NONE BELOW
+        # High coordinate
         {"batch_size": 64, "latent_dim": 16, "optimizer": {"type": optim.Adam, "params": {}, "model_name": "adam"},
-         "lr": 1e-3, "decay": 1e-5, "lambda_coord": 5.0, "lambda_desc": 3.5, "lambda_collapse": 0.5,
-         "beta": 0.4, "lambda_reg": 0.001}
+         "lr": 1e-3, "decay": 1e-5, "lambda_coord": 5.0, "lambda_desc": 2.0, "lambda_collapse": 0.5,
+         "beta": 0.2, "lambda_reg": 0.001},
+        # Descriptor
+        {"batch_size": 64, "latent_dim": 16, "optimizer": {"type": optim.Adam, "params": {}, "model_name": "adam"},
+         "lr": 1e-3, "decay": 1e-5, "lambda_coord": 2.5, "lambda_desc": 5.0, "lambda_collapse": 0.5,
+         "beta": 0.3, "lambda_reg": 0.001},
+        # Balanced
+        {"batch_size": 64, "latent_dim": 16, "optimizer": {"type": optim.Adam, "params": {}, "model_name": "adam"},
+         "lr": 1e-3, "decay": 1e-5, "lambda_coord": 4.0, "lambda_desc": 4.0, "lambda_collapse": 0.5,
+         "beta": 0.25, "lambda_reg": 0.001},
+        # Increased beta
+        {"batch_size": 64, "latent_dim": 16, "optimizer": {"type": optim.Adam, "params": {}, "model_name": "adam"},
+         "lr": 1e-3, "decay": 1e-5, "lambda_coord": 3.5, "lambda_desc": 3.5, "lambda_collapse": 0.5,
+         "beta": 0.4, "lambda_reg": 0.001},
+        # Moderate coordinate, higher beta
+        {"batch_size": 64, "latent_dim": 16, "optimizer": {"type": optim.Adam, "params": {}, "model_name": "adam"},
+         "lr": 1e-3, "decay": 1e-5, "lambda_coord": 3.0, "lambda_desc": 2.0, "lambda_collapse": 0.5,
+         "beta": 0.5, "lambda_reg": 0.001}
     ]
 
     return grid
@@ -183,6 +199,7 @@ def train_grid_search(train_ds: VoxelDataset, val_ds: VoxelDataset, model_archit
 
             # Initialise scheduler
             scheduler = ReduceLROnPlateau(optimizer, patience=SCHEDULER_PATIENCE, factor=0.2)
+            scheduler = None
 
             # Train VAE
             history = train_val(vae, train_loader, val_loader, criterion, optimizer, EPOCHS, setup['beta'], scheduler=scheduler, prune_old_checkpoints=prune_old_checkpoints)  # History will be to the latest model, which most likely will not be the best model
