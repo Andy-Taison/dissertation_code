@@ -5,14 +5,14 @@ import torch
 import numpy as np
 from pathlib import Path
 import matplotlib
-matplotlib.use('TkAgg')  # Backend, for use locally, interactive backend
-# matplotlib.use('AGG')  # Backend, for use with HPC, headless environment
+# matplotlib.use('TkAgg')  # Backend, for use locally, interactive backend
+matplotlib.use('AGG')  # Backend, for use with HPC, headless environment
 
 # Repository/project directory
 # When running locally, use this:
-BASE_DIR = Path.cwd().parent  # Can also use Path("../") for relative address, may need adjusting depending on project setup - sho$
+# BASE_DIR = Path.cwd().parent  # Can also use Path("../") for relative address, may need adjusting depending on project setup - sho$
 # When running on the HPC use this:
-# BASE_DIR = Path("/users/40538519/sharedscratch")
+BASE_DIR = Path("/users/40538519/sharedscratch")
 
 # Show plots
 PLOT = False
