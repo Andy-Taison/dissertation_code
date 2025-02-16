@@ -204,17 +204,17 @@ def train_grid_search(train_ds: VoxelDataset, val_ds: VoxelDataset, model_archit
             # Train VAE
             history = train_val(vae, train_loader, val_loader, criterion, optimizer, EPOCHS, setup['beta'], scheduler=scheduler, prune_old_checkpoints=prune_old_checkpoints)  # History will be to the latest model, which most likely will not be the best model
 
-            # Add path to file
-            history_path = f"{history.model_name}_history.pth"
-            file.write(history_path + "\n")
-            print(f"Added '{history_path}' to '{Path(*search_list_path.parts[-2:])}'")
-
             print()
             generate_plots(history, history.model_name)
             print()
             compare_reconstructed(vae, val_loader, num_sample=10, filename=f"{history.model_name}/comparison_{history.model_name}")
             print()
             log_metrics(history, train_loader, val_loader, k=5, log="loss")
+            
+            # Add path to file
+            history_path = f"{history.model_name}_history.pth"
+            file.write(history_path + "\n")
+            print(f"Added '{history_path}' to '{Path(*search_list_path.parts[-2:])}'")
 
             # Append training time for progress updates
             stop_timer = time.perf_counter()
