@@ -4,7 +4,7 @@ Defines VAE model modules
 
 import torch
 import torch.nn as nn
-from ..config import DEVICE, NUM_CLASSES
+from ..config import DEVICE, NUM_CLASSES, COORDINATE_DIMENSIONS
 
 class TNet(nn.Module):
     """
@@ -43,6 +43,17 @@ class TNet(nn.Module):
         transform = transform.view(batch_size, self.coord, self.coord) + self.eye.to(DEVICE).view(1, self.coord, self.coord)
 
         return transform
+
+
+class CrossAttention(nn.Module):
+    def __init__(self, embed_dim, num_heads):
+        super(CrossAttention, self).__init__()
+        self.attention = nn.MultiheadAttention(embed_dim, num_heads)
+
+    def forward(self, query, key, value):
+        attn_output, _ = self.attention(query, key, value)
+
+        return attn_output
 
 
 class Encoder(nn.Module):
@@ -85,12 +96,16 @@ class Encoder(nn.Module):
             nn.LeakyReLU()
         )
 
+        self.attention = CrossAttention(1024, 4)
+
         self.global_pool = nn.AdaptiveAvgPool1d(1)
 
         self.combined_activation = nn.LeakyReLU()
 
         # Reduction before latent space
         self.fc = nn.Sequential(
+            nn.Linear(1024 * 2, 1024),
+            nn.LeakyReLU(),
             nn.Linear(1024, 512),
             nn.LeakyReLU(),
             nn.Linear(512, 256),
@@ -125,18 +140,17 @@ class Encoder(nn.Module):
         desc_transposed = desc.transpose(1, 2)  # (batch, num voxels, one-hot descriptors) -> (batch, one-hot descriptors, num voxels)
 
         # Per point features - spatial and descriptors processed separately
-        spatial_features = self.spatial_mlp(coord_transposed)
-        desc_features = self.descriptor_mlp(desc_transposed)
+        spatial_features = self.spatial_mlp(coord_transposed).transpose(1, 2)  # (batch, coordinate features, num voxels) -> (batch, num voxels, coordinate features)
+        desc_features = self.descriptor_mlp(desc_transposed).transpose(1, 2)  # (batch, one-hot descriptors, num voxels) -> (batch, num voxels, one-hot descriptors)
 
-        # Global feature extraction
-        pooled_spatial = self.global_pool(spatial_features).squeeze(-1)
-        max_spatial = torch.max(spatial_features, dim=2)[0]
-        pooled_desc = self.global_pool(desc_features).squeeze(-1)
+        attn_out = self.attention(spatial_features, desc_features, desc_features).transpose(1, 2)  # (batch, num voxels, one-hot descriptors) -> (batch, one-hot descriptors, num voxels)
 
-        # Concatenate global, local, and descriptor features
-        combined_features = self.combined_activation(pooled_spatial + max_spatial + pooled_desc)
+        pooled_avg = self.global_pool(attn_out).squeeze(-1)
+        pooled_max = nn.AdaptiveMaxPool1d(1)(attn_out).squeeze(-1)
+        combined_pooled = torch.cat([pooled_avg, pooled_max], dim=1)
+        combined_activated = self.combined_activation(combined_pooled)
 
-        reduced_features = self.fc(combined_features)
+        reduced_features = self.fc(combined_activated)
 
         z_mean = self.z_mean_fc(reduced_features)
         z_log_var = self.z_log_var_fc(reduced_features)

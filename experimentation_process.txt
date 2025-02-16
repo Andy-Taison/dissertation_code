@@ -1358,3 +1358,15 @@ coord = 2.5, desc = 3.5, collapse = 0.5, beta = 0.3
 
 5
 coord = 3.0, desc = 3.0, collapse = 0.3, beta = 0.3
+
+A lot more variation in layout, moderate variation in voxel numbers (though tends to be around 3 or 4), and some variation in colour.
+Descriptor loss still seems to be struggling to learn. 
+
+** Added a cross attention layer to allow the coordinate representations to selectively attend to descriptor information, 
+so coordinates can learn to focus on the most relevant descriptor features.
+
+Full range grid search setup:
+lambda_coord = [2.0, 4.0, 6.0]
+lambda_desc = [0.5, 1.0]
+lambda_collapse = [0.1, 0.5]
+betas = [0.3, 0.5, 0.7]
