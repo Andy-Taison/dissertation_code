@@ -4,7 +4,7 @@ Defines VAE model modules
 
 import torch
 import torch.nn as nn
-from ..config import DEVICE, NUM_CLASSES, COORDINATE_DIMENSIONS
+from ..config import DEVICE, NUM_CLASSES, COORDINATE_DIMENSIONS, MAX_VOXELS
 
 class TNet(nn.Module):
     """
@@ -143,7 +143,7 @@ class Encoder(nn.Module):
         spatial_features = self.spatial_mlp(coord_transposed).transpose(1, 2)  # (batch, coordinate features, num voxels) -> (batch, num voxels, coordinate features)
         desc_features = self.descriptor_mlp(desc_transposed).transpose(1, 2)  # (batch, one-hot descriptors, num voxels) -> (batch, num voxels, one-hot descriptors)
 
-        attn_out = self.attention(spatial_features, desc_features, desc_features).transpose(1, 2)  # (batch, num voxels, one-hot descriptors) -> (batch, one-hot descriptors, num voxels)
+        attn_out = self.attention(desc_features, spatial_features, spatial_features).transpose(1, 2)  # (batch, num voxels, one-hot descriptors) -> (batch, one-hot descriptors, num voxels)
 
         pooled_avg = self.global_pool(attn_out).squeeze(-1)
         pooled_max = nn.AdaptiveMaxPool1d(1)(attn_out).squeeze(-1)
@@ -278,7 +278,7 @@ class VAE(nn.Module):
     """
     Implements encoder, sampling (reparameterization trick) and decoder modules for complete VAE architecture.
     """
-    def __init__(self, input_dim: tuple[int, int], latent_dim: int, model_name: str, max_voxels: int, coordinate_dimensions: int = 3):
+    def __init__(self, input_dim: tuple[int, int], latent_dim: int, model_name: str, max_voxels: int = MAX_VOXELS, coordinate_dimensions: int = COORDINATE_DIMENSIONS):
         """
         :param input_dim: Dimensions of input tensor (and reconstructed), (e.g., (8, 8))
         :param latent_dim: Dimensionality of latent space

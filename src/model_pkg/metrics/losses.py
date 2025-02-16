@@ -141,7 +141,7 @@ def overlap_penalty(x_reconstructed: torch.Tensor) -> torch.Tensor:
 
             # Find matching coordinates (overlaps)
             matches = (rounded_coords == current_coord).all(dim=1)
-            match_indices = matches.nonzero(as_tuple=True)[0]  # Returns indices as a 1D tensor
+            match_indices = matches.nonzero(as_tuple=True)[0]  # Returns indices of True values as a 1D tensor
 
             # Calculate pairwise distance, and take the negative sum of the log of the upper triangle of the distance matrix (excluding the diagonal)
             if match_indices.numel() > 1:

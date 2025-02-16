@@ -16,7 +16,7 @@ from torch.utils.data import DataLoader, Subset
 def run():
     print("Starting VAE pipeline...\n")
 
-    grid_search_model_name = "attention"
+    grid_search_model_name = "attention_desc_query"
     combine_and_save = False  # When false, will load processed files
     use_toy_set = True  # Use 20% of full dataset or full dataset, does not use test set
     testing = False  # 128 samples for train and val sets for quick run testing
@@ -85,7 +85,7 @@ def run():
     # visualise_robot(grid_data[0], "Test title")
 
     # Define model
-    vae = VAE(config.INPUT_DIM, config.LATENT_DIM, "test", max_voxels=config.MAX_VOXELS, coordinate_dimensions=config.COORDINATE_DIMENSIONS).to(config.DEVICE)
+    vae = VAE(config.INPUT_DIM, config.LATENT_DIM, "test").to(config.DEVICE)
     
     # Inspect
     print("Model summary:")

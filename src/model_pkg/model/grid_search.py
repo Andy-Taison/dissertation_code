@@ -210,7 +210,7 @@ def train_grid_search(train_ds: VoxelDataset, val_ds: VoxelDataset, model_archit
             compare_reconstructed(vae, val_loader, num_sample=10, filename=f"{history.model_name}/comparison_{history.model_name}")
             print()
             log_metrics(history, train_loader, val_loader, k=5, log="loss")
-            
+
             # Add path to file
             history_path = f"{history.model_name}_history.pth"
             file.write(history_path + "\n")
