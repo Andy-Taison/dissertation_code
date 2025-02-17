@@ -1381,30 +1381,28 @@ lambda_desc = [0.5, 1.0]
 lambda_collapse = [0.1, 0.5]
 betas = [0.3, 0.5, 0.7]
 
-Slight improvement in layout variation but neglegable, still extreamly static.
+Slight improvement in layout variation but neglegable, still fairly static.
 Suspect problem with the losses.
 
-** Found problem with overlap penalty where it could be calculating negative losses, allowing the model to cheat and find static layouts.
-However this is unlikely to be affecting desc loss.
-Removed nan replacement as no longer needed (from masking padded voxels).
+** Removed nan replacement as no longer needed (from masking padded voxels).
 
 Used gradients to inspect losses, it looks like much higher lambda values are required.
-Removed attention and went back to additive combination of pooled layers.
 
 Tried lots of quick runs, and modifications to losses and penalties, however seemed to be making the model worse.
-Should have been utilsing branches more to revert back.
+Should have been utilsing branches more to revert back easier.
 
-*** Reverted to High desc loss low coor loss (prior to attention added). Though it still has problems with being slightly static, there is more
-variation (at least with shorter runs). Need to move on to evaluation. 
-
-Noticed some values still going to nan, added gradient clipping and reduced learning rate from 1e-1 to 1e-3. Though still suspect deeper issue.
+*** Noticed some values going to nan due to high learning rate. Checked older models, and this was also happening. 
+Added gradient clipping for safety and reduced learning rate from 1e-1 to 1e-3 which seemed to help (for short runs). 
+Though still suspect deeper issue. Though no time to investigate, need to move onto evaluation.
 Added penalty in coordinate matching function for difference in padded voxels to original.
+Hoping to have it help overcome the entropy local minima. 
 
+Training on full dataset:
 Using best hyperparameter config:
 bs = 64
 latent dim = 16
 optim = Adam 
-lr = 1e-3  # With scheduler patience=10, factor=0.5
+lr = 1e-4  # With scheduler patience=10, factor=0.5
 weight decay = 1e-5
 lambda coord = 1.5
 lambda desc = 5.0

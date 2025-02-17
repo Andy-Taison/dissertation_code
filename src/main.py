@@ -16,7 +16,6 @@ from torch.utils.data import DataLoader, Subset
 def run():
     print("Starting VAE pipeline...\n")
 
-
     grid_search_model_name = "full_clipped"
     combine_and_save = False  # When false, will load processed files
     use_toy_set = False  # Use 20% of full dataset or full dataset, does not use test set
