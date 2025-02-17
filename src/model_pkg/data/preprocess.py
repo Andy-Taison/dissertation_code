@@ -3,10 +3,11 @@ Functions to load and split data
 """
 
 import pandas as pd
-import numpy as np
+import torch
+import torch.nn.functional as F
 from sklearn.model_selection import train_test_split
 from pathlib import Path
-from ..config import RANDOM_STATE, EXPANDED_GRID_SIZE
+from ..config import RANDOM_STATE, EXPANDED_GRID_SIZE, COORDINATE_DIMENSIONS
 
 
 def combine_csv_files(directory: str) -> pd.DataFrame:
@@ -114,28 +115,26 @@ def split_data(dataframe: pd.DataFrame, val_size: float = 0.1, test_size: float 
     return train_data, val_data, test_data
 
 
-def save_split_datasets(processed_directory: str | Path, train_data: pd.DataFrame, val_data: pd.DataFrame, test_data: pd.DataFrame):
+def save_datasets(processed_directory: str | Path, data: list[pd.DataFrame], filenames: list[str]):
     """
-    Saves datasets as 'train.csv', 'val.csv', and 'test.csv' in 'processed_directory'.
+    Saves datasets in 'processed_directory' using corresponding indexed filenames and appending '.csv'.
 
     :param processed_directory: Directory to store dataset CSV files
-    :param train_data: Dataset to save in 'train.csv'
-    :param val_data: Dataset to save in 'val.csv'
-    :param test_data: Dataset to save in 'test.csv'
+    :param data: List of DataFrames to save
+    :param filenames: List of corresponding filenames to save data as, provide without extension
     """
     processed_data_dir = Path(processed_directory)
     processed_data_dir.mkdir(parents=True, exist_ok=True)
 
-    train_path = processed_data_dir / "train.csv"
-    val_path = processed_data_dir / "val.csv"
-    test_path = processed_data_dir / "test.csv"
+    if len(data) != len(filenames):
+        raise ValueError("Data length does not match filenames length.")
 
-    # Save split datasets
-    print(f"Saving split datasets...")
-    train_data.to_csv(train_path, index=False, header=None)  # type: ignore
-    val_data.to_csv(val_path, index=False, header=None)  # type: ignore
-    test_data.to_csv(test_path, index=False, header=None)  # type: ignore
-    print(f"Datasets saved as:\n\t{train_path}\n\t{val_path}\n\t{test_path}\n")
+    # Save datasets
+    print(f"Saving datasets...")
+    for d, f in zip(data, filenames):
+        path = processed_data_dir / f"{f}.csv"
+        d.to_csv(path, index=False, header=None)  # type: ignore
+        print(f"Dataset saved as: '{path.name}'")
 
 
 def load_processed_datasets(processed_directory: str | Path) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
@@ -206,18 +205,94 @@ def summarise_dataset(dataset: pd.DataFrame):
     print(f"Unique Rows: {unique_rows} ({unique_rows / num_rows * 100:.2f})%\n")
 
 
-def split_test_diverse_sets(df: pd.DataFrame):
-    np_df = df.to_numpy()
-    grid_data = np_df[:, -(EXPANDED_GRID_SIZE ** 3):]
-    print(grid_data.shape)
+def split_diverse_sets(df: pd.DataFrame, compact_threshold: float = 0.8, dispersed_threshold: float = 2.5) -> list:
+    """
+    Subsets dataframe into 3x component based dataframes, and 3x spatial based dataframes.
+    Samples in single-type dominant dataset can contain more than 1 component if one is heavily dominant.
+
+    Spatial score is calculated based on the scaled bounding box volume + the scaled (mean nearest neighbour distance / number voxels).
+    When spatial score is between thresholds, it is placed in the moderate spatial dataframe.
+
+    :param df: Dataframe to subset
+    :param compact_threshold: Spatial score < threshold, sample placed in compact dataframe
+    :param dispersed_threshold: Spatial score > threshold, sample place in dispersed dataframe
+    :return: List of dataframes [single-type dominant, moderate component diverse, high component diverse, compact, moderate spatial diverse, dispersed]
+    """
+    grids = torch.tensor(df.iloc[:, -(EXPANDED_GRID_SIZE ** COORDINATE_DIMENSIONS):].values, dtype=torch.float32)
     # Verify grid data has 1331 columns (11x11x11)
-    assert grid_data.shape[1] == EXPANDED_GRID_SIZE * EXPANDED_GRID_SIZE * EXPANDED_GRID_SIZE, "Grid data does not have the correct number of elements (1331)."
+    assert grids.shape[1] == EXPANDED_GRID_SIZE * EXPANDED_GRID_SIZE * EXPANDED_GRID_SIZE, "Grid data does not have the correct number of elements (1331)."
 
     # Reshape grids into [batch_size, 11, 11, 11]
-    grids = grid_data.reshape(-1, EXPANDED_GRID_SIZE, EXPANDED_GRID_SIZE, EXPANDED_GRID_SIZE)
-    robot_ids = np_df[:, 0]
+    grid_data = grids.view(-1, EXPANDED_GRID_SIZE, EXPANDED_GRID_SIZE, EXPANDED_GRID_SIZE)
 
-    non_zeros = np.nonzero(grids)
-    non_zeros_idx = list(zip(*non_zeros))
+    # Component based sets
+    single_type_dominant = []
+    moderate_comp_diverse = []
+    high_comp_diverse = []
 
-    print(non_zeros_idx[0])
+    # Spatial based sets
+    compact = []
+    moderate_spatial_diverse = []
+    dispersed = []
+
+    for i, sample in enumerate(grid_data):
+        idxs = torch.nonzero(sample)
+        x_idxs = idxs[:, 0]
+        y_idxs = idxs[:, 1]
+        z_idxs = idxs[:, 2]
+        descriptors = sample[x_idxs, y_idxs, z_idxs].int()
+
+        # Component based categories -----------------------------------------------------------------
+        counts = descriptors.bincount()
+        probs = counts / counts.sum()
+
+        if (probs > 0.7).any():
+            # Single type dominance (can contain more than a single component if one heavily dominates)
+            single_type_dominant.append(i)
+        elif (probs >= 0.5).any():
+            # 50-70% dominance (captures 2 component type samples)
+            moderate_comp_diverse.append(i)
+        elif (probs < 0.5).all():
+            # None dominating 50% or more
+            high_comp_diverse.append(i)
+        else:
+            # Informs about cases not considered
+            print(f"Does not fall into any component based category. Descriptor values: {descriptors}")
+
+        # Spatial based categories --------------------------------------------------------------------
+        num_voxels = len(descriptors)
+
+        x_len = x_idxs.max() - x_idxs.min() + 1
+        y_len = y_idxs.max() - y_idxs.min() + 1
+        z_len = z_idxs.max() - z_idxs.min() + 1
+        box_vol = x_len * y_len * z_len
+
+        # Compute mean pairwise distance
+        if num_voxels >= 2:
+            dist_matrix = torch.cdist(idxs.float(), idxs.float())
+            dist_matrix.fill_diagonal_(float('inf'))  # Don't include diagonal in calculation
+            nearest_neighbour_dist = torch.min(dist_matrix, dim=-1).values
+            mean_nn_dist = torch.mean(nearest_neighbour_dist)
+        else:
+            mean_nn_dist = torch.tensor(0.0)  # Single voxel
+
+        scaled_box = 0.005 * box_vol
+        scaled_dist = 2 * (mean_nn_dist / num_voxels * 0.5)  # Reduces the impact of small voxel numbers
+        spatial_score = scaled_box + scaled_dist
+
+        if spatial_score < compact_threshold:
+            # Clustered and compact
+            compact.append(i)
+        elif spatial_score <= dispersed_threshold:
+            # Moderate distance and compactness
+            moderate_spatial_diverse.append(i)
+        else:
+            # Dispersed and spread out
+            dispersed.append(i)
+
+    subset_dfs = []  # 3x component based, 3x spatial based
+    for ds in [single_type_dominant, moderate_comp_diverse, high_comp_diverse, compact, moderate_spatial_diverse, dispersed]:
+        df_subset = df.iloc[ds].reset_index(drop=True)
+        subset_dfs.append(df_subset)
+
+    return subset_dfs

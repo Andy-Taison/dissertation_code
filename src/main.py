@@ -45,8 +45,7 @@ def run():
                           filenames=["train", "val", "test"])
             print("\nSplitting test set into diverse evaluation sets...")
             diverse_sets = split_diverse_sets(test_data)
-            save_datasets(config.PROCESSED_DIR, data=diverse_sets, filenames=["single_type_dominant", "moderate_component_diverse", "high_component_diverse",
-                                     "compact", "moderate_spatial_diverse", "dispersed"])
+            save_datasets(config.PROCESSED_DIR, data=diverse_sets, filenames=["single_type_dominant", "moderate_component_diverse", "high_component_diverse", "compact", "moderate_spatial_diverse", "dispersed"])
             print("\nTraining dataset:")
             summarise_dataset(train_data)
             print("Validation dataset:")
