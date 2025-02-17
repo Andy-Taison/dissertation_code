@@ -4,7 +4,7 @@ Defines VAE model modules
 
 import torch
 import torch.nn as nn
-from ..config import DEVICE, NUM_CLASSES
+from ..config import DEVICE, NUM_CLASSES, MAX_VOXELS, COORDINATE_DIMENSIONS
 
 class TNet(nn.Module):
     """
@@ -264,7 +264,8 @@ class VAE(nn.Module):
     """
     Implements encoder, sampling (reparameterization trick) and decoder modules for complete VAE architecture.
     """
-    def __init__(self, input_dim: tuple[int, int], latent_dim: int, model_name: str, max_voxels: int, coordinate_dimensions: int = 3):
+
+    def __init__(self, input_dim: tuple[int, int], latent_dim: int, model_name: str, max_voxels: int = MAX_VOXELS, coordinate_dimensions: int = COORDINATE_DIMENSIONS):
         """
         :param input_dim: Dimensions of input tensor (and reconstructed), (e.g., (8, 8))
         :param latent_dim: Dimensionality of latent space

@@ -85,7 +85,7 @@ def run():
     # visualise_robot(grid_data[0], "Test title")
 
     # Define model
-    vae = VAE(config.INPUT_DIM, config.LATENT_DIM, "test", max_voxels=config.MAX_VOXELS, coordinate_dimensions=config.COORDINATE_DIMENSIONS).to(config.DEVICE)
+    vae = VAE(config.INPUT_DIM, config.LATENT_DIM, "test").to(config.DEVICE)
     
     # Inspect
     print("Model summary:")
