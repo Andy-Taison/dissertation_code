@@ -361,7 +361,7 @@ The way the coordinate loss is calculated also assumes a 1-to-1 correspondence, 
 Further to this, the way the duplicate and pad penalty is calculated and applied is non differentiable and so the model isn't learning directly.
 The descriptor loss is also being affected by the shuffling. CrossEntropyLoss is order dependant. The shuffling is still required to avoid a positional bias.
 
-* Changed how padding penalty is calculated and applied so it is now differentiable so the model can learn.
+** Changed how padding penalty is calculated and applied so it is now differentiable so the model can learn.
 Now taking the smooth L1 (differentiable absolute) difference of padded voxels. Using softmax as this is differentiable.
 
 Added a coordinate matching loss, loosely inspired by the Hungarian algorithm, but instead use cdist to calulate a distance matrix. 
@@ -502,7 +502,7 @@ beta = 0.1 and 0.5
 Noticed padded voxel penalty had a bug. Where I was taking the absolute between the original and reconstructed and modified it to smooth L1, the order was incorrect.
 Corrected losses/penalties.
 
-* Targeted tuning to get a feel for new losses:
+** Targeted tuning to get a feel for new losses:
 beta = 0.01 and 0.1   # Found earlier that this was about the correct range
 coord = 1.0 and 2.0
 desc = 1.0 and 2.0
@@ -1007,7 +1007,7 @@ Doing this and using entropy should encourage both the correct number of voxels 
 This should also mean that the padded voxel penalty can be removed, simplifying the problem.
 Removed masking from the descriptor penalty to include padded voxels in the calculations.
 
-* Loss functions updated to treat padded voxels as a genuine coordinate (as above).
+** Loss functions updated to treat padded voxels as a genuine coordinate (as above).
 Quick run exploration runs:
 
 Baseline Comparison:
@@ -1272,7 +1272,7 @@ collapse drops quickly and stabilises near 0, could mean that the penalty is eff
 and then not exploring - worth reducing slightly.
 Higher coor seems to produce minimal variation, seems that descriptor must learn first.
 Desc should probably be higher than coor.
-
+Also noticed that the transformed original nolonger seems to match the original.
 
 * Testing extremes
 
@@ -1358,3 +1358,38 @@ coord = 2.5, desc = 3.5, collapse = 0.5, beta = 0.3
 
 5
 coord = 3.0, desc = 3.0, collapse = 0.3, beta = 0.3
+
+A lot more variation in layout, moderate variation in voxel numbers (though tends to be around 3 or 4), and some variation in colour.
+Descriptor loss still seems to be struggling to learn. 
+
+** Added a cross attention layer to allow the coordinate representations to selectively attend to descriptor information, 
+so coordinates can learn to focus on the most relevant descriptor features.
+
+Full range grid search setup:
+lambda_coord = [2.0, 4.0, 6.0]
+lambda_desc = [0.5, 1.0]
+lambda_collapse = [0.1, 0.5]
+betas = [0.3, 0.5, 0.7]
+
+Still extreamly static layouts. 
+
+** Trying flipping using descriptor as query, and coordinates as keys and values rather than the other way around.
+
+Full range grid search setup:
+lambda_coord = [2.0, 4.0, 6.0]
+lambda_desc = [0.5, 1.0]
+lambda_collapse = [0.1, 0.5]
+betas = [0.3, 0.5, 0.7]
+
+Slight improvement in layout variation but neglegable, still extreamly static.
+Suspect problem with the losses.
+
+** Found problem with overlap penalty where it could be calculating negative losses, allowing the model to cheat and find static layouts.
+However this is unlikely to be affecting desc loss.
+Removed nan replacement as no longer needed (from masking padded voxels).
+
+Used gradients to inspect losses, it looks like much higher lambda values are required.
+Removed attention and went back to additive combination of pooled layers.
+
+Tried lots of quick runs, and modifications to losses and penalties, however seemed to be making the model worse.
+Should have been utilsing branches more to revert back.
