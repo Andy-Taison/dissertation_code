@@ -30,7 +30,6 @@ def coordinate_matching_loss(x: torch.Tensor, x_reconstructed: torch.Tensor) -> 
 
         # Gets probability of the closest point, softmin is differentiable
         neighbour_weights = F.softmin(dist_matrix * 100, dim=1)  # Scaling distance encourages model to focus on a single point
-        neighbour_weights = torch.nan_to_num(neighbour_weights)  # Replace nan with 0
 
         # Sum of attention each original point (columns) receives from all reconstructed points
         attention_per_original = neighbour_weights.sum(dim=0)  # (num_original_points)
@@ -84,7 +83,6 @@ def descriptor_matching_loss(x: torch.Tensor, x_reconstructed: torch.Tensor) -> 
 
         # Get probability of the closest point, softmin is differentiable
         neighbour_weights = F.softmin(dist_matrix * 100, dim=1)  # Scaling distance helps focus on a single point
-        neighbour_weights = torch.nan_to_num(neighbour_weights)  # Replace nan with 0
 
         # Matrix multiplication to get predicted descriptors
         matched_target_descriptors = torch.matmul(neighbour_weights, orig_desc)  # (recon_voxels, descriptor_dim)
@@ -141,12 +139,13 @@ def overlap_penalty(x_reconstructed: torch.Tensor) -> torch.Tensor:
 
             # Find matching coordinates (overlaps)
             matches = (rounded_coords == current_coord).all(dim=1)
+
             match_indices = matches.nonzero(as_tuple=True)[0]  # Returns indices of True values as a 1D tensor
 
             # Calculate pairwise distance, and take the negative sum of the log of the upper triangle of the distance matrix (excluding the diagonal)
             if match_indices.numel() > 1:
                 dist = torch.cdist(coords[match_indices, :], coords[match_indices, :])
-                total_penalty += -torch.triu(torch.log(dist + 1e-8), diagonal=1).sum()  # Avoid log(0)
+                total_penalty += -torch.triu(torch.log1p(dist + 1e-8), diagonal=1).sum()  # log1p avoids negative values
 
                 # Add to set to not check matched coordinates
                 overlapping_idx.update(match_indices.tolist())

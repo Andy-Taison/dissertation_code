@@ -135,7 +135,7 @@ def determine_scale_limits(sorted_y_scales: list[float], threshold: int = 10) ->
     :return: List of upper limits for scales (1 or 2 values)
     """
     # Calculate overall ratio
-    overall_ratio = sorted_y_scales[-1] / sorted_y_scales[0]
+    overall_ratio = sorted_y_scales[-1] / (sorted_y_scales[0] + 1e-8)
 
     # If all values are within the threshold ratio, use one scale
     if overall_ratio <= threshold or len(sorted_y_scales) == 1:
@@ -148,7 +148,7 @@ def determine_scale_limits(sorted_y_scales: list[float], threshold: int = 10) ->
 
     no_ideal_split = False
     # Adjust groups
-    while (group2[0] / group1[-1]) <= threshold:
+    while (group2[0] / (group1[-1] + 1e-8)) <= threshold:
         group1.append(group2.pop(0))
         if not group2:
             if no_ideal_split:

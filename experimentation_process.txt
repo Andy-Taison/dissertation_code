@@ -1380,3 +1380,16 @@ lambda_coord = [2.0, 4.0, 6.0]
 lambda_desc = [0.5, 1.0]
 lambda_collapse = [0.1, 0.5]
 betas = [0.3, 0.5, 0.7]
+
+Slight improvement in layout variation but neglegable, still extreamly static.
+Suspect problem with the losses.
+
+** Found problem with overlap penalty where it could be calculating negative losses, allowing the model to cheat and find static layouts.
+However this is unlikely to be affecting desc loss.
+Removed nan replacement as no longer needed (from masking padded voxels).
+
+Used gradients to inspect losses, it looks like much higher lambda values are required.
+Removed attention and went back to additive combination of pooled layers.
+
+Tried lots of quick runs, and modifications to losses and penalties, however seemed to be making the model worse.
+Should have been utilsing branches more to revert back.

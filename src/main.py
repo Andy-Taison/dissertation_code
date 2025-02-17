@@ -35,13 +35,17 @@ def run():
             print("Preparing TOY datasets...")
             # Train and validation sets are 20% of what they normally would be, test set will contain the rest - not used
             train_data, val_data, rest_of_data = split_data(cleaned_df, val_size=0.02, test_size=0.84)
-            save_split_datasets(config.PROCESSED_DIR / "toy_sets", train_data, val_data, rest_of_data)
+            save_datasets(config.PROCESSED_DIR / "toy_sets", data=[train_data, val_data, rest_of_data], filenames=["train", "val", "test"])
+            print()
         else:
             # Split data and save (full datasets)
             print("Preparing FULL datasets...")
             train_data, val_data, test_data = split_data(cleaned_df)
-            save_split_datasets(config.PROCESSED_DIR, train_data, val_data, test_data)
-            print("Training dataset:")
+            save_datasets(config.PROCESSED_DIR, data=[train_data, val_data, test_data], filenames=["train", "val", "test"])
+            print("\nSplitting test set into diverse evaluation sets...")
+            diverse_sets = split_diverse_sets(test_data)
+            save_datasets(config.PROCESSED_DIR, data=diverse_sets, filenames=["single_type_dominant", "moderate_component_diverse", "high_component_diverse", "compact", "moderate_spatial_diverse", "dispersed"])
+            print("\nTraining dataset:")
             summarise_dataset(train_data)
             print("Validation dataset:")
             summarise_dataset(val_data)
@@ -56,7 +60,18 @@ def run():
     else:
         # Full datasets
         train_data, val_data, test_data = load_processed_datasets(config.PROCESSED_DIR)
-        # split_test_diverse_sets(test_data)
+        # diverse_sets = split_diverse_sets(test_data)
+        # import torch
+        # for i, (df, title) in enumerate(zip(diverse_sets, ["single_type_dominant", "moderate_component_diverse", "high_component_diverse", "compact", "moderate_spatial_diverse", "dispersed"])):
+        #     if i < 3:
+        #         continue
+        #     grids = torch.tensor(df.iloc[:, -(config.EXPANDED_GRID_SIZE ** config.COORDINATE_DIMENSIONS):].values,
+        #                          dtype=torch.float32)
+        #     grid_data = grids.view(-1, config.EXPANDED_GRID_SIZE, config.EXPANDED_GRID_SIZE, config.EXPANDED_GRID_SIZE)
+        #     for j, sample in enumerate(grid_data):
+        #         visualise_robot(sample, title=title, filename=f"{title}_{j}")
+        #         if j >= 4:
+        #             break
 
     # Create datasets and dataloaders
     print("\nTraining dataset:")
