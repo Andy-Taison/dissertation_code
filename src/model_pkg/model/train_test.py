@@ -72,6 +72,7 @@ def train(model: torch.nn.Module, dataloader: torch.utils.data.DataLoader, loss_
 
         # Backpropagation
         loss.backward()  # Compute gradients
+        torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
         optimizer.step()  # Update parameters
 
         # Update metrics

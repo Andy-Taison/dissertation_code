@@ -50,7 +50,21 @@ def coordinate_matching_loss(x: torch.Tensor, x_reconstructed: torch.Tensor) -> 
         # Clustered points will have lower entropy
         entropy_penalty = (max_entropy - entropy) ** 2  # Avoid negatives
 
-        total_penalty += entropy_penalty
+        # Count padded voxel coordinates in original
+        orig_scaled = orig * EXPANDED_GRID_SIZE  # Scale normalised coordinates back to grid indices, padded values encoded as EXPANDED GRID SIZE (outside of grid)
+        orig_rounded = orig_scaled.round().long()
+        orig_clamped = torch.clamp(orig_rounded, min=0, max=EXPANDED_GRID_SIZE)
+        orig_padded_num = (orig_clamped == 11).all(dim=1).sum()
+
+        # Count padded voxel coordinates in reconstructed
+        recon_scaled = recon * EXPANDED_GRID_SIZE  # Scale normalised coordinates back to grid indices, padded values encoded as EXPANDED GRID SIZE (outside of grid)
+        recon_rounded = recon_scaled.round().long()
+        recon_clamped = torch.clamp(recon_rounded, min=0, max=EXPANDED_GRID_SIZE)
+        recon_padded_num = (recon_clamped == 11).all(dim=1).sum()
+
+        padded_diff = ((orig_padded_num - recon_padded_num) ** 2 / (1 + (orig_padded_num - recon_padded_num) ** 2)) * 2
+
+        total_penalty += entropy_penalty + padded_diff
 
     batch_penalty = total_penalty / x.size(0)  # Averaged over batch
 
@@ -144,7 +158,8 @@ def overlap_penalty(x_reconstructed: torch.Tensor) -> torch.Tensor:
             # Calculate pairwise distance, and take the negative sum of the log of the upper triangle of the distance matrix (excluding the diagonal)
             if match_indices.numel() > 1:
                 dist = torch.cdist(coords[match_indices, :], coords[match_indices, :])
-                total_penalty += -torch.triu(torch.log1p(dist + 1e-8), diagonal=1).sum()  # log1p avoids negative values
+
+                total_penalty += -torch.triu(torch.log(dist + 1e-8), diagonal=1).sum()  # Avoid log(0)
 
                 # Add to set to not check matched coordinates
                 overlapping_idx.update(match_indices.tolist())
@@ -232,5 +247,5 @@ class VaeLoss:
             'kl': kl_div.item(),
             'beta_kl': (beta * kl_div).item()
         }
-
+        
         return total_loss, loss_parts
