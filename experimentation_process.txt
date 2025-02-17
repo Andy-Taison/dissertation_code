@@ -1411,3 +1411,9 @@ beta = 0.3
 lambda reg = 0.001
 epochs = 500
 patience = 31  # To give scheduler time to have effect
+
+Model stopped early at 183 epochs. 
+
+*** Reverted model to not using attention mechanism, and combining pooled outputs additively in the encoder (best performing model prior to attention).
+
+Training on full dataset (same configuration as above).

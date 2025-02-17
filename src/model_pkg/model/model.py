@@ -96,16 +96,12 @@ class Encoder(nn.Module):
             nn.LeakyReLU()
         )
 
-        self.attention = CrossAttention(1024, 4)
-
         self.global_pool = nn.AdaptiveAvgPool1d(1)
 
         self.combined_activation = nn.LeakyReLU()
 
         # Reduction before latent space
         self.fc = nn.Sequential(
-            nn.Linear(1024 * 2, 1024),
-            nn.LeakyReLU(),
             nn.Linear(1024, 512),
             nn.LeakyReLU(),
             nn.Linear(512, 256),
@@ -140,17 +136,18 @@ class Encoder(nn.Module):
         desc_transposed = desc.transpose(1, 2)  # (batch, num voxels, one-hot descriptors) -> (batch, one-hot descriptors, num voxels)
 
         # Per point features - spatial and descriptors processed separately
-        spatial_features = self.spatial_mlp(coord_transposed).transpose(1, 2)  # (batch, coordinate features, num voxels) -> (batch, num voxels, coordinate features)
-        desc_features = self.descriptor_mlp(desc_transposed).transpose(1, 2)  # (batch, one-hot descriptors, num voxels) -> (batch, num voxels, one-hot descriptors)
+        spatial_features = self.spatial_mlp(coord_transposed)
+        desc_features = self.descriptor_mlp(desc_transposed)
 
-        attn_out = self.attention(desc_features, spatial_features, spatial_features).transpose(1, 2)  # (batch, num voxels, one-hot descriptors) -> (batch, one-hot descriptors, num voxels)
+        # Global feature extraction
+        pooled_spatial = self.global_pool(spatial_features).squeeze(-1)
+        max_spatial = torch.max(spatial_features, dim=2)[0]
+        pooled_desc = self.global_pool(desc_features).squeeze(-1)
 
-        pooled_avg = self.global_pool(attn_out).squeeze(-1)
-        pooled_max = nn.AdaptiveMaxPool1d(1)(attn_out).squeeze(-1)
-        combined_pooled = torch.cat([pooled_avg, pooled_max], dim=1)
-        combined_activated = self.combined_activation(combined_pooled)
+        # Concatenate global, local, and descriptor features
+        combined_features = self.combined_activation(pooled_spatial + max_spatial + pooled_desc)
 
-        reduced_features = self.fc(combined_activated)
+        reduced_features = self.fc(combined_features)
 
         z_mean = self.z_mean_fc(reduced_features)
         z_log_var = self.z_log_var_fc(reduced_features)
