@@ -296,9 +296,3 @@ def split_diverse_sets(df: pd.DataFrame, compact_threshold: float = 0.8, dispers
         subset_dfs.append(df_subset)
 
     return subset_dfs
-
-
-
-
-
-

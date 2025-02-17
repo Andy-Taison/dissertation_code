@@ -51,7 +51,7 @@ def create_grid() -> list[dict]:
     :return: Grid of training configurations
     """
     print("Creating grid...")
-
+    """
     batch_sizes = [64]  # Possibly trial 16, and 128 later
     latent_dims = [16] #[12, 16]  # Possibly trial 16 later
     optimizer = [
@@ -83,31 +83,29 @@ def create_grid() -> list[dict]:
         for lambda_reg in lambda_regs
     ]
     print(f"Grid created with {len(grid)} configuration(s).")
-
     """
-    grid = [    ########## SCHEDULER IS SET TO NONE BELOW
+    grid = [
+        # {"batch_size": 64, "latent_dim": 16, "optimizer": {"type": optim.Adam, "params": {}, "model_name": "adam"},
+        #  "lr": 1e-3, "decay": 1e-5, "lambda_coord": 1.0, "lambda_desc": 6.0, "lambda_collapse": 0.3,
+        #  "beta": 0.3, "lambda_reg": 0.001},
 
         {"batch_size": 64, "latent_dim": 16, "optimizer": {"type": optim.Adam, "params": {}, "model_name": "adam"},
-         "lr": 1e-3, "decay": 1e-5, "lambda_coord": 1.0, "lambda_desc": 6.0, "lambda_collapse": 0.3,
+         "lr": 1e-1, "decay": 1e-5, "lambda_coord": 1.5, "lambda_desc": 5.0, "lambda_collapse": 0.3,
          "beta": 0.3, "lambda_reg": 0.001},
 
-        {"batch_size": 64, "latent_dim": 16, "optimizer": {"type": optim.Adam, "params": {}, "model_name": "adam"},
-         "lr": 1e-3, "decay": 1e-5, "lambda_coord": 1.5, "lambda_desc": 5.0, "lambda_collapse": 0.3,
-         "beta": 0.3, "lambda_reg": 0.001},
-
-        {"batch_size": 64, "latent_dim": 16, "optimizer": {"type": optim.Adam, "params": {}, "model_name": "adam"},
-         "lr": 1e-3, "decay": 1e-5, "lambda_coord": 2.0, "lambda_desc": 4.0, "lambda_collapse": 0.5,
-         "beta": 0.3, "lambda_reg": 0.001},
-
-        {"batch_size": 64, "latent_dim": 16, "optimizer": {"type": optim.Adam, "params": {}, "model_name": "adam"},
-         "lr": 1e-3, "decay": 1e-5, "lambda_coord": 2.5, "lambda_desc": 3.5, "lambda_collapse": 0.5,
-         "beta": 0.3, "lambda_reg": 0.001},
-
-        {"batch_size": 64, "latent_dim": 16, "optimizer": {"type": optim.Adam, "params": {}, "model_name": "adam"},
-         "lr": 1e-3, "decay": 1e-5, "lambda_coord": 3.0, "lambda_desc": 3.0, "lambda_collapse": 0.3,
-         "beta": 0.3, "lambda_reg": 0.001}
+        # {"batch_size": 64, "latent_dim": 16, "optimizer": {"type": optim.Adam, "params": {}, "model_name": "adam"},
+        #  "lr": 1e-3, "decay": 1e-5, "lambda_coord": 2.0, "lambda_desc": 4.0, "lambda_collapse": 0.5,
+        #  "beta": 0.3, "lambda_reg": 0.001},
+        #
+        # {"batch_size": 64, "latent_dim": 16, "optimizer": {"type": optim.Adam, "params": {}, "model_name": "adam"},
+        #  "lr": 1e-3, "decay": 1e-5, "lambda_coord": 2.5, "lambda_desc": 3.5, "lambda_collapse": 0.5,
+        #  "beta": 0.3, "lambda_reg": 0.001},
+        #
+        # {"batch_size": 64, "latent_dim": 16, "optimizer": {"type": optim.Adam, "params": {}, "model_name": "adam"},
+        #  "lr": 1e-3, "decay": 1e-5, "lambda_coord": 3.0, "lambda_desc": 3.0, "lambda_collapse": 0.3,
+        #  "beta": 0.3, "lambda_reg": 0.001}
     ]
-    """
+
     return grid
 
 
@@ -199,7 +197,6 @@ def train_grid_search(train_ds: VoxelDataset, val_ds: VoxelDataset, model_archit
 
             # Initialise scheduler
             scheduler = ReduceLROnPlateau(optimizer, patience=SCHEDULER_PATIENCE, factor=0.2)
-            scheduler = None
 
             # Train VAE
             history = train_val(vae, train_loader, val_loader, criterion, optimizer, EPOCHS, setup['beta'], scheduler=scheduler, prune_old_checkpoints=prune_old_checkpoints)  # History will be to the latest model, which most likely will not be the best model
@@ -210,6 +207,11 @@ def train_grid_search(train_ds: VoxelDataset, val_ds: VoxelDataset, model_archit
             compare_reconstructed(vae, val_loader, num_sample=10, filename=f"{history.model_name}/comparison_{history.model_name}")
             print()
             log_metrics(history, train_loader, val_loader, k=5, log="loss")
+            
+            # Add path to file
+            history_path = f"{history.model_name}_history.pth"
+            file.write(history_path + "\n")
+            print(f"Added '{history_path}' to '{Path(*search_list_path.parts[-2:])}'")
 
             # Add path to file
             history_path = f"{history.model_name}_history.pth"

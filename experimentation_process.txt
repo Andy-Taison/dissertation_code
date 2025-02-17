@@ -1393,3 +1393,20 @@ Removed attention and went back to additive combination of pooled layers.
 
 Tried lots of quick runs, and modifications to losses and penalties, however seemed to be making the model worse.
 Should have been utilsing branches more to revert back.
+
+*** Reverted to High desc loss low coor loss (prior to attention added). Though it still has problems with being slightly static, there is more
+variation (at least with shorter runs). Need to move on to evaluation. 
+
+Using best hyperparameter config:
+bs = 64
+latent dim = 16
+optim = Adam 
+lr = 1e-1  # With scheduler patience=10, factor=0.2
+weight decay = 1e-5
+lambda coord = 1.5
+lambda desc = 5.0
+lambda collapse = 0.3
+beta = 0.3
+lambda reg = 0.001
+epochs = 500
+patience = 31  # To give scheduler time to have effect

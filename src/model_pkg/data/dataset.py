@@ -19,7 +19,8 @@ class VoxelDataset(Dataset):
         :param max_voxels: Maximum number of voxels in entire dataset
         """
         print("Initialising Dataset...")
-        grids = torch.tensor(dataframe.iloc[:, -(EXPANDED_GRID_SIZE**COORDINATE_DIMENSIONS):].values, dtype=torch.float32)
+        grids = torch.tensor(dataframe.iloc[:, -(EXPANDED_GRID_SIZE ** COORDINATE_DIMENSIONS):].values, dtype=torch.float32)
+
         # Verify grid data has 1331 columns (11x11x11)
         assert grids.shape[1] == EXPANDED_GRID_SIZE * EXPANDED_GRID_SIZE * EXPANDED_GRID_SIZE, "Grid data does not have the correct number of elements (1331)."
 
