@@ -85,14 +85,13 @@ def create_grid() -> list[dict]:
     print(f"Grid created with {len(grid)} configuration(s).")
     """
 
-    grid = [    ########## SCHEDULER IS SET TO NONE BELOW
-
+    grid = [
         # {"batch_size": 64, "latent_dim": 16, "optimizer": {"type": optim.Adam, "params": {}, "model_name": "adam"},
         #  "lr": 1e-3, "decay": 1e-5, "lambda_coord": 1.0, "lambda_desc": 6.0, "lambda_collapse": 0.3,
         #  "beta": 0.3, "lambda_reg": 0.001},
 
         {"batch_size": 64, "latent_dim": 16, "optimizer": {"type": optim.Adam, "params": {}, "model_name": "adam"},
-         "lr": 1e-3, "decay": 1e-5, "lambda_coord": 1.5, "lambda_desc": 5.0, "lambda_collapse": 0.3,
+         "lr": 1e-1, "decay": 1e-5, "lambda_coord": 1.5, "lambda_desc": 5.0, "lambda_collapse": 0.3,
          "beta": 0.3, "lambda_reg": 0.001},
 
         # {"batch_size": 64, "latent_dim": 16, "optimizer": {"type": optim.Adam, "params": {}, "model_name": "adam"},
@@ -199,7 +198,6 @@ def train_grid_search(train_ds: VoxelDataset, val_ds: VoxelDataset, model_archit
 
             # Initialise scheduler
             scheduler = ReduceLROnPlateau(optimizer, patience=SCHEDULER_PATIENCE, factor=0.2)
-            scheduler = None
 
             # Train VAE
             history = train_val(vae, train_loader, val_loader, criterion, optimizer, EPOCHS, setup['beta'], scheduler=scheduler, prune_old_checkpoints=prune_old_checkpoints)  # History will be to the latest model, which most likely will not be the best model
