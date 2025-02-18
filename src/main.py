@@ -8,6 +8,7 @@ python src/main.py
 from model_pkg import *
 from pathlib import Path
 import pandas as pd
+import torch
 from torchinfo import summary
 import torch.optim as optim
 from torch.utils.data import DataLoader, Subset
@@ -16,10 +17,11 @@ from torch.utils.data import DataLoader, Subset
 def run():
     print("Starting VAE pipeline...\n")
 
-    grid_search_model_name = "full_no_atten"
+    model_name = "full_no_atten"
     combine_and_save = False  # When false, will load processed files
     use_toy_set = False  # Use 20% of full dataset or full dataset, does not use test set
     testing = False  # 128 samples for train and val sets for quick run testing
+    evaluate = True  # For evaluating
 
     if combine_and_save:
         # Combine all CSV files and clean
@@ -43,8 +45,8 @@ def run():
             train_data, val_data, test_data = split_data(cleaned_df)
             save_datasets(config.PROCESSED_DIR, data=[train_data, val_data, test_data], filenames=["train", "val", "test"])
             print("\nSplitting test set into diverse evaluation sets...")
-            diverse_sets = split_diverse_sets(test_data)
-            save_datasets(config.PROCESSED_DIR, data=diverse_sets, filenames=["single_type_dominant", "moderate_component_diverse", "high_component_diverse", "compact", "moderate_spatial_diverse", "dispersed"])
+            evaluation_sets = split_evaluation_sets(test_data)
+            save_datasets(config.PROCESSED_DIR, data=evaluation_sets, filenames=["single_type_majority", "mixed_component_majority", "component_variety", "compact", "moderately_spread", "dispersed"])
             print("\nTraining dataset:")
             summarise_dataset(train_data)
             print("Validation dataset:")
@@ -52,26 +54,28 @@ def run():
             print("Test dataset:")
             summarise_dataset(test_data)
 
+    if evaluate:
+        eval_sets_dict = load_processed_datasets(config.PROCESSED_DIR, "single_type_majority", "mixed_component_majority", "component_variety", "compact", "moderately_spread", "dispersed", as_dict=True)
+        for i, (title, df) in enumerate(eval_sets_dict.items()):
+            # if i < 3:
+            #     continue
+            grids = torch.tensor(df.iloc[:, -(config.EXPANDED_GRID_SIZE ** config.COORDINATE_DIMENSIONS):].values,
+                                 dtype=torch.float32)
+            grid_data = grids.view(-1, config.EXPANDED_GRID_SIZE, config.EXPANDED_GRID_SIZE, config.EXPANDED_GRID_SIZE)
+            for j, sample in enumerate(grid_data):
+                visualise_robot(sample, title=title.capitalize(), filename=f"{title}_{j}")
+                if j >= 4:
+                    break
+        exit()
+
     # Load processed data
     if use_toy_set:
         # toy datasets - test set contains the majority of the data, should not be used
-        train_data, val_data, _ = load_processed_datasets(config.PROCESSED_DIR / "toy_sets")
+        train_data, val_data = load_processed_datasets(config.PROCESSED_DIR / "toy_sets", "train.csv", "val.csv")
         test_data = None
     else:
         # Full datasets
-        train_data, val_data, test_data = load_processed_datasets(config.PROCESSED_DIR)
-        # diverse_sets = split_diverse_sets(test_data)
-        # import torch
-        # for i, (df, title) in enumerate(zip(diverse_sets, ["single_type_dominant", "moderate_component_diverse", "high_component_diverse", "compact", "moderate_spatial_diverse", "dispersed"])):
-        #     if i < 3:
-        #         continue
-        #     grids = torch.tensor(df.iloc[:, -(config.EXPANDED_GRID_SIZE ** config.COORDINATE_DIMENSIONS):].values,
-        #                          dtype=torch.float32)
-        #     grid_data = grids.view(-1, config.EXPANDED_GRID_SIZE, config.EXPANDED_GRID_SIZE, config.EXPANDED_GRID_SIZE)
-        #     for j, sample in enumerate(grid_data):
-        #         visualise_robot(sample, title=title, filename=f"{title}_{j}")
-        #         if j >= 4:
-        #             break
+        train_data, val_data, test_data = load_processed_datasets(config.PROCESSED_DIR, "train.csv", "val.csv", "test.csv")
 
     # Create datasets and dataloaders
     print("\nTraining dataset:")
@@ -145,7 +149,7 @@ def run():
         train_grid_search(subset_train_ds, subset_val_ds, "test", clear_history_list=False)  # type: ignore
     else:
         # Grid search training
-        train_grid_search(train_ds, val_ds, grid_search_model_name, clear_history_list=False)
+        train_grid_search(train_ds, val_ds, model_name, clear_history_list=False)
         # -----------------------------------------
         # TESTING
         """
