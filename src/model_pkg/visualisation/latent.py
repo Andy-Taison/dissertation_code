@@ -44,53 +44,50 @@ def sample_latent_space(model: VAE, dataloader: DataLoader) -> torch.Tensor:
     return latent_vectors
 
 
-def normalise_latent(latent_vector: torch.Tensor) -> tuple[torch.Tensor, StandardScaler]:
+def normalise_latent(latent_vector: np.ndarray) -> tuple[np.ndarray, StandardScaler]:
     """
     Fits a scaler to the passed latent vector.
 
-    :param latent_vector: Tensor to fit scaler to and normalise
+    :param latent_vector: Numpy latent vector to fit scaler to and normalise
     :return: Normalised vector, Fitted scaler
     """
     # Normalise
     scaler = StandardScaler()
-    normalised_latent = scaler.fit_transform(latent_vector.numpy())
+    normalised_latent = scaler.fit_transform(latent_vector)
 
-    # Convert back to tensor
-    normalised_latent_t = torch.from_numpy(normalised_latent)
-
-    return normalised_latent_t, scaler
+    return normalised_latent, scaler
 
 
-def train_pca(latent_vectors: torch.Tensor, n_components: int = 2) -> PCA:
+def train_pca(latent_vectors: np.ndarray, n_components: int = 2) -> tuple[PCA, np.ndarray]:
     """
-    Train PCA on latent vectors.
+    Train PCA on latent vectors and transform.
 
     :param latent_vectors: Latent vectors from training set
     :param n_components: Number of PCA components
-    :return: Trained PCA model
+    :return: Trained PCA model, Transformed_data
     """
     pca_reducer = PCA(n_components=n_components, random_state=RANDOM_STATE)
-    pca_reducer.fit(latent_vectors.numpy())
+    transformed_data = pca_reducer.fit_transform(latent_vectors)
 
-    return pca_reducer
+    return pca_reducer, transformed_data
 
 
-def train_umap(latent_vectors: torch.Tensor, n_components: int = 2, n_neighbors: int = 15) -> umap.UMAP:
+def train_umap(latent_vectors: np.ndarray, n_components: int = 2, n_neighbors: int = 15) -> tuple[umap.UMAP, np.ndarray]:
     """
-    Train UMAP on latent vectors.
+    Train UMAP on latent vectors and transform.
 
     :param latent_vectors: Latent vectors from training set
     :param n_components: Number of UMAP components
     :param n_neighbors: Number of neighbors for UMAP
-    :return: Trained UMAP model
+    :return: Trained UMAP model, Transformed_data
     """
     umap_reducer = umap.UMAP(n_components=n_components, n_neighbors=n_neighbors, random_state=RANDOM_STATE)
-    umap_reducer.fit(latent_vectors.numpy())
+    transformed_data = umap_reducer.fit_transform(latent_vectors)
 
-    return umap_reducer
+    return umap_reducer, transformed_data
 
 
-def transform_latent_space(reducer, latent_vectors: torch.Tensor) -> np.ndarray:
+def transform_latent_space(reducer, latent_vectors: np.ndarray) -> np.ndarray:
     """
     Transform latent vectors using a trained PCA or UMAP model.
 
@@ -98,7 +95,7 @@ def transform_latent_space(reducer, latent_vectors: torch.Tensor) -> np.ndarray:
     :param latent_vectors: Latent vectors to transform
     :return: Transformed latent vectors
     """
-    return reducer.transform(latent_vectors.numpy())
+    return reducer.transform(latent_vectors)
 
 
 def kmeans_cluster(latent_vectors: np.ndarray, n_clusters: int = 5) -> tuple[KMeans, np.ndarray]:
@@ -115,7 +112,7 @@ def kmeans_cluster(latent_vectors: np.ndarray, n_clusters: int = 5) -> tuple[KMe
     return kmeans, cluster_labels
 
 
-def find_optimal_k(latent_vectors: torch.Tensor, max_k: int = 10, title: str = "Elbow Method for Optimal k", filename: str | Path = "optimal_k"):
+def find_optimal_k(latent_vectors: np.ndarray, max_k: int = 10, title: str = "Elbow Method for Optimal k", filename: str | Path = "optimal_k"):
     """
     Plots a line plot.
     Use the elbow method to find the optimal number of clusters for KMeans.
@@ -129,7 +126,7 @@ def find_optimal_k(latent_vectors: torch.Tensor, max_k: int = 10, title: str = "
     k_range = range(1, max_k + 1)
 
     for k in k_range:
-        kmeans, _ = kmeans_cluster(latent_vectors.numpy(), n_clusters=k)
+        kmeans, _ = kmeans_cluster(latent_vectors, n_clusters=k)
         distortions.append(kmeans.inertia_)
 
     fig = plt.figure(figsize=(8, 6))
@@ -152,9 +149,9 @@ def find_optimal_k(latent_vectors: torch.Tensor, max_k: int = 10, title: str = "
     plt.close(fig)
 
 
-def plot_latent_space(data: np.ndarray, cluster_labels: np.ndarray, title: str, filename: str | Path):
+def plot_clustered_latent_space(data: np.ndarray, cluster_labels: np.ndarray, title: str, filename: str | Path):
     """
-    Plot the latent space after dimensionality reduction.
+    Plot the latent space after dimensionality reduction with clustering labels.
 
     :param data: Transformed latent space data
     :param cluster_labels: Cluster labels for the data points
@@ -166,7 +163,7 @@ def plot_latent_space(data: np.ndarray, cluster_labels: np.ndarray, title: str, 
     cmap = plt.get_cmap("tab10", num_clusters)
     scatter = plt.scatter(data[:, 0], data[:, 1], c=cluster_labels, cmap=cmap, alpha=0.8)
     plt.colorbar(scatter, label="Cluster", ticks=range(num_clusters))
-    plt.clim(-0.5, num_clusters - 0.5)  # Center ticks to colourbar cells
+    plt.clim(-0.5, num_clusters - 0.5)  # Centre ticks to colourbar cells
     plt.title(title)
     plt.xlabel("Component 1")
     plt.ylabel("Component 2")
@@ -245,12 +242,12 @@ def analyse_latent_space(model, train_dataloader: DataLoader, val_dataloader: Da
     val_latent = sample_latent_space(model, val_dataloader)
 
     # Normalise latent vectors
-    train_latent_norm, scaler = normalise_latent(train_latent)  # Fit and transform
-    val_latent_norm = torch.from_numpy(scaler.transform(val_latent.numpy()))  # Transform
+    train_latent_norm, scaler = normalise_latent(train_latent.numpy())  # Fit and transform
+    val_latent_norm = scaler.transform(val_latent.numpy())  # Transform
 
     # Train PCA and UMAP
-    pca_reducer = train_pca(train_latent_norm)
-    umap_reducer = train_umap(train_latent_norm)
+    pca_reducer, _ = train_pca(train_latent_norm)
+    umap_reducer, _ = train_umap(train_latent_norm)
 
     # Reduce latent space using PCA and UMAP
     val_pca_data = transform_latent_space(pca_reducer, val_latent_norm)
@@ -276,8 +273,8 @@ def analyse_latent_space(model, train_dataloader: DataLoader, val_dataloader: Da
             title = title if title else "Latent Space"
             # Plot
             print(f"Plotting latent space using PCA and UMAP with K={k}...")
-            plot_latent_space(val_pca_data, pca_cluster_labels, f"{title} - Validation Set (PCA)", pca_filename)
-            plot_latent_space(val_umap_data, umap_cluster_labels, f"{title} - Validation Set (UMAP)", umap_filename)
+            plot_clustered_latent_space(val_pca_data, pca_cluster_labels, f"{title} - Validation Set (PCA)", pca_filename)
+            plot_clustered_latent_space(val_umap_data, umap_cluster_labels, f"{title} - Validation Set (UMAP)", umap_filename)
 
         # Calculate Silhouette Score
         pca_silhouette = calculate_silhouette_score(val_pca_data, pca_cluster_labels)
@@ -300,3 +297,107 @@ def analyse_latent_space(model, train_dataloader: DataLoader, val_dataloader: Da
             "pairwise_std": std_dist,
             "k_used": k
         }
+
+
+def plot_latent_space_evaluation(latent_2d_vectors: np.ndarray, dataset_labels: list[str], centres: dict[str, np.ndarray], title: str, filename: str = None, x_ax_min: int = 0, y_ax_min: int = 0):
+    unique_labels = sorted(set(dataset_labels))
+    cmap = plt.get_cmap("tab10", len(unique_labels))
+    colour_idx = {}
+
+    fig = plt.figure(figsize=(12, 8), constrained_layout=True)
+    gs = fig.add_gridspec(6, 6)
+    ax = fig.add_subplot(gs[:, :-1])  # Main plot
+    legend_ax = fig.add_subplot(gs[:, -1])  # Legend subplot
+
+    legend_entries = []
+
+    for i, label in enumerate(unique_labels):
+        colour_idx[label] = i
+        display_label = ' '.join(word.capitalize() for word in label.split('_'))
+        idxs = np.array(dataset_labels) == label
+        ds = latent_2d_vectors[idxs]
+
+        # Scatter plot for points
+        dots = ax.scatter(ds[:, 0], ds[:, 1], label=display_label, alpha=0.7, color=cmap(i), linewidth=0.5)
+        legend_entries.append(dots)
+
+    # Centre of masses - separate for loop for tidy legend
+    for label, centre in centres.items():
+        display_label = ' '.join(word.capitalize() for word in label.split('_'))
+        crosses = ax.scatter(centres[label][0], centres[label][1], marker='X', s=150, edgecolors='white', color=cmap(colour_idx[label]), label=f"{display_label} Center")
+        legend_entries.append(crosses)
+
+    fig.suptitle(title)
+    ax.set_xlabel("Component 1")
+    ax.set_ylabel("Component 2")
+
+    # Make axes symmetric around 0
+    x_min, x_max = ax.get_xlim()
+    y_min, y_max = ax.get_ylim()
+    new_x_limit = max(abs(x_min), abs(x_max), x_ax_min)
+    new_y_limit = max(abs(y_min), abs(y_max), y_ax_min)
+    ax.set_xlim(-new_x_limit, new_x_limit)
+    ax.set_ylim(-new_y_limit, new_y_limit)
+
+    ax.axhline(0, alpha=0.3)  # Add grid line at y=0
+    ax.axvline(0, alpha=0.3)  # Add grid line at x=0
+
+    # Add legend to subplot
+    legend_ax.axis('off')
+    legend_ax.legend(handles=legend_entries)
+
+    # Save plot
+    if filename is None:
+        filename = title.lower().replace(" ", "_").replace("_-_", "-")
+    filepath = Path(PLOT_DIR) / f"{filename}.png"
+    if not filepath.parent.exists():
+        print(f"Creating directory '{filepath.parent}'...")
+        filepath.parent.mkdir(parents=True, exist_ok=True)
+    fig.savefig(filepath)
+    print(f"Plot saved to '{filepath.name}'")
+
+    if PLOT:
+        plt.show()
+    plt.close(fig)
+
+
+def compute_centres(latent_2d_vectors: np.ndarray, dataset_labels: list[str]) -> dict[str, np.ndarray]:
+    """
+    Computes mean centre of mass per dataset.
+
+    :param latent_2d_vectors: 2D latent vectors
+    :param dataset_labels: Labels list corresponding to latent_2d_vectors
+    :return: Centre of mass dictionary with dataset label as key
+    """
+    unique_labels = sorted(set(dataset_labels))  # Alphabetical and consistent mapping
+    centres = {}
+
+    for label in unique_labels:
+        idxs = np.array(dataset_labels) == label
+        centres[label] = latent_2d_vectors[idxs].mean(axis=0)
+
+    return centres
+
+
+def evaluate_latent_vectors(latent_vectors: np.ndarray, dataset_labels: list[str], title: str = None, x_ax_min: int = 0, y_ax_min = 0):
+    # Normalise
+    norm_latents, _ = normalise_latent(latent_vectors)
+
+    # Apply PCA
+    _, pca_data = train_pca(norm_latents)
+
+    # Apply UMAP
+    _, umap_data = train_umap(norm_latents)
+
+    # Compute centres of mass
+    pca_centres = compute_centres(pca_data, dataset_labels)
+    umap_centres = compute_centres(umap_data, dataset_labels)
+
+    if title is None:
+        title_suffix = ""
+    else:
+        title_suffix = f" - {title}"
+
+    # Plot
+    plot_latent_space_evaluation(pca_data, dataset_labels, pca_centres, f"PCA Projection{title_suffix}", x_ax_min=x_ax_min, y_ax_min=y_ax_min)
+    plot_latent_space_evaluation(umap_data, dataset_labels, umap_centres, f"UMAP Projection{title_suffix}", x_ax_min=x_ax_min, y_ax_min=y_ax_min)

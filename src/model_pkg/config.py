@@ -21,6 +21,7 @@ PLOT = True
 DATA_DIR = BASE_DIR / "data" / "raw"  # Path to raw data CSV files
 PROCESSED_DIR = BASE_DIR / "data" / "processed"  # Path to store processed CSV files
 OUTPUTS_DIR = BASE_DIR / "outputs"
+MODELS_DIR = BASE_DIR / "models"
 MODEL_CHECKPOINT_DIR = OUTPUTS_DIR / "model_checkpoints"  # Path to store checkpointed trained models (files include optimizer and optional scheduler if used)
 HISTORY_DIR = OUTPUTS_DIR / "metric_history"  # Path to store training history metrics
 PLOT_DIR = BASE_DIR / "plots"  # Path to store generated plots

@@ -137,13 +137,13 @@ def save_datasets(processed_directory: str | Path, data: list[pd.DataFrame], fil
         print(f"Dataset saved as: '{path.name}'")
 
 
-def load_processed_datasets(processed_directory: str | Path, *filename: str, as_dict: bool = False) -> list[pd.DataFrame, ...] | dict[str, pd.DataFrame]:
+def load_processed_datasets(processed_directory: str | Path, *filename: str, as_dict: bool = False) -> list[pd.DataFrame] | dict[str, pd.DataFrame]:
     """
-    Loads datasets as Pandas DataFrame from CSV files in the 'processed_directory'.
+    Loads data as a Pandas DataFrame from CSV files in the 'processed_directory'.
 
     :param processed_directory: Directory to obtain files
     :param filename: Variable number of positional csv filenames to load (without extension)
-    :param as_dict: Return loaded datasets as dictionary, (list when False)
+    :param as_dict: Return loaded data as dictionary a [filename, DataFrame], (list when False)
     :return: List of loaded datasets as pd.DataFrame
     """
     # Load processed data
@@ -222,15 +222,15 @@ def summarise_dataset(dataset: pd.DataFrame):
 def split_evaluation_sets(df: pd.DataFrame, compact_threshold: float = 0.8, dispersed_threshold: float = 2.5) -> list[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame]:
     """
     Subsets dataframe into 3x component based dataframes, and 3x spatial based dataframes.
-    Samples in single_type_majority dataset can contain more than 1 component if one is heavily dominant.
+    Samples in single_type_component dataset can contain more than 1 component if one is heavily dominant.
 
     Spatial score is calculated based on the scaled bounding box volume + the scaled (mean nearest neighbour distance / number voxels).
-    When spatial score is between thresholds, it is placed in the mixed_component_majority dataframe.
+    When spatial score is between thresholds, it is placed in the moderate_component_dominance dataframe.
 
     :param df: Dataframe to subset
     :param compact_threshold: Spatial score < threshold, sample placed in compact dataframe
     :param dispersed_threshold: Spatial score > threshold, sample place in dispersed dataframe
-    :return: List of dataframes [single_type_majority, mixed_component_majority, component_variety, compact, moderately_spread, dispersed]
+    :return: List of dataframes [single_type_component, moderate_component_dominance, component_variety, compact, moderately_spread, dispersed]
     """
     grids = torch.tensor(df.iloc[:, -(EXPANDED_GRID_SIZE ** COORDINATE_DIMENSIONS):].values, dtype=torch.float32)
     # Verify grid data has 1331 columns (11x11x11)
@@ -240,8 +240,8 @@ def split_evaluation_sets(df: pd.DataFrame, compact_threshold: float = 0.8, disp
     grid_data = grids.view(-1, EXPANDED_GRID_SIZE, EXPANDED_GRID_SIZE, EXPANDED_GRID_SIZE)
 
     # Component based sets
-    single_type_majority = []
-    mixed_component_majority = []
+    single_type_component = []
+    moderate_component_dominance = []
     component_variety = []
 
     # Spatial based sets
@@ -262,10 +262,10 @@ def split_evaluation_sets(df: pd.DataFrame, compact_threshold: float = 0.8, disp
 
         if (probs > 0.7).any():
             # Single type majority (can contain more than a single component if one heavily dominates)
-            single_type_majority.append(i)
+            single_type_component.append(i)
         elif (probs >= 0.5).any():
             # 50-70% dominance (captures 2 component type samples)
-            mixed_component_majority.append(i)
+            moderate_component_dominance.append(i)
         elif (probs < 0.5).all():
             # None dominating 50% or more
             component_variety.append(i)
@@ -305,7 +305,7 @@ def split_evaluation_sets(df: pd.DataFrame, compact_threshold: float = 0.8, disp
             dispersed.append(i)
 
     subset_dfs = []  # 3x component based, 3x spatial based
-    for ds in [single_type_majority, mixed_component_majority, component_variety, compact, moderately_spread, dispersed]:
+    for ds in [single_type_component, moderate_component_dominance, component_variety, compact, moderately_spread, dispersed]:
         df_subset = df.iloc[ds].reset_index(drop=True)
         subset_dfs.append(df_subset)
 

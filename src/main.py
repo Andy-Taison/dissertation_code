@@ -12,6 +12,7 @@ import torch
 from torchinfo import summary
 import torch.optim as optim
 from torch.utils.data import DataLoader, Subset
+import numpy as np
 
 
 def run():
@@ -22,6 +23,7 @@ def run():
     use_toy_set = False  # Use 20% of full dataset or full dataset, does not use test set
     testing = False  # 128 samples for train and val sets for quick run testing
     evaluate = True  # For evaluating
+    evaluate_model_path = config.MODELS_DIR / "full_no_atten_180225" / "best_loss_epoch_212.pth"
 
     if combine_and_save:
         # Combine all CSV files and clean
@@ -46,7 +48,7 @@ def run():
             save_datasets(config.PROCESSED_DIR, data=[train_data, val_data, test_data], filenames=["train", "val", "test"])
             print("\nSplitting test set into diverse evaluation sets...")
             evaluation_sets = split_evaluation_sets(test_data)
-            save_datasets(config.PROCESSED_DIR, data=evaluation_sets, filenames=["single_type_majority", "mixed_component_majority", "component_variety", "compact", "moderately_spread", "dispersed"])
+            save_datasets(config.PROCESSED_DIR, data=evaluation_sets, filenames=["1-single_type_component", "2-moderate_component_dominance", "3-component_variety", "1-compact", "2-moderately_spread", "3-dispersed"])
             print("\nTraining dataset:")
             summarise_dataset(train_data)
             print("Validation dataset:")
@@ -55,16 +57,84 @@ def run():
             summarise_dataset(test_data)
 
     if evaluate:
-        eval_sets_dict = load_processed_datasets(config.PROCESSED_DIR, "single_type_majority", "mixed_component_majority", "component_variety", "compact", "moderately_spread", "dispersed", as_dict=True)
-        for i, (title, df) in enumerate(eval_sets_dict.items()):
+        # Load data
+        eval_df_dict = load_processed_datasets(config.PROCESSED_DIR, "1-single_type_component", "2-moderate_component_dominance", "3-component_variety", "1-compact", "2-moderately_spread", "3-dispersed", as_dict=True)
+        print()
+
+        # Load model
+        model = load_model_checkpoint(evaluate_model_path)[0]
+        model.eval()
+
+        mean_latents = []
+        ds_labels = []
+        ids = []
+
+        # Convert each DataFrame to a Dataset and create DataLoader for processing forward pass to obtain mean latent vectors
+        for ds_name, df in eval_df_dict.items():
+            ds = VoxelDataset(df, max_voxels=config.MAX_VOXELS, name=ds_name)
+            loader = DataLoader(ds, batch_size=config.BATCH_SIZE, shuffle=True)
+
+            # Obtain mean latent vectors
+            with torch.no_grad():
+                for robot_ids, data in loader:
+                    data = data.to(config.DEVICE)
+                    z_mean = model.encoder(data)[0]  # Forward pass (batch, latent_dim)
+                    mean_latents.append(z_mean.cpu())
+
+                    ds_labels.extend([ds_name] * len(data))
+                    ids.extend(robot_ids.numpy())
+
+        # Concatenate to a single tensor
+        all_latents = torch.cat(mean_latents, dim=0)  # (total_ds_samples, latent_dim)
+
+        # Convert to DataFrame for filtering
+        df = pd.DataFrame({"robot_id": ids, "dataset": ds_labels, "mean_latent": list(all_latents.numpy())})
+        print(f"Dataset samples:\n{df.groupby('dataset').size()}\n")
+
+        # Collect the same number of samples per dataset for all categories
+        collected_samples_df = pd.DataFrame(columns=df.columns)
+        max_dataset_samples = df.groupby('dataset').size().min()
+
+        for group, subset in df.groupby("dataset"):
+            sampled = subset.iloc[:max_dataset_samples]
+            collected_samples_df = pd.concat([collected_samples_df, sampled], ignore_index=True)
+
+        print(f"Collected samples:\n{collected_samples_df.groupby('dataset').size()}\n")
+
+        # Define datasets per category
+        component_datasets = ["1-single_type_component", "2-moderate_component_dominance", "3-component_variety"]
+        spatial_datasets = ["1-compact", "2-moderately_spread", "3-dispersed"]
+
+        # Split into categories
+        component_df = collected_samples_df[collected_samples_df["dataset"].isin(component_datasets)]
+        spatial_df = collected_samples_df[collected_samples_df["dataset"].isin(spatial_datasets)]
+
+        # Extract and convert collected columns
+        component_ids = component_df["robot_id"].tolist()
+        component_labels = component_df["dataset"].tolist()
+        component_latents = np.stack(component_df["mean_latent"])
+        spatial_ids = spatial_df["robot_id"].tolist()
+        spatial_labels = spatial_df["dataset"].tolist()
+        spatial_latents = np.stack(spatial_df["mean_latent"])
+
+        evaluate_latent_vectors(component_latents, component_labels, title="Component Based")
+        evaluate_latent_vectors(spatial_latents, spatial_labels, title="Spatial Based")
+
+        # Visualise samples robots from each dataset
+        for i, (title, df) in enumerate(eval_df_dict.items()):  # Iterate each loaded dataset
             # if i < 3:
             #     continue
             grids = torch.tensor(df.iloc[:, -(config.EXPANDED_GRID_SIZE ** config.COORDINATE_DIMENSIONS):].values,
                                  dtype=torch.float32)
             grid_data = grids.view(-1, config.EXPANDED_GRID_SIZE, config.EXPANDED_GRID_SIZE, config.EXPANDED_GRID_SIZE)
-            for j, sample in enumerate(grid_data):
-                visualise_robot(sample, title=title.capitalize(), filename=f"{title}_{j}")
-                if j >= 4:
+            sample_ids = df.iloc[:, 0].values
+            visualised = 0
+            for sample, sample_id in zip(grid_data, sample_ids):  # Iterate each sample
+                if sample_id not in collected_samples_df.loc[collected_samples_df['dataset'] == title, 'robot_id'].values:  # Only visualise robots from the collected samples
+                    continue
+                visualised += 1
+                visualise_robot(sample, title=title.capitalize(), filename=f"{title}_{visualised}")
+                if visualised >= 4 or visualised >= max_dataset_samples:
                     break
         exit()
 

@@ -1412,8 +1412,27 @@ lambda reg = 0.001
 epochs = 500
 patience = 31  # To give scheduler time to have effect
 
-Model stopped early at 183 epochs. 
+Model stopped early at 183 epochs. Best total loss at epoch 68.
 
 *** Reverted model to not using attention mechanism, and combining pooled outputs additively in the encoder (best performing model prior to attention).
 
 Training on full dataset (same configuration as above).
+
+Model stopped early at 243 epochs. Best total loss at epoch 212.
+
+Much better performing. Variability in voxel numbers (3 and 4), spatial layout and colour. 
+Scaled losses: Collapse drops from around 0.7 to near 0 very quickly and remains there (raw has some minor fluctuations near zero).
+Desc loss drops from 8 to 4 where it flatlines after around 150 epochs (1.6 - 0.8 raw), coor loss drops from 3 to 1 where it flatlines
+around the same epoch as desc loss (1.8 - 0.75 raw). It seems that the lambda desc is potentially slightly too high in comparison to coord.
+Beta scaled KL mirrors total loss by rising logistically levelling off around 0.9, total loss decreases logarithmically from 10 levelling off around 5.5.
+
+Though still not perfect, this should be good enough to move forward to evaluation.
+
+
+----
+Evaluation:
+
+Setup function to split test data into 2 categories (sptatially based and coordinate based), each containing 3 datasets.
+Each dataset is passed through the encoder to extract the latent mean vectors (central tendency of the distribution - sampled latent vector would add noise
+with epsilon).
+Plotting each category after first using dimentionality redution (PCA and UMAP).

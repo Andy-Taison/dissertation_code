@@ -11,14 +11,20 @@ from ..config import NUM_CLASSES, COORDINATE_DIMENSIONS, DEVICE, EXPANDED_GRID_S
 
 
 class VoxelDataset(Dataset):
-    def __init__(self, dataframe: pd.DataFrame, max_voxels=8, shuffle_voxels=True):
+    def __init__(self, dataframe: pd.DataFrame, max_voxels=8, shuffle_voxels=True, name: str = None):
         """
         Dataset for robot voxel data and ID.
 
         :param dataframe: Dataframe representing 3D grid data (last 1331 columns), Robot ID should be in the first column
         :param max_voxels: Maximum number of voxels in entire dataset
+        :param shuffle_voxels: Shuffle voxels in the sparse representation matrix (per sample)
+        :param name: Optional dataset name
         """
-        print("Initialising Dataset...")
+        if name is not None:
+            print(f"Initialising '{name}' Dataset...")
+
+        else:
+            print("Initialising Dataset...")
         grids = torch.tensor(dataframe.iloc[:, -(EXPANDED_GRID_SIZE ** COORDINATE_DIMENSIONS):].values, dtype=torch.float32)
 
         # Verify grid data has 1331 columns (11x11x11)
@@ -30,6 +36,7 @@ class VoxelDataset(Dataset):
         self.max_voxels = max_voxels
         self.coordinate_dim = COORDINATE_DIMENSIONS
         self.shuffle_voxels = shuffle_voxels
+        self.name = name
 
         print("Dataset created.\n")
 
