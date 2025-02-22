@@ -48,7 +48,7 @@ def run():
             save_datasets(config.PROCESSED_DIR, data=[train_data, val_data, test_data], filenames=["train", "val", "test"])
             print("\nSplitting test set into diverse evaluation sets...")
             evaluation_sets = split_evaluation_sets(test_data)
-            save_datasets(config.PROCESSED_DIR, data=evaluation_sets, filenames=["1-single_type_component", "2-moderate_component_dominance", "3-component_variety", "1-compact", "2-moderately_spread", "3-dispersed"])
+            save_datasets(config.PROCESSED_DIR, data=evaluation_sets, filenames=["component_dominance", "component_moderate_dominance", "component_variety", "spatial_compact", "spatial_moderately_spread", "spatial_spread_dispersed"])
             print("\nTraining dataset:")
             summarise_dataset(train_data)
             print("Validation dataset:")
@@ -58,7 +58,7 @@ def run():
 
     if evaluate:
         # Load data
-        eval_df_dict = load_processed_datasets(config.PROCESSED_DIR, "1-single_type_component", "2-moderate_component_dominance", "3-component_variety", "1-compact", "2-moderately_spread", "3-dispersed", as_dict=True)
+        eval_df_dict = load_processed_datasets(config.PROCESSED_DIR, "component_dominance", "component_moderate_dominance", "component_variety", "spatial_compact", "spatial_moderately_spread", "spatial_spread_dispersed", as_dict=True)
         print()
 
         # Load model
@@ -102,8 +102,8 @@ def run():
         print(f"Collected samples:\n{collected_samples_df.groupby('dataset').size()}\n")
 
         # Define datasets per category
-        component_datasets = ["1-single_type_component", "2-moderate_component_dominance", "3-component_variety"]
-        spatial_datasets = ["1-compact", "2-moderately_spread", "3-dispersed"]
+        component_datasets = ["component_dominance", "component_moderate_dominance", "component_variety"]
+        spatial_datasets = ["spatial_compact", "spatial_moderately_spread", "spatial_spread_dispersed"]
 
         # Split into categories
         component_df = collected_samples_df[collected_samples_df["dataset"].isin(component_datasets)]
@@ -119,6 +119,12 @@ def run():
 
         evaluate_latent_vectors(component_latents, component_labels, title="Component Based")
         evaluate_latent_vectors(spatial_latents, spatial_labels, title="Spatial Based")
+        evaluate_latent_vectors(component_latents, component_labels, title="Component Based (Dominance)", plot_set_colour="component_dominance")
+        evaluate_latent_vectors(spatial_latents, spatial_labels, title="Spatial Based (Compact)", plot_set_colour="spatial_compact")
+        evaluate_latent_vectors(component_latents, component_labels, title="Component Based (Moderate)", plot_set_colour="component_moderate_dominance")
+        evaluate_latent_vectors(spatial_latents, spatial_labels, title="Spatial Based (Moderate)", plot_set_colour="spatial_moderately_spread")
+        evaluate_latent_vectors(component_latents, component_labels, title="Component Based (Variety)", plot_set_colour="component_variety")
+        evaluate_latent_vectors(spatial_latents, spatial_labels, title="Spatial Based (Dispersed)", plot_set_colour="spatial_spread_dispersed")
 
         # Visualise samples robots from each dataset
         for i, (title, df) in enumerate(eval_df_dict.items()):  # Iterate each loaded dataset
@@ -136,16 +142,16 @@ def run():
                 visualise_robot(sample, title=title.capitalize(), filename=f"{title}_{visualised}")
                 if visualised >= 4 or visualised >= max_dataset_samples:
                     break
-        exit()
+        exit(0)
 
     # Load processed data
     if use_toy_set:
         # toy datasets - test set contains the majority of the data, should not be used
-        train_data, val_data = load_processed_datasets(config.PROCESSED_DIR / "toy_sets", "train.csv", "val.csv")
+        train_data, val_data = load_processed_datasets(config.PROCESSED_DIR / "toy_sets", "train", "val")
         test_data = None
     else:
         # Full datasets
-        train_data, val_data, test_data = load_processed_datasets(config.PROCESSED_DIR, "train.csv", "val.csv", "test.csv")
+        train_data, val_data, test_data = load_processed_datasets(config.PROCESSED_DIR, "train", "val", "test")
 
     # Create datasets and dataloaders
     print("\nTraining dataset:")

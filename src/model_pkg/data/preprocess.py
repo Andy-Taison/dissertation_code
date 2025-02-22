@@ -10,6 +10,9 @@ from pathlib import Path
 from ..config import RANDOM_STATE, EXPANDED_GRID_SIZE, COORDINATE_DIMENSIONS
 
 
+from ..visualisation.robot import visualise_robot
+
+
 def combine_csv_files(directory: str) -> pd.DataFrame:
     """
     Loads all csv files present in directory as combined pandas dataframe
@@ -219,18 +222,18 @@ def summarise_dataset(dataset: pd.DataFrame):
     print(f"Unique Rows: {unique_rows} ({unique_rows / num_rows * 100:.2f})%\n")
 
 
-def split_evaluation_sets(df: pd.DataFrame, compact_threshold: float = 0.8, dispersed_threshold: float = 2.5) -> list[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+def split_evaluation_sets(df: pd.DataFrame, compact_threshold: float = 0.3, dispersed_threshold: float = 0.5) -> list[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame]:
     """
     Subsets dataframe into 3x component based dataframes, and 3x spatial based dataframes.
-    Samples in single_type_component dataset can contain more than 1 component if one is heavily dominant.
+    Samples in component_dominance dataset can contain more than 1 component if one is heavily dominant.
 
     Spatial score is calculated based on the scaled bounding box volume + the scaled (mean nearest neighbour distance / number voxels).
-    When spatial score is between thresholds, it is placed in the moderate_component_dominance dataframe.
+    When spatial score is between thresholds, it is placed in the component_moderate_dominance dataframe.
 
     :param df: Dataframe to subset
-    :param compact_threshold: Spatial score < threshold, sample placed in compact dataframe
-    :param dispersed_threshold: Spatial score > threshold, sample place in dispersed dataframe
-    :return: List of dataframes [single_type_component, moderate_component_dominance, component_variety, compact, moderately_spread, dispersed]
+    :param compact_threshold: Spatial score < threshold, sample placed in spatial_compact dataframe
+    :param dispersed_threshold: Spatial score > threshold, sample place in spatial_spread_dispersed dataframe
+    :return: List of dataframes [component_dominance, component_moderate_dominance, component_variety, spatial_compact, spatial_moderately_spread, spatial_spread_dispersed]
     """
     grids = torch.tensor(df.iloc[:, -(EXPANDED_GRID_SIZE ** COORDINATE_DIMENSIONS):].values, dtype=torch.float32)
     # Verify grid data has 1331 columns (11x11x11)
@@ -240,14 +243,14 @@ def split_evaluation_sets(df: pd.DataFrame, compact_threshold: float = 0.8, disp
     grid_data = grids.view(-1, EXPANDED_GRID_SIZE, EXPANDED_GRID_SIZE, EXPANDED_GRID_SIZE)
 
     # Component based sets
-    single_type_component = []
-    moderate_component_dominance = []
+    component_dominance = []
+    component_moderate_dominance = []
     component_variety = []
 
     # Spatial based sets
-    compact = []
-    moderately_spread = []
-    dispersed = []
+    spatial_compact = []
+    spatial_moderately_spread = []
+    spatial_spread_dispersed = []
 
     for i, sample in enumerate(grid_data):
         idxs = torch.nonzero(sample)
@@ -262,10 +265,10 @@ def split_evaluation_sets(df: pd.DataFrame, compact_threshold: float = 0.8, disp
 
         if (probs > 0.7).any():
             # Single type majority (can contain more than a single component if one heavily dominates)
-            single_type_component.append(i)
+            component_dominance.append(i)
         elif (probs >= 0.5).any():
             # 50-70% dominance (captures 2 component type samples)
-            moderate_component_dominance.append(i)
+            component_moderate_dominance.append(i)
         elif (probs < 0.5).all():
             # None dominating 50% or more
             component_variety.append(i)
@@ -276,36 +279,38 @@ def split_evaluation_sets(df: pd.DataFrame, compact_threshold: float = 0.8, disp
         # Spatial based categories --------------------------------------------------------------------
         num_voxels = len(descriptors)
 
+        # Calculate bounding box volume
         x_len = x_idxs.max() - x_idxs.min() + 1
         y_len = y_idxs.max() - y_idxs.min() + 1
         z_len = z_idxs.max() - z_idxs.min() + 1
         box_vol = x_len * y_len * z_len
 
-        # Compute mean pairwise distance
-        if num_voxels >= 2:
-            dist_matrix = torch.cdist(idxs.float(), idxs.float())
-            dist_matrix.fill_diagonal_(float('inf'))  # Don't include diagonal in calculation
-            nearest_neighbour_dist = torch.min(dist_matrix, dim=-1).values
-            mean_nn_dist = torch.mean(nearest_neighbour_dist)
-        else:
-            mean_nn_dist = torch.tensor(0.0)  # Single voxel
+        # Calculate mean distance to the centroid
+        centroid = idxs.float().mean(dim=0)
+        mean_dist = torch.norm(idxs - centroid, dim=1).mean()
 
-        scaled_box = 0.005 * box_vol
-        scaled_dist = 2 * (mean_nn_dist / num_voxels * 0.5)  # Reduces the impact of small voxel numbers
-        spatial_score = scaled_box + scaled_dist
+        # Calculate maximums for normalising
+        max_vol = EXPANDED_GRID_SIZE**3  # Volume of the grid space, for (11,11,11) = 1331
+        max_dist = ((EXPANDED_GRID_SIZE - 1)**2 * COORDINATE_DIMENSIONS)**0.5  # Diagonal distance of grid space, for (11,11,11) = 17.32
+
+        # Normalise
+        norm_vol = box_vol / max_vol
+        norm_mean_dist = mean_dist / max_dist
+
+        spatial_score = norm_vol + norm_mean_dist
 
         if spatial_score < compact_threshold:
-            # Clustered and compact
-            compact.append(i)
+            # Clustered and spatial_compact
+            spatial_compact.append(i)
         elif spatial_score <= dispersed_threshold:
             # Moderate distance and compactness
-            moderately_spread.append(i)
+            spatial_moderately_spread.append(i)
         else:
             # Dispersed and spread out
-            dispersed.append(i)
+            spatial_spread_dispersed.append(i)
 
     subset_dfs = []  # 3x component based, 3x spatial based
-    for ds in [single_type_component, moderate_component_dominance, component_variety, compact, moderately_spread, dispersed]:
+    for ds in [component_dominance, component_moderate_dominance, component_variety, spatial_compact, spatial_moderately_spread, spatial_spread_dispersed]:
         df_subset = df.iloc[ds].reset_index(drop=True)
         subset_dfs.append(df_subset)
 

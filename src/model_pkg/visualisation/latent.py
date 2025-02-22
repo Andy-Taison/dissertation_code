@@ -9,6 +9,8 @@ from sklearn.preprocessing import StandardScaler
 import umap
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib.patches as patches
+import cv2
 from pathlib import Path
 from ..model.model import VAE
 from ..config import DEVICE, RANDOM_STATE, PLOT_DIR, PLOT
@@ -299,7 +301,46 @@ def analyse_latent_space(model, train_dataloader: DataLoader, val_dataloader: Da
         }
 
 
-def plot_latent_space_evaluation(latent_2d_vectors: np.ndarray, dataset_labels: list[str], centres: dict[str, np.ndarray], title: str, filename: str = None, x_ax_min: int = 0, y_ax_min: int = 0):
+def plot_pca_eigenvectors(ax: plt.axes, pca, latent_2d_vectors: np.ndarray, scale_factor: float = 3.0) -> patches.FancyArrow:
+    """
+    Plots PCA eigenvectors.
+
+    :param ax: Axis to plot on
+    :param pca: Trained PCA model
+    :param latent_2d_vectors: Latent 2D vectors used in PCA
+    :param scale_factor: Scaling for arrow length
+    :return: FancyArrow object to be used in legend
+    """
+    mean_vec = latent_2d_vectors.mean(axis=0)
+    eigenvectors = pca.components_  # Each row = eigenvector (principal component direction), each column corresponds to an original feature
+    eigenvalues = pca.explained_variance_  # Variance explained by each of the principal components
+    legend_entry = None
+
+    for i in range(len(eigenvectors)):
+        vec = eigenvectors[i] * np.sqrt(eigenvalues[i]) * scale_factor  # Eigenvectors * standard deviation (to represent real data spread) * scaling factor for visibility in the plot
+        legend_entry = ax.arrow(mean_vec[0], mean_vec[1], vec[0], vec[1], color='y', width=0.06, head_width=0.25, alpha=0.8, label="Eigenvectors PC1 and PC2")
+
+    return legend_entry
+
+
+def fit_ellipse(ax: plt.Axes, ds: np.ndarray, colour):
+    # Fit ellipse using opencv
+    ellipse = cv2.fitEllipse(ds)
+
+    # Obtain data for calculating area
+    (x, y), (major, minor), angle = ellipse
+    print(f"major: {major}")
+    print(f"minor: {minor}")
+    print(f"angle: {angle}")
+
+    # OpenCV returns width and height as minor/major axes, but Matplotlib expects (width, height)
+    # Though it doesn't look like it would fit in any orientation
+
+    mat_ellipse = patches.Ellipse((x, y), major, minor, angle=angle, color=colour, fill=None)
+    ax.add_patch(mat_ellipse)
+
+
+def plot_latent_space_evaluation(latent_2d_vectors: np.ndarray, dataset_labels: list[str], centres: dict[str, np.ndarray], title: str, pca_model=None, filename: str = None, x_ax_min: int = 0, y_ax_min: int = 0, plot_set_colour: str = "all"):
     unique_labels = sorted(set(dataset_labels))
     cmap = plt.get_cmap("tab10", len(unique_labels))
     colour_idx = {}
@@ -312,20 +353,54 @@ def plot_latent_space_evaluation(latent_2d_vectors: np.ndarray, dataset_labels: 
     legend_entries = []
 
     for i, label in enumerate(unique_labels):
-        colour_idx[label] = i
+        if plot_set_colour.lower() == label.lower():
+            alpha = 1.0
+            colour_idx[label] = cmap(i)
+        elif plot_set_colour.lower() == "all":
+            alpha = 0.7
+            colour_idx[label] = cmap(i)
+        else:
+            alpha = 0.5
+            colour_idx[label] = "gray"
+
         display_label = ' '.join(word.capitalize() for word in label.split('_'))
         idxs = np.array(dataset_labels) == label
         ds = latent_2d_vectors[idxs]
 
         # Scatter plot for points
-        dots = ax.scatter(ds[:, 0], ds[:, 1], label=display_label, alpha=0.7, color=cmap(i), linewidth=0.5)
+        dots = ax.scatter(ds[:, 0], ds[:, 1], label=display_label, alpha=alpha, color=colour_idx[label], linewidth=0.5)
         legend_entries.append(dots)
+
+        # fit_ellipse(ax, ds, colour_idx[label])  # Does not function correctly
 
     # Centre of masses - separate for loop for tidy legend
     for label, centre in centres.items():
         display_label = ' '.join(word.capitalize() for word in label.split('_'))
-        crosses = ax.scatter(centres[label][0], centres[label][1], marker='X', s=150, edgecolors='white', color=cmap(colour_idx[label]), label=f"{display_label} Center")
+        crosses = ax.scatter(centres[label][0], centres[label][1], marker='X', s=150, edgecolors='white', color=colour_idx[label], label=f"{display_label} Centre")
         legend_entries.append(crosses)
+
+    if pca_model is not None:
+        legend_entries.append(plot_pca_eigenvectors(ax, pca_model, latent_2d_vectors))
+
+    # Add distances between centre of masses to legend
+    dummy, = ax.plot([], [], ' ', label="\nCentre distances:")
+    legend_entries.append(dummy)
+    keys = list(centres.keys())
+    for i in range(len(keys)):
+        for j in range(i + 1, len(keys)):  # Only consider higher indices as don't need both directions
+            label_a = keys[i]
+            label_b = keys[j]
+            centre_a = centres[label_a]
+            centre_b = centres[label_b]
+            distance = np.linalg.norm(centre_a - centre_b)
+
+            display_label_a = ' '.join(word.capitalize() for word in label_a.split('_'))
+            display_label_b = ' '.join(word.capitalize() for word in label_b.split('_'))
+            text_label = f"{display_label_a} -> {display_label_b}: {distance:.4f}"
+
+            # Create a dummy with distance text
+            dummy, = ax.plot([], [], ' ', label=text_label)
+            legend_entries.append(dummy)
 
     fig.suptitle(title)
     ax.set_xlabel("Component 1")
@@ -373,18 +448,20 @@ def compute_centres(latent_2d_vectors: np.ndarray, dataset_labels: list[str]) ->
     centres = {}
 
     for label in unique_labels:
-        idxs = np.array(dataset_labels) == label
+        idxs = np.array(dataset_labels) == label  # Bool array
         centres[label] = latent_2d_vectors[idxs].mean(axis=0)
+
+    print(f"centres: {centres.items()}")
 
     return centres
 
 
-def evaluate_latent_vectors(latent_vectors: np.ndarray, dataset_labels: list[str], title: str = None, x_ax_min: int = 0, y_ax_min = 0):
+def evaluate_latent_vectors(latent_vectors: np.ndarray, dataset_labels: list[str], title: str = None, x_ax_min: int = 0, y_ax_min: int = 0, plot_set_colour="all"):
     # Normalise
     norm_latents, _ = normalise_latent(latent_vectors)
 
     # Apply PCA
-    _, pca_data = train_pca(norm_latents)
+    pca, pca_data = train_pca(norm_latents)
 
     # Apply UMAP
     _, umap_data = train_umap(norm_latents)
@@ -399,5 +476,5 @@ def evaluate_latent_vectors(latent_vectors: np.ndarray, dataset_labels: list[str
         title_suffix = f" - {title}"
 
     # Plot
-    plot_latent_space_evaluation(pca_data, dataset_labels, pca_centres, f"PCA Projection{title_suffix}", x_ax_min=x_ax_min, y_ax_min=y_ax_min)
-    plot_latent_space_evaluation(umap_data, dataset_labels, umap_centres, f"UMAP Projection{title_suffix}", x_ax_min=x_ax_min, y_ax_min=y_ax_min)
+    plot_latent_space_evaluation(pca_data, dataset_labels, pca_centres, f"PCA Projection{title_suffix}", pca_model=pca, x_ax_min=x_ax_min, y_ax_min=y_ax_min, plot_set_colour=plot_set_colour)
+    plot_latent_space_evaluation(umap_data, dataset_labels, umap_centres, f"UMAP Projection{title_suffix}", x_ax_min=x_ax_min, y_ax_min=y_ax_min, plot_set_colour=plot_set_colour)
