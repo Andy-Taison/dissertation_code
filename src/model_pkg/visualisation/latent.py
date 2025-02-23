@@ -10,6 +10,7 @@ import umap
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
+from matplotlib.legend_handler import HandlerTuple
 import cv2
 from pathlib import Path
 from ..model.model import VAE
@@ -350,7 +351,8 @@ def plot_latent_space_evaluation(latent_2d_vectors: np.ndarray, dataset_labels: 
     ax = fig.add_subplot(gs[:, :-1])  # Main plot
     legend_ax = fig.add_subplot(gs[:, -1])  # Legend subplot
 
-    legend_entries = []
+    legend_handles = []  # Symbols
+    legend_labels = []  # Text labels
 
     for i, label in enumerate(unique_labels):
         if plot_set_colour.lower() == label.lower():
@@ -369,7 +371,8 @@ def plot_latent_space_evaluation(latent_2d_vectors: np.ndarray, dataset_labels: 
 
         # Scatter plot for points
         dots = ax.scatter(ds[:, 0], ds[:, 1], label=display_label, alpha=alpha, color=colour_idx[label], linewidth=0.5)
-        legend_entries.append(dots)
+        legend_handles.append(dots)
+        legend_labels.append(display_label)
 
         # fit_ellipse(ax, ds, colour_idx[label])  # Does not function correctly
 
@@ -377,14 +380,17 @@ def plot_latent_space_evaluation(latent_2d_vectors: np.ndarray, dataset_labels: 
     for label, centre in centres.items():
         display_label = ' '.join(word.capitalize() for word in label.split('_'))
         crosses = ax.scatter(centres[label][0], centres[label][1], marker='X', s=150, edgecolors='white', color=colour_idx[label], label=f"{display_label} Centre")
-        legend_entries.append(crosses)
+        legend_handles.append(crosses)
+        legend_labels.append(display_label)
 
     if pca_model is not None:
-        legend_entries.append(plot_pca_eigenvectors(ax, pca_model, latent_2d_vectors))
+        legend_handles.append(plot_pca_eigenvectors(ax, pca_model, latent_2d_vectors))
+        legend_labels.append("Eigenvectors PC1 and PC2")
 
     # Add distances between centre of masses to legend
-    dummy, = ax.plot([], [], ' ', label="\nCentre distances:")
-    legend_entries.append(dummy)
+    dummy, = ax.plot([], [], ' ', label="\nCentre Euclidean Distances:")
+    legend_handles.append(dummy)  # For correct spacing
+    legend_labels.append("\nCentre Euclidean Distances:")
     keys = list(centres.keys())
     for i in range(len(keys)):
         for j in range(i + 1, len(keys)):  # Only consider higher indices as don't need both directions
@@ -394,13 +400,16 @@ def plot_latent_space_evaluation(latent_2d_vectors: np.ndarray, dataset_labels: 
             centre_b = centres[label_b]
             distance = np.linalg.norm(centre_a - centre_b)
 
-            display_label_a = ' '.join(word.capitalize() for word in label_a.split('_'))
-            display_label_b = ' '.join(word.capitalize() for word in label_b.split('_'))
-            text_label = f"{display_label_a} -> {display_label_b}: {distance:.4f}"
+            # Create a dummy ax for symbols
+            a_legend_key = ax.scatter([], [], marker='X', s=150, edgecolors='white', color=colour_idx[label_a])
+            arrow_key = ax.scatter([], [], marker="$-$", color='white')
+            b_legend_key = ax.scatter([], [], marker='X', s=150, edgecolors='white', color=colour_idx[label_b])
 
-            # Create a dummy with distance text
-            dummy, = ax.plot([], [], ' ', label=text_label)
-            legend_entries.append(dummy)
+            legend_handles.append((a_legend_key, arrow_key, b_legend_key))  # Symbols
+
+            # Add distance as label
+            distance = f"{distance:.4f}"
+            legend_labels.append(distance)  # Distance
 
     fig.suptitle(title)
     ax.set_xlabel("Component 1")
@@ -419,7 +428,7 @@ def plot_latent_space_evaluation(latent_2d_vectors: np.ndarray, dataset_labels: 
 
     # Add legend to subplot
     legend_ax.axis('off')
-    legend_ax.legend(handles=legend_entries)
+    legend_ax.legend(handles=legend_handles, labels=legend_labels, handler_map={tuple: HandlerTuple(ndivide=None)})
 
     # Save plot
     if filename is None:
@@ -450,8 +459,6 @@ def compute_centres(latent_2d_vectors: np.ndarray, dataset_labels: list[str]) ->
     for label in unique_labels:
         idxs = np.array(dataset_labels) == label  # Bool array
         centres[label] = latent_2d_vectors[idxs].mean(axis=0)
-
-    print(f"centres: {centres.items()}")
 
     return centres
 
