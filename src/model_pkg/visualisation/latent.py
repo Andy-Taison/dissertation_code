@@ -383,6 +383,7 @@ def plot_latent_space_evaluation(latent_2d_vectors: np.ndarray, dataset_labels: 
         legend_handles.append(crosses)
         legend_labels.append(display_label)
 
+    # Plot Eigenvectors
     if pca_model is not None:
         legend_handles.append(plot_pca_eigenvectors(ax, pca_model, latent_2d_vectors))
         legend_labels.append("Eigenvectors PC1 and PC2")
