@@ -54,13 +54,13 @@ def coordinate_matching_loss(x: torch.Tensor, x_reconstructed: torch.Tensor) -> 
         orig_scaled = orig * EXPANDED_GRID_SIZE  # Scale normalised coordinates back to grid indices, padded values encoded as EXPANDED GRID SIZE (outside of grid)
         orig_rounded = orig_scaled.round().long()
         orig_clamped = torch.clamp(orig_rounded, min=0, max=EXPANDED_GRID_SIZE)
-        orig_padded_num = (orig_clamped == 11).all(dim=1).sum()
+        orig_padded_num = (orig_clamped == 11).any(dim=1).sum()
 
         # Count padded voxel coordinates in reconstructed
         recon_scaled = recon * EXPANDED_GRID_SIZE  # Scale normalised coordinates back to grid indices, padded values encoded as EXPANDED GRID SIZE (outside of grid)
         recon_rounded = recon_scaled.round().long()
         recon_clamped = torch.clamp(recon_rounded, min=0, max=EXPANDED_GRID_SIZE)
-        recon_padded_num = (recon_clamped == 11).all(dim=1).sum()
+        recon_padded_num = (recon_clamped == 11).any(dim=1).sum()
 
         padded_diff = ((orig_padded_num - recon_padded_num) ** 2 / (1 + (orig_padded_num - recon_padded_num) ** 2)) * 2
 

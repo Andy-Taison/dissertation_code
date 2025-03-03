@@ -1436,3 +1436,9 @@ Setup function to split test data into 2 categories (sptatially based and coordi
 Each dataset is passed through the encoder to extract the latent mean vectors (central tendency of the distribution - sampled latent vector would add noise
 with epsilon).
 Plotting each category after first using dimentionality redution (PCA and UMAP).
+
+
+---
+Noticed was penalising padded voxel difference in coordinate_matchinig_loss based on ALL coordinates being (11,11,11), but for the visualisation, it is based on ANY.
+Changed penalty to be ANY.
+Retraining full no attention.

@@ -18,11 +18,11 @@ import numpy as np
 def run():
     print("Starting VAE pipeline...\n")
 
-    model_name = "full_no_atten"
+    model_name = "full_no_atten_any"
     combine_and_save = False  # When false, will load processed files
     use_toy_set = False  # Use 20% of full dataset or full dataset, does not use test set
     testing = False  # 128 samples for train and val sets for quick run testing
-    evaluate = True  # For evaluating
+    evaluate = False  # For evaluating
     evaluate_model_path = config.MODELS_DIR / "full_no_atten_180225" / "best_loss_epoch_212.pth"
 
     if combine_and_save:
