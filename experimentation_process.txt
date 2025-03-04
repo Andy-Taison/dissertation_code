@@ -1442,3 +1442,9 @@ Plotting each category after first using dimentionality redution (PCA and UMAP).
 Noticed was penalising padded voxel difference in coordinate_matchinig_loss based on ALL coordinates being (11,11,11), but for the visualisation, it is based on ANY.
 Changed penalty to be ANY.
 Retraining full no attention.
+
+
+Also noticed that overlap penalty was not masking padded voxels based on padded coordinate values (so padded coordinates could have been penalised for overlap - where its allowed), 
+and was clamping to 10 not 11 (so padded voxel coordinates were getting clamped to 10).
+
+Discovered coordinate matching loss is just measurinig distribution and not match, so coordinates do not need to exactly match orginal to get 0 penalty - leading to a potential local minima.

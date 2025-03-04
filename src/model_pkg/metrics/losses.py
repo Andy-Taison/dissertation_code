@@ -50,21 +50,13 @@ def coordinate_matching_loss(x: torch.Tensor, x_reconstructed: torch.Tensor) -> 
         # Clustered points will have lower entropy
         entropy_penalty = (max_entropy - entropy) ** 2  # Avoid negatives
 
-        # Count padded voxel coordinates in original
-        orig_scaled = orig * EXPANDED_GRID_SIZE  # Scale normalised coordinates back to grid indices, padded values encoded as EXPANDED GRID SIZE (outside of grid)
-        orig_rounded = orig_scaled.round().long()
-        orig_clamped = torch.clamp(orig_rounded, min=0, max=EXPANDED_GRID_SIZE)
-        orig_padded_num = (orig_clamped == 11).any(dim=1).sum()
+        # Matrix multiplication to get predicted coordinates
+        matched_target_coord = torch.matmul(neighbour_weights, orig)  # (recon_voxels, coordinate_dim)
 
-        # Count padded voxel coordinates in reconstructed
-        recon_scaled = recon * EXPANDED_GRID_SIZE  # Scale normalised coordinates back to grid indices, padded values encoded as EXPANDED GRID SIZE (outside of grid)
-        recon_rounded = recon_scaled.round().long()
-        recon_clamped = torch.clamp(recon_rounded, min=0, max=EXPANDED_GRID_SIZE)
-        recon_padded_num = (recon_clamped == 11).any(dim=1).sum()
+        # MSE loss between reconstructed coordinates and matched target coordinates
+        loss = F.mse_loss(recon, matched_target_coord, reduction='mean')
 
-        padded_diff = ((orig_padded_num - recon_padded_num) ** 2 / (1 + (orig_padded_num - recon_padded_num) ** 2)) * 2
-
-        total_penalty += entropy_penalty + padded_diff
+        total_penalty += entropy_penalty + loss
 
     batch_penalty = total_penalty / x.size(0)  # Averaged over batch
 
@@ -129,15 +121,15 @@ def overlap_penalty(x_reconstructed: torch.Tensor) -> torch.Tensor:
 
     recon_coords = x_reconstructed[:, :, :COORDINATE_DIMENSIONS]
 
-    # Mask for non-padded voxels
+    # Mask for non-padded voxels from descriptor values
     recon_mask = (x_reconstructed[:, :, COORDINATE_DIMENSIONS:].argmax(dim=-1) != 0)  # (Batch_size, num_voxels)
 
     for coords, mask in zip(recon_coords, recon_mask):
         # Scale, round, and clamp to grid space range
         scaled_coords = coords * (EXPANDED_GRID_SIZE - 1)
-        rounded_coords = torch.clamp(torch.round(scaled_coords), min=0, max=EXPANDED_GRID_SIZE - 1)
+        rounded_coords = torch.clamp(torch.round(scaled_coords), min=0, max=EXPANDED_GRID_SIZE)
 
-        # Mask padded voxels with 'inf'
+        # Mask padded voxels with 'inf' based on descriptor values
         rounded_coords[~mask, :] = float('inf')
 
         # Tracks what has been found to not double count
@@ -147,8 +139,8 @@ def overlap_penalty(x_reconstructed: torch.Tensor) -> torch.Tensor:
         for i in range(rounded_coords.size(0)):
             current_coord = rounded_coords[i]
 
-            # Skip if padded (masked with inf) or already found overlapping
-            if torch.isinf(current_coord).any() or i in overlapping_idx:
+            # Skip if padded (masked with inf (descriptor) or scaled coordinate padded value) or already found overlapping
+            if torch.isinf(current_coord).any() or (rounded_coords[i] == EXPANDED_GRID_SIZE).any() or i in overlapping_idx:
                 continue
 
             # Find matching coordinates (overlaps)
