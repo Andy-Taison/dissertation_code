@@ -288,7 +288,7 @@ def analyse_latent_space(model, train_dataloader: DataLoader, val_dataloader: Da
         print(f"Silhouette score (UMAP): {umap_silhouette:.4f}\n")
 
         # Calculate Euclidean pairwise distance
-        distances, mean_dist, std_dist = calculate_pairwise_distances(val_latent_norm)
+        distances, mean_dist, std_dist = calculate_pairwise_distances(torch.from_numpy(val_latent_norm))
         print(f"Unique distances:\n{distances.unique()}\n")
         print(f"Max distance: {distances.max():.4f}")
         print(f"Mean pairwise distance: {mean_dist:.4f}, Standard deviation: {std_dist:.4f}")
