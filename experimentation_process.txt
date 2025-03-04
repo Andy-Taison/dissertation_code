@@ -1476,3 +1476,16 @@ lambda coord = 2.0, lambda desc = 2.0
 lambda coord = 2.5, lambda desc = 1.0
 lambda coord = 2.5, lambda desc = 1.5
 lambda coord = 2.5, lambda desc = 2.0
+
+Higher coordinate lambda seems to encourage more spatial variance, and learning is evident in the plots.
+Seems to perform better when descriptor loss is 2 or higher.
+
+* Trying some more targeted tuning runs:
+Training to 150 epochs, as it appears longer runs are required for effective learning (going of previous best and the toy run)
+lambda coord = 2.5, lambda desc = 5.0
+lambda coord = 2.5, lambda desc = 3.0
+lambda coord = 5.0, lambda desc = 2.5
+lambda coord = 5.0, lambda desc = 2.0
+lambda coord = 5.0, lambda desc = 5.0
+lambda coord = 3.0, lambda desc = 2.5
+lambda coord = 3.0, lambda desc = 3.0
