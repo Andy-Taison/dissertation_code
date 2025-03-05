@@ -1465,6 +1465,14 @@ patience = 31
 Reconstructions much much better, and from the plots, clearly the model is learning. 
 However the desc loss seems to be scaled too high. 
 
+This was early stop terminated after 238 epochs.
+Scaled losses: Desc loss started at 8 and decreased mostly logarithmically flatlining after around 170 epochs at 4 (1.5 - 0.8 raw). 
+Coor loss also decreased logarithmically started around 2 and flatlined around 0.5 after approximately 80 epochs (1-0.2 raw). 
+Collapse penalty seems to learn quickly (which is mostly likely fine, as it only gets penalty when coordinates get so close they collapse 
+into the same coordinate when scaled up), scaled it dropped from about 1 to near 0 in only a few epochs, raw it drops from 0.2 to near zero with some fluctuations throughout. 
+Total loss dropped logarithmically from 10 to 4.5, whilst beta scaled kl divergence increased from 0 to 1 mirroring the total loss curve (but to a smaller scale). 
+
+
 * Trialing with the following to 80 epochs with toy dataset to try to fine tune desc and coor lambdas:
 lambda coord = 1.5, lambda desc = 5.0  # Current best for comparison
 lambda coord = 1.5, lambda desc = 1.0
@@ -1489,3 +1497,11 @@ lambda coord = 5.0, lambda desc = 2.0
 lambda coord = 5.0, lambda desc = 5.0
 lambda coord = 3.0, lambda desc = 2.5
 lambda coord = 3.0, lambda desc = 3.0
+
+Models with higher lambdas (particularly desc), tend to show better reconstructions and continued learning (rather than looking like its starting to flatline).
+The model with both coord and desc = 5.0 looks like it has the best reconstructions. 
+Worth trialing with full dataset and comparing to the earlier full dataset run.
+
+Full dataset run 500 epochs as above:
+lambda coord = 5.0, lambda desc = 5.0  # Suspected best config
+lambda coord = 2.5, lambda desc = 5.0  # Also promising

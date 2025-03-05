@@ -18,9 +18,9 @@ import numpy as np
 def run():
     print("Starting VAE pipeline...\n")
 
-    model_name = "tune_higher_coor_desc_lamb"
+    model_name = "full_higher_coor_desc_lamb"
     combine_and_save = False  # When false, will load processed files
-    use_toy_set = True  # Use 20% of full dataset or full dataset, does not use test set
+    use_toy_set = False  # Use 20% of full dataset or full dataset, does not use test set
     testing = False  # 128 samples for train and val sets for quick run testing
     evaluate = False  # For evaluating
     evaluate_model_path = config.MODELS_DIR / "full_mse_coord_loss_040325" / "best_loss_epoch_182.pth"
