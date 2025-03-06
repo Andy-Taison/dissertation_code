@@ -1502,6 +1502,18 @@ Models with higher lambdas (particularly desc), tend to show better reconstructi
 The model with both coord and desc = 5.0 looks like it has the best reconstructions. 
 Worth trialing with full dataset and comparing to the earlier full dataset run.
 
-Full dataset run 500 epochs as above:
+* Full dataset run 500 epochs as above:
 lambda coord = 5.0, lambda desc = 5.0  # Suspected best config
 lambda coord = 2.5, lambda desc = 5.0  # Also promising
+
+Model with both lambdas = 5.0, performed the worst.
+It is close between the models where lambda coord = 2.5 and the earlier training run coord = 1.5
+
+Model with coord = 2.5 Ran for 88 epochs less than the earlier model, yet they are extreamly close in performance. 
+It also achieved a better total loss, higher PCA sihlouette score indicating better cluster structure in PCA and higher KL divergence (potentially more structure in latent space).
+
+
+--- 
+* Beta runs
+Trialing different beta runs (to see how latent space is affected for evaluation) using lambda coord = 2.5, lambda desc = 5.0
+[0.1, 0.3, 0.5, 1.0, 1.5, 2.0]

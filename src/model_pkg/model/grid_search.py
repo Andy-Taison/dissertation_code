@@ -51,7 +51,7 @@ def create_grid() -> list[dict]:
     :return: Grid of training configurations
     """
     print("Creating grid...")
-    """
+
     batch_sizes = [64]  # Possibly trial 16, and 128 later
     latent_dims = [16] #[12, 16]  # Possibly trial 16 later
     optimizer = [
@@ -61,12 +61,12 @@ def create_grid() -> list[dict]:
         # # {"type": optim.RMSprop, "params": {}, "model_name": "rms"},  # Potential for later
         # {"type": optim.RMSprop, "params": {"momentum": 0.9}, "model_name": "rmsmom.9"}
     ]
-    learning_rates = [5e-4] #[5e-4, 1e-4]   # Later potentially trial 5e-4, 5e-3, and 1e-2 for fine-tuning
-    weight_decay = [1e-3]  #[0, 1e-5]  # Possibly later trial 1e-2
-    lambda_coord = [2.0, 4.0, 6.0]
-    lambda_desc = [0.5, 1.0]
-    lambda_collapse = [0.1, 0.5]
-    betas = [0.3, 0.5, 0.7]  # Possibly trial 0.5, 2, and 4 later
+    learning_rates = [1e-4] #[5e-4, 1e-4]   # Later potentially trial 5e-4, 5e-3, and 1e-2 for fine-tuning
+    weight_decay = [1e-5]  #[0, 1e-5]  # Possibly later trial 1e-2
+    lambda_coord = [2.5]
+    lambda_desc = [5.0]
+    lambda_collapse = [0.3]
+    betas = [0.1, 0.3, 0.5, 1.0, 1.5, 2.0]  # Possibly trial 0.5, 2, and 4 later
     lambda_regs = [0.001]
 
     grid = [
@@ -94,7 +94,7 @@ def create_grid() -> list[dict]:
          "lr": 1e-4, "decay": 1e-5, "lambda_coord": 5.0, "lambda_desc": 5.0, "lambda_collapse": 0.3,
          "beta": 0.3, "lambda_reg": 0.001}
     ]
-
+    """
     return grid
 
 
