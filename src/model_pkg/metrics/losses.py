@@ -126,7 +126,7 @@ def overlap_penalty(x_reconstructed: torch.Tensor) -> torch.Tensor:
 
     for coords, mask in zip(recon_coords, recon_mask):
         # Scale, round, and clamp to grid space range
-        scaled_coords = coords * (EXPANDED_GRID_SIZE - 1)
+        scaled_coords = coords * (EXPANDED_GRID_SIZE)
         rounded_coords = torch.clamp(torch.round(scaled_coords), min=0, max=EXPANDED_GRID_SIZE)
 
         # Mask padded voxels with 'inf' based on descriptor values
