@@ -287,7 +287,7 @@ def split_evaluation_sets(df: pd.DataFrame, compact_threshold: float = 0.3, disp
 
         # Calculate mean distance to the centroid
         centroid = idxs.float().mean(dim=0)
-        mean_dist = torch.norm(idxs - centroid, dim=1).mean()
+        mean_dist = torch.linalg.vector_norm(idxs - centroid, dim=1).mean()
 
         # Calculate maximums for normalising
         max_vol = EXPANDED_GRID_SIZE**3  # Volume of the grid space, for (11,11,11) = 1331
