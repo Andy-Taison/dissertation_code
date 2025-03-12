@@ -219,8 +219,7 @@ class Decoder(nn.Module):
 
         # Combined refining
         self.combined_fc = nn.Sequential(
-            nn.Linear(self.coord + NUM_CLASSES, self.coord + NUM_CLASSES),
-            nn.LeakyReLU()
+            nn.Linear(self.coord + NUM_CLASSES, self.coord + NUM_CLASSES)
         )
 
     def forward(self, z: torch.Tensor) -> torch.Tensor:
@@ -249,6 +248,9 @@ class Decoder(nn.Module):
 
         # Normalises coordinates
         x_reconstructed[:, :, :self.coord] = torch.sigmoid(x_reconstructed[:, :, :self.coord])
+
+        # Apply Softmax to descriptors
+        x_reconstructed[:, :, self.coord:] = torch.softmax(x_reconstructed[:, :, self.coord:], dim=-1)
 
         # Raw logits for descriptors
         return x_reconstructed
