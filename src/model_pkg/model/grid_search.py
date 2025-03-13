@@ -196,6 +196,7 @@ def train_grid_search(train_ds: VoxelDataset, val_ds: VoxelDataset, model_archit
             generate_plots(history, history.model_name)
             print()
             compare_reconstructed(vae, val_loader, num_sample=10, filename=f"{history.model_name}/comparison_{history.model_name}")
+            compare_reconstructed(vae, val_loader, num_sample=10, filename=f"{history.model_name}/specific_comparison_{history.model_name}", by_id=3439)
             print()
             log_metrics(history, train_loader, val_loader, k=5, log="loss")
 

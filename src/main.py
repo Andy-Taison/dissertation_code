@@ -212,6 +212,7 @@ def run():
         best_loss_history.save_history(alt_loss_name)
 
         compare_reconstructed(best_loss_model, val_loader, num_sample=5, filename=f"comparison_{alt_loss_name}")
+        compare_reconstructed(best_loss_model, val_loader, num_sample=1, filename=f"specific_comparison_{alt_loss_name}", by_id=3439)
         print()
     except (FileNotFoundError, ValueError) as e:
         print(f"{e} Cannot perform latent analysis for {alt_loss_name}.")
@@ -245,6 +246,7 @@ def run():
         best_f1_history.save_history(alt_f1_name)
 
         compare_reconstructed(best_f1_model, val_loader, num_sample=5, filename=f"comparison_{alt_f1_name}")
+        compare_reconstructed(best_f1_model, val_loader, num_sample=1, filename=f"specific_comparison_{alt_f1_name}", by_id=3439)
     except (FileNotFoundError, ValueError) as e:
         print(f"{e} Cannot perform latent analysis for {alt_f1_name}.")
 
