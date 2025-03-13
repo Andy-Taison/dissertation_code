@@ -126,7 +126,7 @@ def visualise_robot(grid_data: torch.Tensor, title: str = None, filename: str | 
         plt.close(fig)
 
 
-def compare_reconstructed(model: torch.nn.Module, dataloader: torch.utils.data.DataLoader, num_sample: int, filename: str | Path = "recon_comparison", skip_loader_samples: int = 0):
+def compare_reconstructed(model: torch.nn.Module, dataloader: torch.utils.data.DataLoader, num_sample: int, filename: str | Path = "recon_comparison", skip_loader_samples: int = 0, by_id=None):
     """
     Plots original robot and reconstructed robot visualisations side by side.
     When test_transform is True, uses model to obtain transformation matrix, and visualises original and transformed original.
@@ -151,6 +151,9 @@ def compare_reconstructed(model: torch.nn.Module, dataloader: torch.utils.data.D
             if skipped < skip_loader_samples:
                 skipped += 1
                 continue  # Skip the current num_sample
+
+            if by_id is not None and robot_id.item() != by_id:
+                continue
 
             ids.append(robot_id.item())
             grid_data.append(data.to(DEVICE))

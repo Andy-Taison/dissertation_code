@@ -7,7 +7,6 @@ import matplotlib.pyplot as plt
 from pathlib import Path
 from ..config import PLOT_DIR
 
-plt.style.use('dark_background')
 
 def format_metric(metric: str) -> str:
     """

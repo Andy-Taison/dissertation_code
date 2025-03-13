@@ -178,6 +178,7 @@ def run():
         best_history.save_history(alt_name)
 
         compare_reconstructed(best_model, val_loader, num_sample=5, filename=f"comparison_{alt_name}")
+        compare_reconstructed(best_model, val_loader, num_sample=1, filename=f"specific_comparison_{alt_name}", by_id=3439)
         print()
     except (FileNotFoundError, ValueError) as e:
         print(f"{e} Cannot perform latent analysis for {alt_name}.")
