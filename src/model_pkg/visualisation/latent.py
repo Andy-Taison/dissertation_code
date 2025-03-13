@@ -22,7 +22,6 @@ import warnings
 warnings.filterwarnings("ignore", category=FutureWarning, module="sklearn")
 warnings.filterwarnings("ignore", category=UserWarning, module="umap")
 
-plt.style.use('dark_background')
 
 def sample_latent_space(model: VAE, dataloader: DataLoader) -> torch.Tensor:
     """
