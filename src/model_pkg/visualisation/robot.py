@@ -127,7 +127,7 @@ def visualise_robot(grid_data: torch.Tensor, title: str = None, filename: str | 
         plt.close(fig)
 
 
-def compare_reconstructed(model: torch.nn.Module, dataloader: torch.utils.data.DataLoader, num_sample: int, filename: str | Path = "recon_comparison", skip_loader_samples: int = 0):
+def compare_reconstructed(model: torch.nn.Module, dataloader: torch.utils.data.DataLoader, num_sample: int, filename: str | Path = "recon_comparison", skip_loader_samples: int = 0, by_id=None):
     """
     Plots original robot and reconstructed robot visualisations side by side.
     When test_transform is True, uses model to obtain transformation matrix, and visualises original and transformed original.
@@ -137,6 +137,7 @@ def compare_reconstructed(model: torch.nn.Module, dataloader: torch.utils.data.D
     :param num_sample: Number of robots to visualise (each generated as its own individual plot)
     :param filename: Filename to save plot (without extension), robot ID is appended to the filename, saved in 'PLOT_DIR' as specified in config
     :param skip_loader_samples: Option to skip a given number of samples from the data loader to avoid visualising the same samples
+    :param by_id: Reconstruct robots based on robot_id
     """
     model.eval()
 
@@ -152,6 +153,10 @@ def compare_reconstructed(model: torch.nn.Module, dataloader: torch.utils.data.D
             if skipped < skip_loader_samples:
                 skipped += 1
                 continue  # Skip the current num_sample
+
+            # Get specified robots when set
+            if by_id is not None and robot_id.item() != by_id:
+                continue
 
             ids.append(robot_id.item())
             grid_data.append(data.to(DEVICE))

@@ -22,8 +22,9 @@ def run():
     combine_and_save = False  # When false, will load processed files
     use_toy_set = False  # Use 20% of full dataset or full dataset, does not use test set
     testing = False  # 128 samples for train and val sets for quick run testing
-    evaluate = False  # For evaluating
-    evaluate_model_path = config.MODELS_DIR / "full_mse_coord_loss_040325" / "best_loss_epoch_182.pth"
+    evaluate = True  # For evaluating
+    evaluate_model_path = config.MODELS_DIR / "beta_run_500_be0.1_140325" / "best_loss_epoch_67.pth"
+    beta_used = "Beta 0.1"
 
     if combine_and_save:
         # Combine all CSV files and clean
@@ -68,11 +69,13 @@ def run():
         mean_latents = []
         ds_labels = []
         ids = []
+        loaders = {}
 
         # Convert each DataFrame to a Dataset and create DataLoader for processing forward pass to obtain mean latent vectors
         for ds_name, df in eval_df_dict.items():
             ds = VoxelDataset(df, max_voxels=config.MAX_VOXELS, name=ds_name)
             loader = DataLoader(ds, batch_size=config.BATCH_SIZE, shuffle=True)
+            loaders[ds_name] = loader  # store loader for the dataset for comparison visualisations
 
             # Obtain mean latent vectors
             with torch.no_grad():
@@ -117,14 +120,14 @@ def run():
         spatial_labels = spatial_df["dataset"].tolist()
         spatial_latents = np.stack(spatial_df["mean_latent"])
 
-        evaluate_latent_vectors(component_latents, component_labels, title="Component Based")
-        evaluate_latent_vectors(spatial_latents, spatial_labels, title="Spatial Based")
-        evaluate_latent_vectors(component_latents, component_labels, title="Component Based (Dominance)", plot_set_colour="component_dominance")
-        evaluate_latent_vectors(spatial_latents, spatial_labels, title="Spatial Based (Compact)", plot_set_colour="spatial_compact")
-        evaluate_latent_vectors(component_latents, component_labels, title="Component Based (Moderate)", plot_set_colour="component_moderate_dominance")
-        evaluate_latent_vectors(spatial_latents, spatial_labels, title="Spatial Based (Moderate)", plot_set_colour="spatial_moderately_spread")
-        evaluate_latent_vectors(component_latents, component_labels, title="Component Based (Variety)", plot_set_colour="component_variety")
-        evaluate_latent_vectors(spatial_latents, spatial_labels, title="Spatial Based (Dispersed)", plot_set_colour="spatial_spread_dispersed")
+        evaluate_latent_vectors(component_latents, component_labels, title=f"Component Based: {beta_used}")
+        evaluate_latent_vectors(spatial_latents, spatial_labels, title=f"Spatial Based: {beta_used}")
+        evaluate_latent_vectors(component_latents, component_labels, title=f"Component Based (Dominance): {beta_used}", plot_set_colour="component_dominance")
+        evaluate_latent_vectors(spatial_latents, spatial_labels, title=f"Spatial Based (Compact): {beta_used}", plot_set_colour="spatial_compact")
+        evaluate_latent_vectors(component_latents, component_labels, title=f"Component Based (Moderate): {beta_used}", plot_set_colour="component_moderate_dominance")
+        evaluate_latent_vectors(spatial_latents, spatial_labels, title=f"Spatial Based (Moderate): {beta_used}", plot_set_colour="spatial_moderately_spread")
+        evaluate_latent_vectors(component_latents, component_labels, title=f"Component Based (Variety): {beta_used}", plot_set_colour="component_variety")
+        evaluate_latent_vectors(spatial_latents, spatial_labels, title=f"Spatial Based (Dispersed): {beta_used}", plot_set_colour="spatial_spread_dispersed")
 
         # Visualise samples robots from each dataset
         for i, (title, df) in enumerate(eval_df_dict.items()):  # Iterate each loaded dataset
@@ -139,8 +142,9 @@ def run():
                 if sample_id not in collected_samples_df.loc[collected_samples_df['dataset'] == title, 'robot_id'].values:  # Only visualise robots from the collected samples
                     continue
                 visualised += 1
-                visualise_robot(sample, title=title.capitalize(), filename=f"{title}_{visualised}")
-                if visualised >= 4 or visualised >= max_dataset_samples:
+                # visualise_robot(sample, title=title.capitalize(), filename=f"{title}_{visualised}")  # Visualise from grid
+                compare_reconstructed(model, loaders[title], num_sample=1, filename=f"comparison_{title}_{beta_used.lower().replace(' ', '_')}", by_id=sample_id)  # Comparison reconstruction based on id
+                if visualised >= 4:
                     break
         exit(0)
 
