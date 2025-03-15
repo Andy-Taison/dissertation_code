@@ -301,20 +301,18 @@ def analyse_latent_space(model, train_dataloader: DataLoader, val_dataloader: Da
         }
 
 
-def plot_pca_eigenvectors(ax: plt.axes, pca, latent_2d_vectors: np.ndarray, scale_factor: float = 3.0) -> tuple[list[patches.FancyArrow], np.ndarray]:
+def plot_pca_eigenvectors(ax: plt.axes, pca, scale_factor: float = 3.0) -> tuple[list[patches.FancyArrow], np.ndarray]:
     """
     Plots PCA eigenvectors.
 
     :param ax: Axis to plot on
     :param pca: Trained PCA model
-    :param latent_2d_vectors: Latent 2D vectors used in PCA
     :param scale_factor: Scaling for arrow length
     :return: FancyArrow object to be used in legend
     """
-    mean_vec = latent_2d_vectors.mean(axis=0)
     eigenvectors = pca.components_  # Each row = eigenvector (principal component direction), each column corresponds to an original feature
     eigenvalues = pca.explained_variance_  # Variance explained by each of the principal components
-    eigenvalues_std = np.sqrt(eigenvalues)
+    eigenvalues_std = np.sqrt(eigenvalues)  # Standard deviation in same units as original data
 
     legend_entry = []
     colours = ["red", "yellow"]
@@ -322,7 +320,7 @@ def plot_pca_eigenvectors(ax: plt.axes, pca, latent_2d_vectors: np.ndarray, scal
     for i in range(2):
         vec = eigenvectors[i] * eigenvalues_std[i] * scale_factor  # Eigenvectors * standard deviation (to represent real data spread) * scaling factor for visibility in the plot
 
-        legend_entry.append(ax.arrow(mean_vec[0], mean_vec[1], vec[0], vec[1], color=colours[i], width=0.06, head_width=0.3, alpha=0.8))  #, label="Eigenvector PC1") if i == 0 else ax.arrow(mean_vec[0], mean_vec[1], vec[0], vec[1], color='y', width=0.06, head_width=0.25, alpha=0.8, label="Eigenvector PC2")
+        legend_entry.append(ax.arrow(0, 0, vec[0], vec[1], color=colours[i], width=0.06, head_width=0.3, alpha=0.8))  #, label="Eigenvector PC1") if i == 0 else ax.arrow(mean_vec[0], mean_vec[1], vec[0], vec[1], color='y', width=0.06, head_width=0.25, alpha=0.8, label="Eigenvector PC2")
 
     return legend_entry, eigenvalues_std
 
@@ -344,8 +342,8 @@ def fit_ellipse(ax: plt.Axes, ds: np.ndarray, colour):
     ax.add_patch(mat_ellipse)
 
 
-def plot_latent_space_evaluation(latent_2d_vectors: np.ndarray, dataset_labels: list[str], centres: dict[str, np.ndarray], title: str, pca_model=None, filename: str = None, x_ax_min: int = 0, y_ax_min: int = 0, plot_set_colour: str = "all"):
-    unique_labels = sorted(set(dataset_labels))
+def plot_latent_space_evaluation(transformed_data: np.ndarray, dataset_labels: list[str], centres: dict[str, np.ndarray], title: str, pca_model=None, filename: str = None, x_ax_min: int = 0, y_ax_min: int = 0, plot_set_colour: str = "all"):
+    unique_labels = sorted(set(dataset_labels))  # Ensures consistent legend and colours
     cmap = plt.get_cmap("tab10", len(unique_labels))
     colour_idx = {}
 
@@ -357,7 +355,9 @@ def plot_latent_space_evaluation(latent_2d_vectors: np.ndarray, dataset_labels: 
     legend_handles = []  # Symbols
     legend_labels = []  # Text labels
 
+    # Plot points
     for i, label in enumerate(unique_labels):
+        # Set opacity and colour
         if plot_set_colour.lower() == label.lower():
             alpha = 1.0
             colour_idx[label] = cmap(i)
@@ -369,8 +369,8 @@ def plot_latent_space_evaluation(latent_2d_vectors: np.ndarray, dataset_labels: 
             colour_idx[label] = "gray"
 
         display_label = ' '.join(word.capitalize() for word in label.split('_'))
-        idxs = np.array(dataset_labels) == label
-        ds = latent_2d_vectors[idxs]
+        idxs = np.array(dataset_labels) == label  # Gets index based on original labels, order matches transformed_data
+        ds = transformed_data[idxs]
 
         # Scatter plot for points
         dots = ax.scatter(ds[:, 0], ds[:, 1], label=display_label, alpha=alpha, color=colour_idx[label], linewidth=0.5)
@@ -379,7 +379,7 @@ def plot_latent_space_evaluation(latent_2d_vectors: np.ndarray, dataset_labels: 
 
         # fit_ellipse(ax, ds, colour_idx[label])  # Does not function correctly
 
-    # Centre of masses - separate for loop for tidy legend
+    # Centre of masses - separate loop for tidy legend
     for label, centre in centres.items():
         display_label = ' '.join(word.capitalize() for word in label.split('_'))
         crosses = ax.scatter(centres[label][0], centres[label][1], marker='X', s=150, edgecolors='white', color=colour_idx[label], label=f"{display_label} Centre")
@@ -388,7 +388,7 @@ def plot_latent_space_evaluation(latent_2d_vectors: np.ndarray, dataset_labels: 
 
     # Plot Eigenvectors
     if pca_model is not None:
-        handles, eigenvals = plot_pca_eigenvectors(ax, pca_model, latent_2d_vectors)
+        handles, eigenvals = plot_pca_eigenvectors(ax, pca_model)
         legend_handles.extend(handles)
         legend_labels.extend([f"Eigenvector PC1, $\\sqrt{{\\lambda}} = {eigenvals[0]:.4f}$", f"Eigenvector PC2, $\\sqrt{{\\lambda}} = {eigenvals[1]:.4f}$"])
 
@@ -455,7 +455,7 @@ def compute_centres(latent_2d_vectors: np.ndarray, dataset_labels: list[str]) ->
     Computes mean centre of mass per dataset.
 
     :param latent_2d_vectors: 2D latent vectors
-    :param dataset_labels: Labels list corresponding to latent_2d_vectors
+    :param dataset_labels: Labels list corresponding to transformed_data
     :return: Centre of mass dictionary with dataset label as key
     """
     unique_labels = sorted(set(dataset_labels))  # Alphabetical and consistent mapping
@@ -471,29 +471,14 @@ def compute_centres(latent_2d_vectors: np.ndarray, dataset_labels: list[str]) ->
 def evaluate_latent_vectors(latent_vectors: np.ndarray, dataset_labels: list[str], title: str = None, x_ax_min: int = 0, y_ax_min: int = 0, plot_set_colour="all"):
     # Normalise
     norm_latents, _ = normalise_latent(latent_vectors)
-    print("#"*100)
 
     # Apply PCA
     # Global
     pca, pca_data = train_pca(norm_latents)
-    # Per dataset
-    unique_sets = set(dataset_labels)
-    local_pca_data = {}
-    for ds in unique_sets:
-        mask = [True if label == ds else False for label in dataset_labels]
-        ds_norm_latent = norm_latents[mask]
-        temp_dict = {"pca_model": (train_pca(ds_norm_latent))[0], "data": (train_pca(ds_norm_latent))[1]}
-        local_pca_data[ds] = temp_dict
 
     # Apply UMAP
     # Global
     _, umap_data = train_umap(norm_latents)
-    # Per dataset
-    local_umap_data = {}
-    for ds in unique_sets:
-        mask = [True if label == ds else False for label in dataset_labels]
-        ds_norm_latent = norm_latents[mask]
-        _, local_umap_data[ds] = train_pca(ds_norm_latent)
 
     # Compute centres of mass
     pca_centres = compute_centres(pca_data, dataset_labels)
