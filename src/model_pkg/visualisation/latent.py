@@ -11,7 +11,10 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 from matplotlib.legend_handler import HandlerTuple
-import cv2
+from matplotlib.colors import ListedColormap
+import shapely
+from shapely.geometry import Point
+from shapely.affinity import scale, rotate
 from pathlib import Path
 from ..model.model import VAE
 from ..config import DEVICE, RANDOM_STATE, PLOT_DIR, PLOT
@@ -315,7 +318,7 @@ def plot_pca_eigenvectors(ax: plt.axes, pca, scale_factor: float = 3.0) -> tuple
     eigenvalues_std = np.sqrt(eigenvalues)  # Standard deviation in same units as original data
 
     legend_entry = []
-    colours = ["red", "yellow"]
+    colours = ["red", "orange"]
 
     for i in range(2):
         vec = eigenvectors[i] * eigenvalues_std[i] * scale_factor  # Eigenvectors * standard deviation (to represent real data spread) * scaling factor for visibility in the plot
@@ -325,26 +328,147 @@ def plot_pca_eigenvectors(ax: plt.axes, pca, scale_factor: float = 3.0) -> tuple
     return legend_entry, eigenvalues_std
 
 
-def fit_ellipse(ax: plt.Axes, ds: np.ndarray, colour):
-    # Fit ellipse using opencv
-    ellipse = cv2.fitEllipse(ds)
+def getMinVolEllipse(points: np.ndarray, tolerance: float = 0.01) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+    """
+    Computes the Minimum Volume Enclosing Ellipse (MVEE) using Khachiyan's Algorithm.
 
-    # Obtain data for calculating area
-    (x, y), (major, minor), angle = ellipse
-    print(f"major: {major}")
-    print(f"minor: {minor}")
-    print(f"angle: {angle}")
+    Adapted from Minillinim. (n.d.). ellipsoid.py [Computer software]. GitHub. Retrieved March 15, 2025, from https://github.com/minillinim/ellipsoid/blob/master/ellipsoid.py.
+    Based on work by Moshtagh, N. (MATLAB Central File Exchange) and Scitbx mathematics library (CCTBX)
 
-    # OpenCV returns width and height as minor/major axes, but Matplotlib expects (width, height)
-    # Though it doesn't look like it would fit in any orientation
+    :param points: (N, d) NumPy array of N points in d dimensions
+    :param tolerance: Tolerance
+    :return: Centre of ellipse, radii, rotation
+    """
+    (N, d) = np.shape(points)
+    d = float(d)
 
-    mat_ellipse = patches.Ellipse((x, y), major, minor, angle=angle, color=colour, fill=None)
-    ax.add_patch(mat_ellipse)
+    # Q is working array
+    Q: np.ndarray = np.vstack([points.T, np.ones(N)])
+    QT = Q.T
+
+    # Initialise
+    err = 1.0 + tolerance
+    u = (1.0 / N) * np.ones(N)
+
+    # Khachiyan Algorithm
+    while err > tolerance:
+        V = np.dot(Q, np.dot(np.diag(u), QT))
+        M: np.ndarray = np.diag(np.dot(QT, np.dot(np.linalg.inv(V), Q)))  # M the diagonal vector of an NxN matrix
+        j = np.argmax(M)
+        max_M = M[j]
+        step_size = (max_M - d - 1.0) / ((d + 1.0) * (max_M - 1.0))
+        new_u = (1.0 - step_size) * u
+        new_u[j] += step_size
+        err = np.linalg.norm(new_u - u)
+        u = new_u
+
+    # Centre of ellipse
+    centre: np.ndarray = np.dot(points.T, u)
+
+    A = np.linalg.inv(
+        np.dot(points.T, np.dot(np.diag(u), points)) - np.array([[a * b for b in centre] for a in centre])
+    ) / d
+
+    U, s, rotation = np.linalg.svd(A)
+    radii = 1.0 / np.sqrt(s)
+
+    # # Experiment to check svd output format
+    # # Create a known rotation matrix (45 degrees)
+    # theta = np.radians(45)  # Convert 45 degrees to radians
+    # # https://scipython.com/book/chapter-6-numpy/examples/creating-a-rotation-matrix-in-numpy/#:~:text=R%3D(cos%CE%B8%E2%88%92sin,%CE%B8sin%CE%B8cos%CE%B8).&text=As%20of%20NumPy%20version%201.17,will%20be%20removed%20in%20future.
+    # rotation_matrix = np.array([[np.cos(theta), -np.sin(theta)],
+    #                           [np.sin(theta), np.cos(theta)]])
+    # # Compute SVD
+    # U, S, exp_rotate = np.linalg.svd(rotation_matrix)
+    #
+    # # Test point on the x-axis
+    # point = np.array([1, 0])  # (1, 0)
+    #
+    # # Apply rotation matrix
+    # rotated_point = np.dot(point, rotation_matrix)  # Matrix multiplication
+    #
+    # print(f"Original Point: {point}")
+    # print(f"Rotated Point: {rotated_point}")  # (0.7, -0.7) clockwise rotation
+    #
+    # # Extract angle first in radians then converts to degrees
+    # rotation_angle = np.degrees(np.arctan2(rotation_matrix[1, 0], rotation_matrix[0, 0]))
+    # print(f"rotation_angle: {rotation_angle}")  # 45 degrees extracted ok
+
+    return centre, radii, rotation
+
+
+def fit_ellipse(ax: plt.Axes, data_points: np.ndarray, colour, alpha) -> tuple[np.ndarray, np.ndarray, np.float64]:
+    """
+    Fits and plots an ellipse to the dataset using the Minimum Volume Enclosing Ellipse (MVEE).
+
+    :param ax: Matplotlib Axes object
+    :param data_points: (N, 2) NumPy array of 2D data points
+    :param colour: Colour of ellipse
+    :param alpha: Opacity of ellipse
+    :return: Centre, radii(major,minor), rotation angle (degrees)
+    """
+    # Fit ellipse
+    centre, radii, rotation = getMinVolEllipse(data_points)
+
+    # Angle parameter in radians for points
+    u = np.linspace(0.0, 2.0 * np.pi, 100)
+
+    # Ellipse points
+    x = radii[0] * np.cos(u)
+    y = radii[1] * np.sin(u)
+
+    # Apply rotation to every point
+    for i in range(len(x)):
+        [x[i], y[i]] = np.dot([x[i], y[i]], rotation) + centre
+
+    # Draw ellipse
+    ax.plot(x, y, color=colour, linewidth=2, alpha=alpha)
+
+    # Extract angle first in radians then converts to degrees
+    rotation_angle = np.degrees(np.arctan2(rotation[1, 0], rotation[0, 0]))
+
+    return centre, radii, rotation_angle
+
+
+def create_shapely_ellipse(centre: np.ndarray, radii: np.ndarray, angle: np.float64) -> tuple[shapely.geometry.polygon.Polygon, float]:
+    """
+    Create a Shapely ellipse.
+    For geometric calculations (overlap area).
+
+    :param centre: Ellipse centre coordinates
+    :param radii: Major and minor axes lengths
+    :param angle: Angle in degrees
+    :return: Shapely ellipse, area
+    """
+    # Circle with radius 1 around centre
+    ellipse = Point(centre).buffer(1.0)
+
+    # Scale along x and y
+    ellipse = scale(ellipse, radii[0], radii[1])
+
+    # Rotate clockwise to correct position. Shapely by default rotates counterclockwise
+    ellipse = rotate(ellipse, -angle)
+
+    return ellipse, ellipse.area
+
+
+def compute_ellipse_overlap(ellipse1: shapely.geometry.polygon.Polygon, ellipse2: shapely.geometry.polygon.Polygon):
+    """
+    Compute the overlap area between two ellipses using Shapely.
+    """
+    # Compute overlapping region
+    intersection = ellipse1.intersection(ellipse2)
+
+    return intersection.area
 
 
 def plot_latent_space_evaluation(transformed_data: np.ndarray, dataset_labels: list[str], centres: dict[str, np.ndarray], title: str, pca_model=None, filename: str = None, x_ax_min: int = 0, y_ax_min: int = 0, plot_set_colour: str = "all"):
     unique_labels = sorted(set(dataset_labels))  # Ensures consistent legend and colours
-    cmap = plt.get_cmap("tab10", len(unique_labels))
+
+    # Custom colours
+    custom_colours = ['#2ca02c', '#17becf', '#9467bd']  # Green, Blue, Purple
+    # Create colourmap
+    cmap = ListedColormap(custom_colours)
     colour_idx = {}
 
     fig = plt.figure(figsize=(12, 8), constrained_layout=True)
@@ -356,6 +480,7 @@ def plot_latent_space_evaluation(transformed_data: np.ndarray, dataset_labels: l
     legend_labels = []  # Text labels
 
     # Plot points
+    shapely_ellipses = {}
     for i, label in enumerate(unique_labels):
         # Set opacity and colour
         if plot_set_colour.lower() == label.lower():
@@ -368,34 +493,38 @@ def plot_latent_space_evaluation(transformed_data: np.ndarray, dataset_labels: l
             alpha = 0.5
             colour_idx[label] = "gray"
 
-        display_label = ' '.join(word.capitalize() for word in label.split('_'))
         idxs = np.array(dataset_labels) == label  # Gets index based on original labels, order matches transformed_data
         ds = transformed_data[idxs]
+        display_label = f"{' '.join(word.capitalize() for word in label.split('_'))}: {ds[:,0].size} Samples"
 
         # Scatter plot for points
         dots = ax.scatter(ds[:, 0], ds[:, 1], label=display_label, alpha=alpha, color=colour_idx[label], linewidth=0.5)
         legend_handles.append(dots)
         legend_labels.append(display_label)
 
-        # fit_ellipse(ax, ds, colour_idx[label])  # Does not function correctly
+        # Plot ellipse
+        centre, radii, rotation = fit_ellipse(ax, ds, colour_idx[label], alpha)
 
-    # Centre of masses - separate loop for tidy legend
-    for label, centre in centres.items():
-        display_label = ' '.join(word.capitalize() for word in label.split('_'))
-        crosses = ax.scatter(centres[label][0], centres[label][1], marker='X', s=150, edgecolors='white', color=colour_idx[label], label=f"{display_label} Centre")
-        legend_handles.append(crosses)
-        legend_labels.append(display_label)
+        # Get shapely ellipse for overlaps and compute area, store for overlap calculation later
+        ellipse, area = create_shapely_ellipse(centre, radii, rotation)
+        shapely_ellipses[label] = {
+            "colour": colour_idx[label],
+            "area": area,
+            "ellipse": ellipse
+        }
 
     # Plot Eigenvectors
     if pca_model is not None:
         handles, eigenvals = plot_pca_eigenvectors(ax, pca_model)
+        dummy, = ax.plot([], [], ' ')
+        legend_handles.append(dummy)  # For correct spacing
         legend_handles.extend(handles)
-        legend_labels.extend([f"Eigenvector PC1, $\\sqrt{{\\lambda}} = {eigenvals[0]:.4f}$", f"Eigenvector PC2, $\\sqrt{{\\lambda}} = {eigenvals[1]:.4f}$"])
+        legend_labels.extend(["", f"Eigenvector PC1: $\\sqrt{{\\lambda}} = {eigenvals[0]:.4f}$", f"Eigenvector PC2: $\\sqrt{{\\lambda}} = {eigenvals[1]:.4f}$"])
 
     # Add distances between centre of masses to legend
-    dummy, = ax.plot([], [], ' ', label="\nCentre Euclidean Distances:")
+    dummy, = ax.plot([], [], ' ')
     legend_handles.append(dummy)  # For correct spacing
-    legend_labels.append("\nCentre Euclidean Distances:")
+    legend_labels.append("\nCentre of Mass Euclidean Distances:")
     keys = list(centres.keys())
     for i in range(len(keys)):
         for j in range(i + 1, len(keys)):  # Only consider higher indices as don't need both directions
@@ -406,15 +535,59 @@ def plot_latent_space_evaluation(transformed_data: np.ndarray, dataset_labels: l
             distance = np.linalg.norm(centre_a - centre_b)
 
             # Create a dummy ax for symbols
-            a_legend_key = ax.scatter([], [], marker='X', s=150, edgecolors='white', color=colour_idx[label_a])
-            arrow_key = ax.scatter([], [], marker="$-$", color='white')
-            b_legend_key = ax.scatter([], [], marker='X', s=150, edgecolors='white', color=colour_idx[label_b])
+            a_legend_key = ax.scatter([], [], marker='X', s=150, edgecolors='gray', color=colour_idx[label_a])
+            arrow_key = ax.scatter([], [], marker=r"$\rightarrow$", color='gray')  # Joining symbol
+            b_legend_key = ax.scatter([], [], marker='X', s=150, edgecolors='gray', color=colour_idx[label_b])
 
             legend_handles.append((a_legend_key, arrow_key, b_legend_key))  # Symbols
 
             # Add distance as label
-            distance = f"{distance:.4f}"
+            distance = f"{distance:.2f}"
             legend_labels.append(distance)  # Distance
+
+    # Add ellipse areas to legend
+    dummy, = ax.plot([], [], ' ')
+    legend_handles.append(dummy)  # For correct spacing
+    legend_labels.append("\nEllipse Areas:")
+    keys = list(shapely_ellipses.keys())
+    for i in range(len(keys)):
+        label_a = keys[i]
+        area = shapely_ellipses[label_a]['area']
+
+        legend_handles.append(ax.scatter([], [], marker='o', s=150, edgecolors='gray', color=colour_idx[label_a]))  # Symbols
+
+        # Add area as label
+        area = f"{area:.2f}"
+        legend_labels.append(area)
+
+    # Add ellipse overlap areas to legend
+    dummy, = ax.plot([], [], ' ')
+    legend_handles.append(dummy)  # For correct spacing
+    legend_labels.append("\nEllipse Overlap Areas:")
+    keys = list(shapely_ellipses.keys())
+    for i in range(len(keys)):
+        for j in range(i + 1, len(keys)):  # Only consider higher indices as don't need both directions
+            label_a = keys[i]
+            label_b = keys[j]
+            overlap_area = compute_ellipse_overlap(shapely_ellipses[label_a]['ellipse'], shapely_ellipses[label_b]['ellipse'])
+
+            small_area = min(shapely_ellipses[label_a]['area'], shapely_ellipses[label_b]['area'])
+            percent = (overlap_area / small_area) * 100
+
+            # Create a dummy ax for symbols
+            a_legend_key = ax.scatter([], [], marker='o', s=150, edgecolors='gray', color=colour_idx[label_a])
+            arrow_key = ax.scatter([], [], marker=r"$\rightarrow$", color='gray')
+            b_legend_key = ax.scatter([], [], marker='o', s=150, edgecolors='gray', color=colour_idx[label_b])
+
+            legend_handles.append((a_legend_key, arrow_key, b_legend_key))  # Symbols
+
+            # Add area as label
+            overlap_area = f"{overlap_area:.2f}"
+            legend_labels.append(f"{overlap_area} ({percent:.2f}%)")
+
+    # Plot centre of masses - separate loop so crosses are plotted on top of points
+    for label, centre in centres.items():
+        crosses = ax.scatter(centres[label][0], centres[label][1], marker='X', s=150, edgecolors='black', color=colour_idx[label])
 
     fig.suptitle(title)
     ax.set_xlabel("Component 1")
