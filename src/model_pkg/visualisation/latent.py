@@ -323,7 +323,7 @@ def plot_pca_eigenvectors(ax: plt.axes, pca, scale_factor: float = 3.0) -> tuple
     for i in range(2):
         vec = eigenvectors[i] * eigenvalues_std[i] * scale_factor  # Eigenvectors * standard deviation (to represent real data spread) * scaling factor for visibility in the plot
 
-        legend_entry.append(ax.arrow(0, 0, vec[0], vec[1], color=colours[i], width=0.06, head_width=0.3, alpha=0.8))  #, label="Eigenvector PC1") if i == 0 else ax.arrow(mean_vec[0], mean_vec[1], vec[0], vec[1], color='y', width=0.06, head_width=0.25, alpha=0.8, label="Eigenvector PC2")
+        legend_entry.append(ax.arrow(0, 0, vec[0], vec[1], color=colours[i], width=0.06, head_width=0.3, alpha=0.8, zorder=4))  #, label="Eigenvector PC1") if i == 0 else ax.arrow(mean_vec[0], mean_vec[1], vec[0], vec[1], color='y', width=0.06, head_width=0.25, alpha=0.8, label="Eigenvector PC2")
 
     return legend_entry, eigenvalues_std
 
@@ -422,7 +422,7 @@ def fit_ellipse(ax: plt.Axes, data_points: np.ndarray, colour, alpha) -> tuple[n
         [x[i], y[i]] = np.dot([x[i], y[i]], rotation) + centre
 
     # Draw ellipse
-    ax.plot(x, y, color=colour, linewidth=2, alpha=alpha)
+    ax.plot(x, y, color=colour, linewidth=2, alpha=alpha, zorder=1)
 
     # Extract angle first in radians then converts to degrees
     rotation_angle = np.degrees(np.arctan2(rotation[1, 0], rotation[0, 0]))
@@ -486,19 +486,22 @@ def plot_latent_space_evaluation(transformed_data: np.ndarray, dataset_labels: l
         if plot_set_colour.lower() == label.lower():
             alpha = 1.0
             colour_idx[label] = cmap(i)
+            zorder = 3
         elif plot_set_colour.lower() == "all":
             alpha = 0.7
             colour_idx[label] = cmap(i)
+            zorder = 3
         else:
             alpha = 0.5
             colour_idx[label] = "gray"
+            zorder = 1
 
         idxs = np.array(dataset_labels) == label  # Gets index based on original labels, order matches transformed_data
         ds = transformed_data[idxs]
         display_label = f"{' '.join(word.capitalize() for word in label.split('_'))}: {ds[:,0].size} Samples"
 
         # Scatter plot for points
-        dots = ax.scatter(ds[:, 0], ds[:, 1], label=display_label, alpha=alpha, color=colour_idx[label], linewidth=0.5)
+        dots = ax.scatter(ds[:, 0], ds[:, 1], label=display_label, alpha=alpha, color=colour_idx[label], linewidth=0.5, zorder=zorder)
         legend_handles.append(dots)
         legend_labels.append(display_label)
 
@@ -587,7 +590,7 @@ def plot_latent_space_evaluation(transformed_data: np.ndarray, dataset_labels: l
 
     # Plot centre of masses - separate loop so crosses are plotted on top of points
     for label, centre in centres.items():
-        crosses = ax.scatter(centres[label][0], centres[label][1], marker='X', s=150, edgecolors='black', color=colour_idx[label])
+        crosses = ax.scatter(centres[label][0], centres[label][1], marker='X', s=150, edgecolors='black', color=colour_idx[label], zorder=5)
 
     fig.suptitle(title)
     ax.set_xlabel("Component 1")
@@ -668,3 +671,163 @@ def evaluate_latent_vectors(latent_vectors: np.ndarray, dataset_labels: list[str
     # Plot
     plot_latent_space_evaluation(pca_data, dataset_labels, pca_centres, f"PCA Projection{title_suffix}", pca_model=pca, x_ax_min=x_ax_min, y_ax_min=y_ax_min, plot_set_colour=plot_set_colour)
     plot_latent_space_evaluation(umap_data, dataset_labels, umap_centres, f"UMAP Projection{title_suffix}", x_ax_min=x_ax_min, y_ax_min=y_ax_min, plot_set_colour=plot_set_colour)
+
+
+def plot_latent_features(mean_vectors: np.ndarray, var_vectors: np.ndarray, robot_ids: list[int], dataset_labels: list[str], title: str = None, x_ax_min: int = 0, y_ax_min: int = 0, plot_set_colour="all", filename: str = None):
+    unique_labels = sorted(set(dataset_labels))  # Ensures consistent legend and colours
+
+    # Custom colours for dataset colours
+    custom_colours = ['#2ca02c', '#17becf', '#9467bd']  # Green, Blue, Purple
+    # Create colourmap
+    cmap = ListedColormap(custom_colours)  # Dataset ellipse colours
+    # Custom colourmap with 9 distinct colours (that does not contain gray)
+    robot_colors = [
+        "#1f77b4",  # Blue
+        "#ff7f0e",  # Orange
+        "#2ca02c",  # Green
+        "#d62728",  # Red
+        "#9467bd",  # Purple
+        "#8c564b",  # Brown
+        "#e377c2",  # Pink
+        "#bcbd22",  # Yellow
+        "#17becf",  # Light blue
+    ]
+    colour_idx = {}
+
+    fig = plt.figure(figsize=(12, 8), constrained_layout=True)
+    gs = fig.add_gridspec(6, 6)
+    ax = fig.add_subplot(gs[:, :-1])  # Main plot
+    legend_ax = fig.add_subplot(gs[:, -1])  # Legend subplot
+
+    legend_handles = []  # Symbols
+    legend_labels = []  # Text labels
+
+    # Plot points
+    shapely_ellipses = {}
+    for i, label in enumerate(unique_labels):
+        # Set opacity and colour
+        if plot_set_colour.lower() == label.lower():
+            alpha = 1.0
+            colour_idx[label] = cmap(i)
+        elif plot_set_colour.lower() == "all":
+            alpha = 0.7
+            colour_idx[label] = cmap(i)
+        else:
+            alpha = 0.5
+            colour_idx[label] = "gray"
+
+        # For each dataset add a subtitle in legend
+        dummy = ax.scatter([], [], marker='o', s=150, edgecolors='gray', color=colour_idx[label])
+        legend_handles.append(dummy)  # For correct spacing
+        display_lab = f"{' '.join(word.capitalize() for word in label.split('_'))}"
+        legend_labels.append(display_lab)
+
+        idxs = np.array(dataset_labels) == label  # Gets index based on original labels, order matches transformed_data
+
+        # Get dataset vectors and robot IDs
+        ds_mean_vec = mean_vectors[idxs, :][:3]
+        ds_var_vec = var_vectors[idxs, :][:3]
+        ds_ids = np.array(robot_ids)[idxs][:3]
+
+        for j, (mean, var, rob_id) in enumerate(zip(ds_mean_vec, ds_var_vec, ds_ids)):
+            display_label = f"Robot ID: {rob_id}"
+            if colour_idx[label] == "gray":
+                colour = colour_idx[label]  # Set to gray
+                zorder = 1
+            else:
+                colour = robot_colors[(i * 3) + j]  # Select different colour for each robot
+                zorder = 3
+
+            # Scatter plot for points
+            dots = ax.scatter(mean, var, marker="s", label=display_label, alpha=alpha, color=colour, linewidth=0.5, zorder=zorder)
+            legend_handles.append(dots)
+            legend_labels.append(display_label)
+
+        ds_points = np.column_stack((ds_mean_vec.flatten(), ds_var_vec.flatten()))
+
+        # Plot ellipse for dataset
+        centre, radii, rotation = fit_ellipse(ax, ds_points, colour_idx[label], alpha=0.5)
+
+        # Get shapely ellipse for overlaps and compute area, store for overlap calculation later
+        ellipse, area = create_shapely_ellipse(centre, radii, rotation)
+        shapely_ellipses[label] = {
+            "colour": colour_idx[label],
+            "area": area,
+            "ellipse": ellipse
+        }
+
+    # Add ellipse areas to legend
+    dummy, = ax.plot([], [], ' ')
+    legend_handles.append(dummy)  # For correct spacing
+    legend_labels.append("\nEllipse Areas:")
+    keys = list(shapely_ellipses.keys())
+    for i in range(len(keys)):
+        label_a = keys[i]
+        area = shapely_ellipses[label_a]['area']
+
+        legend_handles.append(
+            ax.scatter([], [], marker='o', s=150, edgecolors='gray', color=colour_idx[label_a]))  # Symbols
+
+        # Add area as label
+        area = f"{area:.2f}"
+        legend_labels.append(area)
+
+    # Add ellipse overlap areas to legend
+    dummy, = ax.plot([], [], ' ')
+    legend_handles.append(dummy)  # For correct spacing
+    legend_labels.append("\nEllipse Overlap Areas:")
+    keys = list(shapely_ellipses.keys())
+    for i in range(len(keys)):
+        for j in range(i + 1, len(keys)):  # Only consider higher indices as don't need both directions
+            label_a = keys[i]
+            label_b = keys[j]
+            overlap_area = compute_ellipse_overlap(shapely_ellipses[label_a]['ellipse'],
+                                                   shapely_ellipses[label_b]['ellipse'])
+
+            small_area = min(shapely_ellipses[label_a]['area'], shapely_ellipses[label_b]['area'])
+            percent = (overlap_area / small_area) * 100
+
+            # Create a dummy ax for symbols
+            a_legend_key = ax.scatter([], [], marker='o', s=150, edgecolors='gray', color=colour_idx[label_a])
+            arrow_key = ax.scatter([], [], marker=r"$\rightarrow$", color='gray')
+            b_legend_key = ax.scatter([], [], marker='o', s=150, edgecolors='gray', color=colour_idx[label_b])
+
+            legend_handles.append((a_legend_key, arrow_key, b_legend_key))  # Symbols
+
+            # Add area as label
+            overlap_area = f"{overlap_area:.2f}"
+            legend_labels.append(f"{overlap_area} ({percent:.2f}%)")
+
+    title = f"Latent Features - {title}"
+    fig.suptitle(title)
+    ax.set_xlabel("Mean Features")
+    ax.set_ylabel("Log Variance Features")
+
+    # Make axes symmetric around 0
+    x_min, x_max = ax.get_xlim()
+    y_min, y_max = ax.get_ylim()
+    new_x_limit = max(abs(x_min), abs(x_max), x_ax_min)
+    new_y_limit = max(abs(y_min), abs(y_max), y_ax_min)
+    ax.set_xlim(-new_x_limit, new_x_limit)
+    ax.set_ylim(-new_y_limit, new_y_limit)
+
+    ax.axhline(0, alpha=0.3)  # Add grid line at y=0
+    ax.axvline(0, alpha=0.3)  # Add grid line at x=0
+
+    # Add legend to subplot
+    legend_ax.axis('off')
+    legend_ax.legend(handles=legend_handles, labels=legend_labels, handler_map={tuple: HandlerTuple(ndivide=None)})
+
+    # Save plot
+    if filename is None:
+        filename = title.lower().replace(" ", "_").replace("_-_", "-").replace(":", "")
+    filepath = Path(PLOT_DIR) / f"{filename}.png"
+    if not filepath.parent.exists():
+        print(f"Creating directory '{filepath.parent}'...")
+        filepath.parent.mkdir(parents=True, exist_ok=True)
+    fig.savefig(filepath)
+    print(f"Plot saved to '{filepath.name}'")
+
+    if PLOT:
+        plt.show()
+    plt.close(fig)

@@ -67,6 +67,7 @@ def run():
         model.eval()
 
         mean_latents = []
+        log_var_latents = []
         ds_labels = []
         ids = []
         loaders = {}
@@ -81,17 +82,19 @@ def run():
             with torch.no_grad():
                 for robot_ids, data in loader:
                     data = data.to(config.DEVICE)
-                    z_mean = model.encoder(data)[0]  # Forward pass (batch, latent_dim)
+                    z_mean, log_var, _ = model.encoder(data)  # Forward pass (batch, latent_dim)
                     mean_latents.append(z_mean.cpu())
+                    log_var_latents.append(log_var.cpu())
 
                     ds_labels.extend([ds_name] * len(data))
                     ids.extend(robot_ids.numpy())
 
         # Concatenate to a single tensor
-        all_latents = torch.cat(mean_latents, dim=0)  # (total_ds_samples, latent_dim)
+        all_mean_latents = torch.cat(mean_latents, dim=0)  # (total_ds_samples, latent_dim)
+        all_var_latents = torch.cat(log_var_latents, dim=0)
 
         # Convert to DataFrame for filtering
-        df = pd.DataFrame({"robot_id": ids, "dataset": ds_labels, "mean_latent": list(all_latents.numpy())})
+        df = pd.DataFrame({"robot_id": ids, "dataset": ds_labels, "mean_latent": list(all_mean_latents.numpy()), "var_latent": list(all_var_latents.numpy())})
         print(f"Dataset samples:\n{df.groupby('dataset').size()}\n")
 
         # Collect the same number of samples per dataset for all categories
@@ -115,19 +118,40 @@ def run():
         # Extract and convert collected columns
         component_ids = component_df["robot_id"].tolist()
         component_labels = component_df["dataset"].tolist()
-        component_latents = np.stack(component_df["mean_latent"])
+        component_mean_latents = np.stack(component_df["mean_latent"])
+        component_var_latents = np.stack(component_df["var_latent"])
         spatial_ids = spatial_df["robot_id"].tolist()
         spatial_labels = spatial_df["dataset"].tolist()
-        spatial_latents = np.stack(spatial_df["mean_latent"])
+        spatial_mean_latents = np.stack(spatial_df["mean_latent"])
+        spatial_var_latents = np.stack(spatial_df["var_latent"])
 
-        evaluate_latent_vectors(component_latents, component_labels, title=f"Component Based: {beta_used}")
-        evaluate_latent_vectors(spatial_latents, spatial_labels, title=f"Spatial Based: {beta_used}")
-        evaluate_latent_vectors(component_latents, component_labels, title=f"Component Based (Dominance): {beta_used}", plot_set_colour="component_dominance")
-        evaluate_latent_vectors(spatial_latents, spatial_labels, title=f"Spatial Based (Compact): {beta_used}", plot_set_colour="spatial_compact")
-        evaluate_latent_vectors(component_latents, component_labels, title=f"Component Based (Moderate): {beta_used}", plot_set_colour="component_moderate_dominance")
-        evaluate_latent_vectors(spatial_latents, spatial_labels, title=f"Spatial Based (Moderate): {beta_used}", plot_set_colour="spatial_moderately_spread")
-        evaluate_latent_vectors(component_latents, component_labels, title=f"Component Based (Variety): {beta_used}", plot_set_colour="component_variety")
-        evaluate_latent_vectors(spatial_latents, spatial_labels, title=f"Spatial Based (Dispersed): {beta_used}", plot_set_colour="spatial_spread_dispersed")
+        # Plot using PCA and UMAP
+        evaluate_latent_vectors(component_mean_latents, component_labels, title=f"Component Based: {beta_used}")
+        evaluate_latent_vectors(spatial_mean_latents, spatial_labels, title=f"Spatial Based: {beta_used}")
+        evaluate_latent_vectors(component_mean_latents, component_labels, title=f"Component Based (Dominance): {beta_used}", plot_set_colour="component_dominance")
+        evaluate_latent_vectors(spatial_mean_latents, spatial_labels, title=f"Spatial Based (Compact): {beta_used}", plot_set_colour="spatial_compact")
+        evaluate_latent_vectors(component_mean_latents, component_labels, title=f"Component Based (Moderate): {beta_used}", plot_set_colour="component_moderate_dominance")
+        evaluate_latent_vectors(spatial_mean_latents, spatial_labels, title=f"Spatial Based (Moderate): {beta_used}", plot_set_colour="spatial_moderately_spread")
+        evaluate_latent_vectors(component_mean_latents, component_labels, title=f"Component Based (Variety): {beta_used}", plot_set_colour="component_variety")
+        evaluate_latent_vectors(spatial_mean_latents, spatial_labels, title=f"Spatial Based (Dispersed): {beta_used}", plot_set_colour="spatial_spread_dispersed")
+
+        # Plot features against each other using 3 robots from each dataset
+        plot_latent_features(component_mean_latents, component_var_latents, component_ids, component_labels, title=f"Component Based: {beta_used}")
+        plot_latent_features(spatial_mean_latents, spatial_var_latents, spatial_ids, spatial_labels, title=f"Spatial Based: {beta_used}")
+        plot_latent_features(component_mean_latents, component_var_latents, component_ids, component_labels, title=f"Component Based (Dominance): {beta_used}", plot_set_colour="component_dominance")
+        plot_latent_features(spatial_mean_latents, spatial_var_latents, spatial_ids, spatial_labels, title=f"Spatial Based (Compact): {beta_used}", plot_set_colour="spatial_compact")
+        plot_latent_features(component_mean_latents, component_var_latents, component_ids, component_labels, title=f"Component Based (Moderate): {beta_used}", plot_set_colour="component_moderate_dominance")
+        plot_latent_features(spatial_mean_latents, spatial_var_latents, spatial_ids, spatial_labels, title=f"Spatial Based (Moderate): {beta_used}", plot_set_colour="spatial_moderately_spread")
+        plot_latent_features(component_mean_latents, component_var_latents, component_ids, component_labels, title=f"Component Based (Variety): {beta_used}", plot_set_colour="component_variety")
+        plot_latent_features(spatial_mean_latents, spatial_var_latents, spatial_ids, spatial_labels, title=f"Spatial Based (Dispersed): {beta_used}", plot_set_colour="spatial_spread_dispersed")
+
+        # Full datasets
+        _, _, test_data = load_processed_datasets(config.PROCESSED_DIR, "train", "val", "test")
+        ds = VoxelDataset(test_data, max_voxels=config.MAX_VOXELS)
+        test_loader = DataLoader(ds, batch_size=config.BATCH_SIZE, shuffle=True)
+        for feat_id in [45380, 180309, 135986, 148926, 222800, 153002, 180373, 83552, 192293,  # Component robots
+                        152276, 220283, 29371, 267449, 181193, 128558, 174022, 265476, 98156]:  # Spatial robots
+            compare_reconstructed(model, test_loader, num_sample=1, filename=f"featured_robot_{beta_used.lower().replace(' ', '_')}", by_id=feat_id)
 
         # Visualise samples robots from each dataset
         for i, (title, df) in enumerate(eval_df_dict.items()):  # Iterate each loaded dataset
