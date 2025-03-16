@@ -222,7 +222,7 @@ def summarise_dataset(dataset: pd.DataFrame):
     print(f"Unique Rows: {unique_rows} ({unique_rows / num_rows * 100:.2f})%\n")
 
 
-def split_evaluation_sets(df: pd.DataFrame, compact_threshold: float = 0.3, dispersed_threshold: float = 0.5) -> list[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+def split_evaluation_sets(df: pd.DataFrame, compact_threshold: float = 0.2, moderate_low_threshold: float = 0.4, moderate_high_threshold: float = 0.5, dispersed_threshold: float = 1.0) -> list[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame]:
     """
     Subsets dataframe into 3x component based dataframes, and 3x spatial based dataframes.
     Samples in component_dominance dataset can contain more than 1 component if one is heavily dominant.
@@ -263,14 +263,14 @@ def split_evaluation_sets(df: pd.DataFrame, compact_threshold: float = 0.3, disp
         counts = descriptors.bincount()
         probs = counts / counts.sum()
 
-        if (probs > 0.7).any():
-            # Single type majority (can contain more than a single component if one heavily dominates)
+        if (probs == 1.0).any():
+            # Single type majority
             component_dominance.append(i)
-        elif (probs >= 0.5).any():
-            # 50-70% dominance (captures 2 component type samples)
+        elif (probs > 0.55).any() and (probs < 0.65).any():
+            # 55-65% dominance
             component_moderate_dominance.append(i)
-        elif (probs < 0.5).all():
-            # None dominating 50% or more
+        elif (probs < 0.38).all():
+            # None dominating 38% or more
             component_variety.append(i)
         else:
             # Informs about cases not considered
@@ -302,12 +302,19 @@ def split_evaluation_sets(df: pd.DataFrame, compact_threshold: float = 0.3, disp
         if spatial_score < compact_threshold:
             # Clustered and spatial_compact
             spatial_compact.append(i)
-        elif spatial_score <= dispersed_threshold:
+            print(f"compact: {spatial_score}")
+        elif moderate_low_threshold < spatial_score <= moderate_high_threshold:
             # Moderate distance and compactness
             spatial_moderately_spread.append(i)
-        else:
+            print(f"moderate: {spatial_score}")
+        # else:
+        elif dispersed_threshold < spatial_score:
             # Dispersed and spread out
             spatial_spread_dispersed.append(i)
+            print(f"spread: {spatial_score}")
+        else:
+            # Informs about cases not considered
+            print(f"Does not fall into any spatial based category. Spatial score: {spatial_score}")
 
     subset_dfs = []  # 3x component based, 3x spatial based
     for ds in [component_dominance, component_moderate_dominance, component_variety, spatial_compact, spatial_moderately_spread, spatial_spread_dispersed]:

@@ -23,8 +23,8 @@ def run():
     use_toy_set = False  # Use 20% of full dataset or full dataset, does not use test set
     testing = False  # 128 samples for train and val sets for quick run testing
     evaluate = True  # For evaluating
-    evaluate_model_path = config.MODELS_DIR / "beta_run_500_be0.1_140325" / "best_loss_epoch_67.pth"
-    beta_used = "Beta 0.1"
+    evaluate_model_path = config.MODELS_DIR / "beta_run_500_be2.0_160325" / "best_loss_epoch_155.pth"
+    beta_used = "Beta 2.0"  # For evaluation filename and titles
 
     if combine_and_save:
         # Combine all CSV files and clean
@@ -144,7 +144,7 @@ def run():
                 visualised += 1
                 # visualise_robot(sample, title=title.capitalize(), filename=f"{title}_{visualised}")  # Visualise from grid
                 compare_reconstructed(model, loaders[title], num_sample=1, filename=f"comparison_{title}_{beta_used.lower().replace(' ', '_')}", by_id=sample_id)  # Comparison reconstruction based on id
-                if visualised >= 4:
+                if visualised >= 10:
                     break
         exit(0)
 

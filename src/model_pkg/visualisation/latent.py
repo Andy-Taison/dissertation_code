@@ -340,7 +340,7 @@ def getMinVolEllipse(points: np.ndarray, tolerance: float = 0.01) -> tuple[np.nd
     :return: Centre of ellipse, radii, rotation
     """
     (N, d) = np.shape(points)
-    d = float(d)
+    d = float(d)  # Features
 
     # Q is working array
     Q: np.ndarray = np.vstack([points.T, np.ones(N)])
@@ -646,8 +646,11 @@ def evaluate_latent_vectors(latent_vectors: np.ndarray, dataset_labels: list[str
     norm_latents, _ = normalise_latent(latent_vectors)
 
     # Apply PCA
-    # Global
-    pca, pca_data = train_pca(norm_latents)
+    if np.all(norm_latents == 0):
+        print(f"Normalised vector contains all zeros! PCA and UMAP plotting not possible for {title}.")
+        return
+    else:
+        pca, pca_data = train_pca(norm_latents)
 
     # Apply UMAP
     # Global
