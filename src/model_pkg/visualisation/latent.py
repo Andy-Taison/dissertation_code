@@ -729,6 +729,7 @@ def plot_latent_features(mean_vectors: np.ndarray, var_vectors: np.ndarray, robo
         ds_var_vec = var_vectors[idxs, :][:3]
         ds_ids = np.array(robot_ids)[idxs][:3]
 
+        # Plot each robot sample points
         for j, (mean, var, rob_id) in enumerate(zip(ds_mean_vec, ds_var_vec, ds_ids)):
             display_label = f"Robot ID: {rob_id}"
             if colour_idx[label] == "gray":

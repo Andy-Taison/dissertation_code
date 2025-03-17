@@ -18,7 +18,7 @@ import numpy as np
 def run():
     print("Starting VAE pipeline...\n")
 
-    model_name = "softmax_beta_run_500"
+    model_name = "beta_run_500"
     combine_and_save = False  # When false, will load processed files
     use_toy_set = False  # Use 20% of full dataset or full dataset, does not use test set
     testing = False  # 128 samples for train and val sets for quick run testing
