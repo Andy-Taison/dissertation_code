@@ -23,8 +23,8 @@ def run():
     use_toy_set = False  # Use 20% of full dataset or full dataset, does not use test set
     testing = False  # 128 samples for train and val sets for quick run testing
     evaluate = True  # For evaluating
-    evaluate_model_path = config.MODELS_DIR / "beta_run_500_be2.0_160325" / "best_loss_epoch_155.pth"
-    beta_used = "Beta 2.0"  # For evaluation filename and titles
+    evaluate_model_path = config.MODELS_DIR / "beta_run_500_be0.1_140325" / "best_loss_epoch_67.pth"
+    beta_used = "Beta 0.1"  # For evaluation filename and titles
 
     if combine_and_save:
         # Combine all CSV files and clean

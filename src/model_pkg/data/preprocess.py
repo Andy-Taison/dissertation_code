@@ -287,7 +287,7 @@ def split_evaluation_sets(df: pd.DataFrame, compact_threshold: float = 0.2, mode
 
         # Calculate mean distance to the centroid
         centroid = idxs.float().mean(dim=0)
-        mean_dist = torch.norm(idxs - centroid, dim=1).mean()
+        mean_dist = torch.linalg.vector_norm(idxs - centroid, dim=1).mean()
 
         # Calculate maximums for normalising
         max_vol = EXPANDED_GRID_SIZE**3  # Volume of the grid space, for (11,11,11) = 1331
@@ -303,7 +303,7 @@ def split_evaluation_sets(df: pd.DataFrame, compact_threshold: float = 0.2, mode
             # Clustered and spatial_compact
             spatial_compact.append(i)
             print(f"compact: {spatial_score}")
-        elif moderate_low_threshold < spatial_score <= moderate_high_threshold:
+        elif moderate_low_threshold < spatial_score < moderate_high_threshold:
             # Moderate distance and compactness
             spatial_moderately_spread.append(i)
             print(f"moderate: {spatial_score}")
