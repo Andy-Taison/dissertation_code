@@ -7,7 +7,7 @@ from .data.preprocess import combine_csv_files, split_data, save_datasets, summa
 from .data.dataset import VoxelDataset, sparse_to_dense
 from .visualisation.robot import load_grid_from_file, visualise_robot, compare_reconstructed
 from .visualisation.plots import plot_metrics_vs_epochs, plot_loss_tradeoffs, generate_plots
-from .visualisation.latent import analyse_latent_space, evaluate_latent_vectors, plot_latent_features
+from .visualisation.latent import analyse_latent_space, evaluate_latent_vectors, plot_latent_features, plot_feature_heatmap
 from .model.model import VAE
 from .metrics.losses import VaeLoss
 from .model.train_test import train_val, test
@@ -36,6 +36,7 @@ __all__ = ["config",
            "analyse_latent_space",
            "evaluate_latent_vectors",
            "plot_latent_features",
+           "plot_feature_heatmap",
            "VAE",
            "VaeLoss",
            "train_val",

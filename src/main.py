@@ -23,8 +23,8 @@ def run():
     use_toy_set = False  # Use 20% of full dataset or full dataset, does not use test set
     testing = False  # 128 samples for train and val sets for quick run testing
     evaluate = True  # For evaluating
-    evaluate_model_path = config.MODELS_DIR / "beta_run_500_be0.1_140325" / "best_loss_epoch_67.pth"
-    beta_used = "Beta 0.1"  # For evaluation filename and titles
+    evaluate_model_path = config.MODELS_DIR / "beta_run_500_be0.3_160325" / "best_loss_epoch_121.pth"
+    beta_used = "Beta 0.3"  # For evaluation filename and titles
 
     if combine_and_save:
         # Combine all CSV files and clean
@@ -125,7 +125,21 @@ def run():
         spatial_mean_latents = np.stack(spatial_df["mean_latent"])
         spatial_var_latents = np.stack(spatial_df["var_latent"])
 
+        comp_featured = [199993, 72764, 23732, 123338, 235745, 176868, 171434, 152518, 212129, 4213, 42502, 190757, 10332, 65626, 192293, 230604, 112648, 47325, 233030, 217610, 88901, 152089, 220102, 57830, 252961]  # Component robot ids
+        spatial_featured = [214524, 161671, 50115, 214744, 31951, 18577, 132205, 78346, 263742, 46534, 81618, 188259, 23732, 134797, 196955, 174022, 135487, 3457, 139697, 120279, 87338]  # Spatial robots ids
+
+        comp_featured_idxs = [component_ids.index(rob_id) for rob_id in comp_featured]
+        spatial_featured_idxs = [spatial_ids.index(rob_id) for rob_id in spatial_featured]
+
+        # comp_featured_idxs = list(range(len(component_ids)))
+        # spatial_featured_idxs = list(range(len(spatial_ids)))
+        # print(f"ids comp: {np.array(component_ids)[comp_featured_idxs]}")
+        # print(f"ids spat: {np.array(spatial_ids)[spatial_featured_idxs]}")
+
         # Plot using PCA and UMAP
+        evaluate_latent_vectors(component_mean_latents, component_labels, title=f"Component Based: {beta_used}", plot_idx=comp_featured_idxs, robot_ids=component_ids, annotate=False)
+        # evaluate_latent_vectors(spatial_mean_latents, spatial_labels, title=f"Spatial Based: {beta_used}", plot_idx=spatial_featured_idxs, robot_ids=spatial_ids, annotate=False)
+
         evaluate_latent_vectors(component_mean_latents, component_labels, title=f"Component Based: {beta_used}")
         evaluate_latent_vectors(spatial_mean_latents, spatial_labels, title=f"Spatial Based: {beta_used}")
         evaluate_latent_vectors(component_mean_latents, component_labels, title=f"Component Based (Dominance): {beta_used}", plot_set_colour="component_dominance")
@@ -134,7 +148,7 @@ def run():
         evaluate_latent_vectors(spatial_mean_latents, spatial_labels, title=f"Spatial Based (Moderate): {beta_used}", plot_set_colour="spatial_moderately_spread")
         evaluate_latent_vectors(component_mean_latents, component_labels, title=f"Component Based (Variety): {beta_used}", plot_set_colour="component_variety")
         evaluate_latent_vectors(spatial_mean_latents, spatial_labels, title=f"Spatial Based (Dispersed): {beta_used}", plot_set_colour="spatial_spread_dispersed")
-
+        
         # Plot features against each other using 3 robots from each dataset
         plot_latent_features(component_mean_latents, component_var_latents, component_ids, component_labels, title=f"Component Based: {beta_used}")
         plot_latent_features(spatial_mean_latents, spatial_var_latents, spatial_ids, spatial_labels, title=f"Spatial Based: {beta_used}")
@@ -144,13 +158,18 @@ def run():
         plot_latent_features(spatial_mean_latents, spatial_var_latents, spatial_ids, spatial_labels, title=f"Spatial Based (Moderate): {beta_used}", plot_set_colour="spatial_moderately_spread")
         plot_latent_features(component_mean_latents, component_var_latents, component_ids, component_labels, title=f"Component Based (Variety): {beta_used}", plot_set_colour="component_variety")
         plot_latent_features(spatial_mean_latents, spatial_var_latents, spatial_ids, spatial_labels, title=f"Spatial Based (Dispersed): {beta_used}", plot_set_colour="spatial_spread_dispersed")
+        
+        # Plot features against each other using 3 robots from each dataset - Does not work properly.
+        # Probably would be better if colour scale could be in log scale to make the changes (mid frequency values) easier to see. Also needs formatting.
+        # plot_feature_heatmap(component_mean_latents, component_var_latents, component_labels, title=f"Component Based Latent Feature Comparison Heatmaps: {beta_used}")
+        # plot_feature_heatmap(spatial_mean_latents, spatial_var_latents, spatial_labels, title=f"Spatial Based Latent Feature Comparison Heatmaps: {beta_used}")
 
         # Full datasets
         _, _, test_data = load_processed_datasets(config.PROCESSED_DIR, "train", "val", "test")
         ds = VoxelDataset(test_data, max_voxels=config.MAX_VOXELS)
         test_loader = DataLoader(ds, batch_size=config.BATCH_SIZE, shuffle=True)
-        for feat_id in [45380, 180309, 135986, 148926, 222800, 153002, 180373, 83552, 192293,  # Component robots
-                        152276, 220283, 29371, 267449, 181193, 128558, 174022, 265476, 98156]:  # Spatial robots
+        for feat_id in comp_featured + spatial_featured:  # Spatial robots
+            print(f"feat:{feat_id}")
             compare_reconstructed(model, test_loader, num_sample=1, filename=f"featured_robot_{beta_used.lower().replace(' ', '_')}", by_id=feat_id)
 
         # Visualise samples robots from each dataset
@@ -170,6 +189,7 @@ def run():
                 compare_reconstructed(model, loaders[title], num_sample=1, filename=f"comparison_{title}_{beta_used.lower().replace(' ', '_')}", by_id=sample_id)  # Comparison reconstruction based on id
                 if visualised >= 10:
                     break
+
         exit(0)
 
     # Load processed data

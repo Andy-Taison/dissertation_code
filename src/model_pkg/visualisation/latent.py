@@ -11,7 +11,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 from matplotlib.legend_handler import HandlerTuple
-from matplotlib.colors import ListedColormap
+from matplotlib.colors import ListedColormap, LinearSegmentedColormap
+from functools import partial
 import shapely
 from shapely.geometry import Point
 from shapely.affinity import scale, rotate
@@ -430,28 +431,6 @@ def fit_ellipse(ax: plt.Axes, data_points: np.ndarray, colour, alpha) -> tuple[n
     return centre, radii, rotation_angle
 
 
-def create_shapely_ellipse(centre: np.ndarray, radii: np.ndarray, angle: np.float64) -> tuple[shapely.geometry.polygon.Polygon, float]:
-    """
-    Create a Shapely ellipse.
-    For geometric calculations (overlap area).
-
-    :param centre: Ellipse centre coordinates
-    :param radii: Major and minor axes lengths
-    :param angle: Angle in degrees
-    :return: Shapely ellipse, area
-    """
-    # Circle with radius 1 around centre
-    ellipse = Point(centre).buffer(1.0)
-
-    # Scale along x and y
-    ellipse = scale(ellipse, radii[0], radii[1])
-
-    # Rotate clockwise to correct position. Shapely by default rotates counterclockwise
-    ellipse = rotate(ellipse, -angle)
-
-    return ellipse, ellipse.area
-
-
 def compute_ellipse_overlap(ellipse1: shapely.geometry.polygon.Polygon, ellipse2: shapely.geometry.polygon.Polygon):
     """
     Compute the overlap area between two ellipses using Shapely.
@@ -462,7 +441,16 @@ def compute_ellipse_overlap(ellipse1: shapely.geometry.polygon.Polygon, ellipse2
     return intersection.area
 
 
-def plot_latent_space_evaluation(transformed_data: np.ndarray, dataset_labels: list[str], centres: dict[str, np.ndarray], title: str, pca_model=None, filename: str = None, x_ax_min: int = 0, y_ax_min: int = 0, plot_set_colour: str = "all"):
+def on_click(event, coordinates, labels):
+    if event.inaxes:
+        # Find nearest point
+        distances = [(x - event.xdata) ** 2 + (y - event.ydata) ** 2 for x, y in coordinates]
+        min_index = distances.index(min(distances))
+        print(f"Robot ID: {labels[min_index]} at {coordinates[min_index]}")
+        return
+
+
+def plot_latent_space_evaluation(transformed_data: np.ndarray, dataset_labels: list[str], centres: dict[str, np.ndarray], title: str, pca_model=None, filename: str = None, x_ax_min: int = 0, y_ax_min: int = 0, plot_set_colour: str = "all", plot_idxs: list = None, all_robot_ids: list = None, annotate: bool = True):
     unique_labels = sorted(set(dataset_labels))  # Ensures consistent legend and colours
 
     # Custom colours
@@ -501,9 +489,22 @@ def plot_latent_space_evaluation(transformed_data: np.ndarray, dataset_labels: l
         display_label = f"{' '.join(word.capitalize() for word in label.split('_'))}: {ds[:,0].size} Samples"
 
         # Scatter plot for points
-        dots = ax.scatter(ds[:, 0], ds[:, 1], label=display_label, alpha=alpha, color=colour_idx[label], linewidth=0.5, zorder=zorder)
+        if plot_idxs is not None:
+            idxs = [i for i in plot_idxs if idxs[i]]
+            subset = transformed_data[idxs]
+            x = subset[:, 0]
+            y = subset[:, 1]
+            dots = ax.scatter(x, y, label=display_label, alpha=alpha, color=colour_idx[label], linewidth=0.5, zorder=zorder)
+        else:
+            x = ds[:, 0]
+            y = ds[:, 1]
+            dots = ax.scatter(x, y, label=display_label, alpha=alpha, color=colour_idx[label], linewidth=0.5, zorder=zorder)
         legend_handles.append(dots)
         legend_labels.append(display_label)
+
+        if annotate:
+            dots.set_edgecolor("black")
+            dots.set_linewidth(1)
 
         # Plot ellipse
         centre, radii, rotation = fit_ellipse(ax, ds, colour_idx[label], alpha)
@@ -590,7 +591,32 @@ def plot_latent_space_evaluation(transformed_data: np.ndarray, dataset_labels: l
 
     # Plot centre of masses - separate loop so crosses are plotted on top of points
     for label, centre in centres.items():
-        crosses = ax.scatter(centres[label][0], centres[label][1], marker='X', s=150, edgecolors='black', color=colour_idx[label], zorder=5)
+        zorder = 0 if annotate else 5
+        alpha = 0.3 if annotate else 1
+        alpha = 0.3
+        crosses = ax.scatter(centres[label][0], centres[label][1], alpha=alpha, marker='X', s=150, edgecolors='black', color=colour_idx[label], zorder=zorder)
+
+    # Obtain robot IDs for annotating and identifying points on click
+    if all_robot_ids is not None:
+        plotted_coor = []
+        plotted_ids = []
+        # Collect plotted coordinates and IDs, add text to plot
+        for plotted_idx in plot_idxs:
+            coor = transformed_data[plotted_idx]
+            rob_id = all_robot_ids[plotted_idx]
+            # Label points
+            if annotate:
+                lower_labels = [42502, 252961]
+                right_labels = [112648]
+                vertical = 'bottom' if rob_id not in lower_labels else 'top'  # Bottom is above, top is below
+                horizontal = 'right' if rob_id not in right_labels else 'left'  # Right is left, left is right
+                ax.text(coor[0], coor[1], rob_id, fontsize=12, verticalalignment=vertical, horizontalalignment=horizontal, zorder=5)
+
+            # Track plotted for annotating
+            plotted_coor.append(coor)
+            plotted_ids.append(rob_id)
+        callback = partial(on_click, coordinates=plotted_coor, labels=plotted_ids)
+        fig.canvas.mpl_connect("button_press_event", callback)
 
     fig.suptitle(title)
     ax.set_xlabel("Component 1")
@@ -644,7 +670,29 @@ def compute_centres(latent_2d_vectors: np.ndarray, dataset_labels: list[str]) ->
     return centres
 
 
-def evaluate_latent_vectors(latent_vectors: np.ndarray, dataset_labels: list[str], title: str = None, x_ax_min: int = 0, y_ax_min: int = 0, plot_set_colour="all"):
+def create_shapely_ellipse(centre: np.ndarray, radii: np.ndarray, angle: np.float64) -> tuple[shapely.geometry.polygon.Polygon, float]:
+    """
+    Create a Shapely ellipse.
+    For geometric calculations (overlap area).
+
+    :param centre: Ellipse centre coordinates
+    :param radii: Major and minor axes lengths
+    :param angle: Angle in degrees
+    :return: Shapely ellipse, area
+    """
+    # Circle with radius 1 around centre
+    ellipse = Point(centre).buffer(1.0)
+
+    # Scale along x and y
+    ellipse = scale(ellipse, radii[0], radii[1])
+
+    # Rotate clockwise to correct position. Shapely by default rotates counterclockwise
+    ellipse = rotate(ellipse, -angle)
+
+    return ellipse, ellipse.area
+
+
+def evaluate_latent_vectors(latent_vectors: np.ndarray, dataset_labels: list[str], robot_ids: list = None, title: str = None, x_ax_min: int = 0, y_ax_min: int = 0, plot_set_colour="all", plot_idx: list = None, annotate: bool = False):
     # Normalise
     norm_latents, _ = normalise_latent(latent_vectors)
 
@@ -659,6 +707,16 @@ def evaluate_latent_vectors(latent_vectors: np.ndarray, dataset_labels: list[str
     # Global
     _, umap_data = train_umap(norm_latents)
 
+    # pca_grean = np.where((pca_data[:, 0] < -3.5) & (pca_data[:, 1] > 2.0))[0]  # decrease x until found
+    # print(f"\npca_green: {pca_grean}")
+    # pca_blue = np.where((pca_data[:, 1] < -3.8))[0]  # decrease until found
+    # print(f"\npca_blue: {pca_blue}")
+    # umap_green = np.where((umap_data[:, 0] > 5.5) & (umap_data[:, 1] > 8.5))[0]
+    # print(f"\numap green: {umap_green}")
+    # umap_blue = np.where((umap_data[:, 0] > 5.0) & (umap_data[:, 1] < 2.5))[0]
+    # print(f"\numap_blue: {umap_blue}")
+    # return pca_green, umap_grean
+    # exit()
     # Compute centres of mass
     pca_centres = compute_centres(pca_data, dataset_labels)
     umap_centres = compute_centres(umap_data, dataset_labels)
@@ -669,8 +727,8 @@ def evaluate_latent_vectors(latent_vectors: np.ndarray, dataset_labels: list[str
         title_suffix = f" - {title}"
 
     # Plot
-    plot_latent_space_evaluation(pca_data, dataset_labels, pca_centres, f"PCA Projection{title_suffix}", pca_model=pca, x_ax_min=x_ax_min, y_ax_min=y_ax_min, plot_set_colour=plot_set_colour)
-    plot_latent_space_evaluation(umap_data, dataset_labels, umap_centres, f"UMAP Projection{title_suffix}", x_ax_min=x_ax_min, y_ax_min=y_ax_min, plot_set_colour=plot_set_colour)
+    plot_latent_space_evaluation(pca_data, dataset_labels, pca_centres, f"PCA Projection{title_suffix}", pca_model=pca, x_ax_min=x_ax_min, y_ax_min=y_ax_min, plot_set_colour=plot_set_colour, plot_idxs=plot_idx, all_robot_ids=robot_ids, annotate=annotate)
+    plot_latent_space_evaluation(umap_data, dataset_labels, umap_centres, f"UMAP Projection{title_suffix}", x_ax_min=x_ax_min, y_ax_min=y_ax_min, plot_set_colour=plot_set_colour, plot_idxs=plot_idx, all_robot_ids=robot_ids, annotate=annotate)
 
 
 def plot_latent_features(mean_vectors: np.ndarray, var_vectors: np.ndarray, robot_ids: list[int], dataset_labels: list[str], title: str = None, x_ax_min: int = 0, y_ax_min: int = 0, plot_set_colour="all", filename: str = None):
@@ -831,4 +889,116 @@ def plot_latent_features(mean_vectors: np.ndarray, var_vectors: np.ndarray, robo
 
     if PLOT:
         plt.show()
+    plt.close(fig)
+
+
+def plot_feature_heatmap(mean_vectors: np.ndarray, var_vectors: np.ndarray, dataset_labels: list[str],
+                         title: str = None, filename: str = None, latent_dim=16):
+    unique_labels = sorted(set(dataset_labels))  # Ensures consistent dataset order
+
+    mean_data_sets = {}  # X-axis (Mean Features)
+    var_data_sets = {}   # Y-axis (Log Variance Features)
+
+    vec_mins, vec_maxs = [], []
+
+    # Collect data for each dataset
+    for label in unique_labels:
+        idxs = np.array(dataset_labels) == label  # Find matching dataset samples
+        mean_data_sets[label] = mean_vectors[idxs, :]
+        var_data_sets[label] = var_vectors[idxs, :]
+
+        vec_mins.append(np.min(mean_data_sets[label]))
+        vec_maxs.append(np.max(mean_data_sets[label]))
+        vec_mins.append(np.min(var_data_sets[label]))
+        vec_maxs.append(np.max(var_data_sets[label]))
+
+    # Global min and max for consistent y-axes
+    y_global_min, y_global_max = min(vec_mins), max(vec_maxs)
+
+    # Set number of bins for y-axes
+    y_bin_width = 0.1
+    num_bins = int(np.ceil((y_global_max - y_global_min)/y_bin_width) + (2 / y_bin_width))  # Add buffer
+
+    # Create figure and subplots
+    fig = plt.figure(figsize=(12, 8), constrained_layout=True)
+    gs = fig.add_gridspec(4, len(unique_labels) * 2 + 1)
+
+    processed_ds = {}
+    all_counts = []
+
+    # Find global min/max counts for shared colourbar, and prep data for plotting
+    for col_idx, label in enumerate(unique_labels):
+        # Set x-axis values and repeat for number of samples
+        x_single_sample = np.array(range(latent_dim))
+        x = np.tile(x_single_sample, len(mean_data_sets[label]))
+
+        # Flatten datasets [y1_1..y1_latent, y2_1..y2_latent..., yn_1..yn_latent]
+        mean_ds_flat = (mean_data_sets[label]).flatten()
+        var_ds_flat = (var_data_sets[label]).flatten()
+
+        # Store processed datasets
+        processed_ds[label] = {
+            'mean_ds': mean_ds_flat,
+            'var_ds': var_ds_flat,
+            'x': x
+        }
+
+        # Compute histogram without plotting
+        hist_mean, _, _ = np.histogram2d(x, mean_ds_flat, bins=[latent_dim, num_bins], range=[[-1, latent_dim + 1], [y_global_min - 1, y_global_max + 1]])  # Range sets axes min and max
+        hist_var, _, _ = np.histogram2d(x, var_ds_flat, bins=[latent_dim, num_bins], range=[[-1, latent_dim + 1], [y_global_min - 1, y_global_max + 1]])
+
+        # Store histogram counts
+        all_counts.append(hist_mean)
+        all_counts.append(hist_var)
+
+    # Find global max for consistent color scale
+    max_count = np.max(all_counts)
+
+    colourbar_mesh = None
+
+    # Create a custom colourmap with lowest value as white
+    cmap = LinearSegmentedColormap.from_list("", ["white", "darkblue"])
+
+    # Iterate over datasets for plotting
+    for col_idx, label in enumerate(unique_labels):
+        # Each subplot takes up 2 grid spec columns and rows, each dataset is a new plot
+        mean_vec_ax = fig.add_subplot(gs[:2, col_idx * 2:(col_idx + 1) * 2])
+        var_vec_ax = fig.add_subplot(gs[2:, col_idx * 2:(col_idx + 1) * 2])
+
+        # Plot datasets heatmap
+        hist_mean = mean_vec_ax.hist2d(processed_ds[label]['x'], processed_ds[label]['mean_ds'], bins=[latent_dim, num_bins], range=[[-1, latent_dim + 1], [y_global_min - 1, y_global_max + 1]], cmap=cmap, vmin=0, vmax=max_count)  # type:ignore  # vmin and vmax (value) used for consistent colourbar
+        hist_var = var_vec_ax.hist2d(processed_ds[label]['x'], processed_ds[label]['var_ds'], bins=[latent_dim, num_bins], range=[[-1, latent_dim + 1], [y_global_min - 1, y_global_max + 1]], cmap=cmap, vmin=0, vmax=max_count)  # type:ignore
+
+        # Store first color mesh for colorbar
+        if colourbar_mesh is None:
+            colourbar_mesh = hist_mean[3]
+
+        # Set subplot titles
+        mean_vec_ax.set_title(f"{' '.join(word.capitalize() for word in label.split('_'))}")
+
+    # Add a single colourbar for all heatmaps
+    colourbar_ax = fig.add_subplot(gs[:, -1])
+    fig.colorbar(colourbar_mesh, cax=colourbar_ax, label="Frequency")
+
+    # Set global x-axis label
+    fig.text(0.5, 0.05, "Features", ha='center', fontsize=14)
+
+    # Set row titles
+    fig.text(0.02, 0.7, "Mean Features", va='center', rotation='vertical', fontsize=14, fontweight='bold')
+    fig.text(0.02, 0.3, "Log Variance Features", va='center', rotation='vertical', fontsize=14, fontweight='bold')
+
+    # Set main figure title
+    if title:
+        fig.suptitle(title, fontsize=16, fontweight='bold')
+
+    plt.show()
+
+    # Save plot
+    if filename is None:
+        filename = title.lower().replace(" ", "_").replace("_-_", "-").replace(":", "")
+    filepath = Path("PLOT_DIR") / f"{filename}.png"
+    filepath.parent.mkdir(parents=True, exist_ok=True)
+    fig.savefig(filepath)
+    print(f"Plot saved to '{filepath.name}'")
+
     plt.close(fig)
