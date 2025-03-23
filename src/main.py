@@ -139,7 +139,7 @@ def run():
         # Plot using PCA and UMAP
         evaluate_latent_vectors(component_mean_latents, component_labels, title=f"Component Based: {beta_used}", plot_idx=comp_featured_idxs, robot_ids=component_ids, annotate=True)
         evaluate_latent_vectors(spatial_mean_latents, spatial_labels, title=f"Spatial Based: {beta_used}", plot_idx=spatial_featured_idxs, robot_ids=spatial_ids, annotate=True)
-
+        exit()
         evaluate_latent_vectors(component_mean_latents, component_labels, title=f"Component Based: {beta_used}")
         evaluate_latent_vectors(spatial_mean_latents, spatial_labels, title=f"Spatial Based: {beta_used}")
         evaluate_latent_vectors(component_mean_latents, component_labels, title=f"Component Based (Dominance): {beta_used}", plot_set_colour="component_dominance")

@@ -496,8 +496,8 @@ def plot_latent_space_evaluation(transformed_data: np.ndarray, dataset_labels: l
                 selected_ids = [all_robot_ids[i] for i in idxs]
 
                 border_colour = {
-                    'Blue': [210406, 30678, 242949, 30383, 81347, 195043, 123338],
-                    'Red': [151167, 230604, 123954, 233356, 176868, 213295, 81445, 152089, 172427],
+                    'Blue': [210406, 30678, 195043, 242949, 123338, 152089, 30383, 81347,   46710, 235270, 193546, 214744, 125196, 18577, 244764],
+                    'Red': [81445, 176868, 213295, 230604, 151167, 172427, 123954, 233356,  83192, 222164, 224389, 270583, 131331, 86971, 100293],
                     'Orange': []
                 }
                 colours = ['Blue', 'Red', 'Orange']
@@ -541,6 +541,13 @@ def plot_latent_space_evaluation(transformed_data: np.ndarray, dataset_labels: l
             "ellipse": ellipse
         }
 
+    # Overall centre of mass
+    overall_x = ax.scatter(centres['overall'][0], centres['overall'][1], alpha=1, marker='X', s=150,
+                           edgecolors='black',
+                           color='gray', zorder=3)  # Overall centre of mass
+    legend_handles.append(overall_x)
+    legend_labels.append("Overall Centre of Mass")
+
     # Plot Eigenvectors
     if pca_model is not None:
         handles, eigenvals = plot_pca_eigenvectors(ax, pca_model)
@@ -558,6 +565,8 @@ def plot_latent_space_evaluation(transformed_data: np.ndarray, dataset_labels: l
         for j in range(i + 1, len(keys)):  # Only consider higher indices as don't need both directions
             label_a = keys[i]
             label_b = keys[j]
+            if label_a == 'overall' or label_b == 'overall':
+                continue
             centre_a = centres[label_a]
             centre_b = centres[label_b]
             distance = np.linalg.norm(centre_a - centre_b)
@@ -615,10 +624,26 @@ def plot_latent_space_evaluation(transformed_data: np.ndarray, dataset_labels: l
 
     # Plot centre of masses - separate loop so crosses are plotted on top of points
     for label, centre in centres.items():
+        if label == 'overall':
+            continue
         zorder = 0 if annotate else 5
         alpha = 0.3 if annotate else 1
         alpha = 0.3
         crosses = ax.scatter(centres[label][0], centres[label][1], alpha=alpha, marker='X', s=150, edgecolors='black', color=colour_idx[label], zorder=zorder)
+
+    max_dist = 0
+    for coord in transformed_data:
+        dist = np.linalg.norm(coord - centres['overall'])
+        if dist > max_dist:
+            max_dist = dist
+    print(f"\n{title}\nDistances to Overall Centre:")
+    for i, (robo_id, point_coord) in enumerate(zip(all_robot_ids, transformed_data)):
+        if i not in plot_idxs:
+            continue
+        dist = np.linalg.norm(point_coord - centres['overall'])
+        cls = 'Central' if dist < (max_dist/2) else 'Outer region'
+        print(f"{robo_id}: {cls}, {dist}")
+    print(f"\nMaximum distance for all data points\n(not just those selected): {max_dist}")
 
     # Obtain robot IDs for annotating and identifying points on click
     if all_robot_ids is not None:
@@ -630,8 +655,8 @@ def plot_latent_space_evaluation(transformed_data: np.ndarray, dataset_labels: l
             coor = transformed_data[plotted_idx]
             # Label points
             if annotate:
-                lower_labels = [81445, 210406, 30678, 30383, 172427]
-                right_labels = [81445, 30678, 81347, 30383, 172427]
+                lower_labels = [210406, 30678, 172427, 213295, 176868, 81347, 230604, 233356, 81445]
+                right_labels = [81347, 30383, 123954, 233356]
                 vertical = 'bottom' if rob_id not in lower_labels else 'top'  # Bottom is above, top is below
                 horizontal = 'right' if rob_id not in right_labels else 'left'  # Right is left, left is right
                 ax.text(coor[0], coor[1], rob_id, fontsize=12, verticalalignment=vertical, horizontalalignment=horizontal, zorder=5)
@@ -690,6 +715,7 @@ def compute_centres(latent_2d_vectors: np.ndarray, dataset_labels: list[str]) ->
     for label in unique_labels:
         idxs = np.array(dataset_labels) == label  # Bool array
         centres[label] = latent_2d_vectors[idxs].mean(axis=0)
+    centres['overall'] = latent_2d_vectors.mean(axis=0)
 
     return centres
 
