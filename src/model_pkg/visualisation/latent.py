@@ -492,9 +492,33 @@ def plot_latent_space_evaluation(transformed_data: np.ndarray, dataset_labels: l
         if plot_idxs is not None:
             idxs = [i for i in plot_idxs if idxs[i]]
             subset = transformed_data[idxs]
-            x = subset[:, 0]
-            y = subset[:, 1]
+            if annotate:
+                selected_ids = [all_robot_ids[i] for i in idxs]
+
+                border_colour = {
+                    'Blue': [210406, 30678, 242949, 30383, 81347, 195043, 123338],
+                    'Red': [151167, 230604, 123954, 233356, 176868, 213295, 81445, 152089, 172427],
+                    'Orange': []
+                }
+                colours = ['Blue', 'Red', 'Orange']
+                dots = None
+
+                for colour in colours:
+                    plot = []
+                    for coor, sel_id in zip(subset, selected_ids):
+                        if sel_id in border_colour[colour]:
+                            plot.append(coor)
+
+                    x = [x[0] for x in plot]
+                    y = [y[1] for y in plot]
+                    dots = ax.scatter(x, y, label=display_label, alpha=1, color=colour_idx[label], linewidth=2, zorder=5, edgecolors=colour)
+            else:
+                x = subset[:, 0]
+                y = subset[:, 1]
+
             dots = ax.scatter(x, y, label=display_label, alpha=alpha, color=colour_idx[label], linewidth=0.5, zorder=zorder)
+            # dots = ax.scatter([], [], label=display_label, alpha=alpha, color=colour_idx[label], linewidth=0.5, zorder=zorder, edgecolors='black')
+
         else:
             x = ds[:, 0]
             y = ds[:, 1]
@@ -602,12 +626,12 @@ def plot_latent_space_evaluation(transformed_data: np.ndarray, dataset_labels: l
         plotted_ids = []
         # Collect plotted coordinates and IDs, add text to plot
         for plotted_idx in plot_idxs:
-            coor = transformed_data[plotted_idx]
             rob_id = all_robot_ids[plotted_idx]
+            coor = transformed_data[plotted_idx]
             # Label points
             if annotate:
-                lower_labels = [42502, 252961]
-                right_labels = [112648]
+                lower_labels = [81445, 210406, 30678, 30383, 172427]
+                right_labels = [81445, 30678, 81347, 30383, 172427]
                 vertical = 'bottom' if rob_id not in lower_labels else 'top'  # Bottom is above, top is below
                 horizontal = 'right' if rob_id not in right_labels else 'left'  # Right is left, left is right
                 ax.text(coor[0], coor[1], rob_id, fontsize=12, verticalalignment=vertical, horizontalalignment=horizontal, zorder=5)
