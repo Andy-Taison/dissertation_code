@@ -547,6 +547,24 @@ def plot_latent_space_evaluation(transformed_data: np.ndarray, dataset_labels: l
                            color='gray', zorder=3)  # Overall centre of mass
     legend_handles.append(overall_x)
     legend_labels.append("Overall Centre of Mass")
+    # Decision boundary
+    max_dist = 0
+    for coord in transformed_data:
+        dist = np.linalg.norm(coord - centres['overall'])
+        if dist > max_dist:
+            max_dist = dist
+    circle_patch = patches.Circle((centres['overall'][0], centres['overall'][1]), radius=(max_dist / 2), edgecolor='grey', fill=False, linestyle='dashed', linewidth=2, zorder=1)
+    circle = ax.add_patch(circle_patch)
+    legend_handles.append(circle)
+    legend_labels.append("Decision Boundary")
+    print(f"\n{title}\nDistances to Overall Centre:")
+    for i, (robo_id, point_coord) in enumerate(zip(all_robot_ids, transformed_data)):
+        if i not in plot_idxs:
+            continue
+        dist = np.linalg.norm(point_coord - centres['overall'])
+        cls = 'Central' if dist < (max_dist / 2) else 'Outer region'
+        print(f"{robo_id}: {cls}, {dist}")
+    print(f"\nMaximum distance for all data points\n(not just those selected): {max_dist}")
 
     # Plot Eigenvectors
     if pca_model is not None:
@@ -631,20 +649,6 @@ def plot_latent_space_evaluation(transformed_data: np.ndarray, dataset_labels: l
         alpha = 0.3
         crosses = ax.scatter(centres[label][0], centres[label][1], alpha=alpha, marker='X', s=150, edgecolors='black', color=colour_idx[label], zorder=zorder)
 
-    max_dist = 0
-    for coord in transformed_data:
-        dist = np.linalg.norm(coord - centres['overall'])
-        if dist > max_dist:
-            max_dist = dist
-    print(f"\n{title}\nDistances to Overall Centre:")
-    for i, (robo_id, point_coord) in enumerate(zip(all_robot_ids, transformed_data)):
-        if i not in plot_idxs:
-            continue
-        dist = np.linalg.norm(point_coord - centres['overall'])
-        cls = 'Central' if dist < (max_dist/2) else 'Outer region'
-        print(f"{robo_id}: {cls}, {dist}")
-    print(f"\nMaximum distance for all data points\n(not just those selected): {max_dist}")
-
     # Obtain robot IDs for annotating and identifying points on click
     if all_robot_ids is not None:
         plotted_coor = []
@@ -655,8 +659,8 @@ def plot_latent_space_evaluation(transformed_data: np.ndarray, dataset_labels: l
             coor = transformed_data[plotted_idx]
             # Label points
             if annotate:
-                lower_labels = [210406, 30678, 172427, 213295, 176868, 81347, 230604, 233356, 81445]
-                right_labels = [81347, 30383, 123954, 233356]
+                lower_labels = [214744, 86971, 46710, 83192]
+                right_labels = [131331, 83192]
                 vertical = 'bottom' if rob_id not in lower_labels else 'top'  # Bottom is above, top is below
                 horizontal = 'right' if rob_id not in right_labels else 'left'  # Right is left, left is right
                 ax.text(coor[0], coor[1], rob_id, fontsize=12, verticalalignment=vertical, horizontalalignment=horizontal, zorder=5)
