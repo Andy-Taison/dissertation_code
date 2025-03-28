@@ -557,14 +557,33 @@ def plot_latent_space_evaluation(transformed_data: np.ndarray, dataset_labels: l
     circle = ax.add_patch(circle_patch)
     legend_handles.append(circle)
     legend_labels.append("Decision Boundary")
-    print(f"\n{title}\nDistances to Overall Centre:")
+    print(f"\n{title}")
+    robots_plotted = {
+        "ids": None,
+        "ids_list": [],
+        "coord": []
+    }
     for i, (robo_id, point_coord) in enumerate(zip(all_robot_ids, transformed_data)):
         if i not in plot_idxs:
             continue
+        robots_plotted['ids'] = f"{robots_plotted['ids']},   {robo_id}" if robots_plotted['ids'] is not None else f"\t  {robo_id}"
+        robots_plotted['ids_list'].append(robo_id)
+        robots_plotted['coord'].append(point_coord)
         dist = np.linalg.norm(point_coord - centres['overall'])
         cls = 'Central' if dist < (max_dist / 2) else 'Outer region'
-        print(f"{robo_id}: {cls}, {dist}")
-    print(f"\nMaximum distance for all data points\n(not just those selected): {max_dist}")
+        # print(f"{robo_id}: {cls}, {dist}")
+    # print(f"\nMaximum distance for all data points\n(not just those selected): {max_dist}")
+
+    torch.set_printoptions(linewidth=200)
+
+    # Pairwise distances
+    print("Pairwise distances:")
+    print(f"IDs: {robots_plotted['ids']}")
+    plotted_coord_array = np.array(robots_plotted['coord'])
+    plotted_coord_tensor = torch.from_numpy(plotted_coord_array)
+    plotted_pairwise_dist = torch.cdist(plotted_coord_tensor, plotted_coord_tensor, p=2)
+    print(plotted_pairwise_dist)
+    return plotted_pairwise_dist, robots_plotted['ids_list']
 
     # Plot Eigenvectors
     if pca_model is not None:
@@ -781,8 +800,21 @@ def evaluate_latent_vectors(latent_vectors: np.ndarray, dataset_labels: list[str
         title_suffix = f" - {title}"
 
     # Plot
-    plot_latent_space_evaluation(pca_data, dataset_labels, pca_centres, f"PCA Projection{title_suffix}", pca_model=pca, x_ax_min=x_ax_min, y_ax_min=y_ax_min, plot_set_colour=plot_set_colour, plot_idxs=plot_idx, all_robot_ids=robot_ids, annotate=annotate)
-    plot_latent_space_evaluation(umap_data, dataset_labels, umap_centres, f"UMAP Projection{title_suffix}", x_ax_min=x_ax_min, y_ax_min=y_ax_min, plot_set_colour=plot_set_colour, plot_idxs=plot_idx, all_robot_ids=robot_ids, annotate=annotate)
+    pairwise_pca, plotted_ids = plot_latent_space_evaluation(pca_data, dataset_labels, pca_centres, f"PCA Projection{title_suffix}", pca_model=pca, x_ax_min=x_ax_min, y_ax_min=y_ax_min, plot_set_colour=plot_set_colour, plot_idxs=plot_idx, all_robot_ids=robot_ids, annotate=annotate)
+    pairwise_umap, _ = plot_latent_space_evaluation(umap_data, dataset_labels, umap_centres, f"UMAP Projection{title_suffix}", x_ax_min=x_ax_min, y_ax_min=y_ax_min, plot_set_colour=plot_set_colour, plot_idxs=plot_idx, all_robot_ids=robot_ids, annotate=annotate)
+
+    threshold = 2.5
+    # Boolean mask for distances under threshold in both matrices
+    mask = (pairwise_pca < threshold) & (pairwise_umap < threshold)
+    # Remove self-pairs by zeroing the diagonal
+    mask.fill_diagonal_(False)
+    # Get indices of matching pairs (upper triangle only to avoid duplicates)
+    pairs = torch.nonzero(torch.triu(mask), as_tuple=False)
+    # Print matched sample pairs with distances
+    print()
+    for i, j in pairs:
+        print(f"Pair: {plotted_ids[i]} and {plotted_ids[j]}  |  PCA: {pairwise_pca[i, j]:.2f}, UMAP: {pairwise_umap[i, j]:.2f}")
+
 
 
 def plot_latent_features(mean_vectors: np.ndarray, var_vectors: np.ndarray, robot_ids: list[int], dataset_labels: list[str], title: str = None, x_ax_min: int = 0, y_ax_min: int = 0, plot_set_colour="all", filename: str = None):
